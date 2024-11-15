@@ -3,3 +3,4 @@ pub mod info;
 pub mod ls;
 pub mod set;
 pub mod tags;
+pub mod thes;

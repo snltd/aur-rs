@@ -49,6 +49,11 @@ enum Commands {
         /// One or more media files
         files: Vec<String>,
     },
+    /// Prefixes the artist name with "The" for all given file(s)
+    Thes {
+        /// One or more media files
+        files: Vec<String>,
+    },
 }
 
 fn handle_error(err: anyhow::Error) {
@@ -65,13 +70,14 @@ fn main() {
     let cli = Cli::parse();
     let result = match cli.command {
         Commands::Set { tag, value, files } => commands::set::run(&tag, &value, &files),
-        Commands::Get { property, files } => commands::get::run(&property, files),
-        Commands::Info { files } => commands::info::run(files),
-        Commands::Tags { files } => commands::tags::run(files),
+        Commands::Get { property, files } => commands::get::run(&property, &files),
+        Commands::Info { files } => commands::info::run(&files),
+        Commands::Thes { files } => commands::thes::run(&files),
+        Commands::Tags { files } => commands::tags::run(&files),
         Commands::Ls {
             recurse,
             directories,
-        } => commands::ls::run(directories, recurse),
+        } => commands::ls::run(&directories, recurse),
     };
 
     if let Err(e) = result {

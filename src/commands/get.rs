@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 type Info = (PathBuf, String);
 type InfoList = Vec<Info>;
 
-pub fn run(property: &str, files: Vec<String>) -> anyhow::Result<()> {
+pub fn run(property: &str, files: &[String]) -> anyhow::Result<()> {
     let file_info: InfoList = files
         .iter()
         .map(|file| {
@@ -53,7 +53,7 @@ mod test {
 
     #[test]
     fn test_run_no_file() {
-        if let Err(e) = run("testprop", vec!["/does/not/exist".to_string()]) {
+        if let Err(e) = run("testprop", &["/does/not/exist".to_string()]) {
             println!("{}", e);
         }
     }

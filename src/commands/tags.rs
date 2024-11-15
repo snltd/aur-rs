@@ -1,7 +1,7 @@
 use crate::common::info;
 use std::path::{Path, PathBuf};
 
-pub fn run(files: Vec<String>) -> anyhow::Result<()> {
+pub fn run(files: &[String]) -> anyhow::Result<()> {
     let file_info: Vec<_> = files
         .iter()
         .map(|file| info_for_file(&PathBuf::from(file)))
@@ -33,7 +33,7 @@ mod test {
 
     #[test]
     fn test_run_no_file() {
-        if let Err(e) = run(vec!["/does/not/exist".to_string()]) {
+        if let Err(e) = run(&["/does/not/exist".to_string()]) {
             println!("{}", e);
         }
     }

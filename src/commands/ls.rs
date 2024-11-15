@@ -3,15 +3,15 @@ use crate::common::{dir, info, term};
 use std::fs;
 use std::path::Path;
 
-pub fn run(dirlist: Vec<String>, recurse: bool) -> anyhow::Result<()> {
+pub fn run(dirlist: &[String], recurse: bool) -> anyhow::Result<()> {
     // If no argument is given, default to the cwd, just like real ls(1).
     let dirs = if dirlist.is_empty() {
-        vec![std::env::current_dir()?.to_string_lossy().to_string()]
+        &[std::env::current_dir()?.to_string_lossy().to_string()]
     } else {
         dirlist
     };
 
-    for dir in dir::expand_dirlist(dirs, recurse) {
+    for dir in dir::expand_dirlist(dirs.to_vec(), recurse) {
         print_listing(list_info(&dir)?);
     }
     Ok(())
