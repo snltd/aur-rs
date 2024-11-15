@@ -1,0 +1,11 @@
+ Filename : 01.test_artist.test_track.flac
+     Type : FLAC
+  Bitrate : 16-bit/44100Hz
+     Time : 00:00:00
+   Artist : Test Artist
+    Album : Test Album
+    Title : Test Track
+    Genre : Test Genre
+ Track no : 1
+     Year : 2024
+

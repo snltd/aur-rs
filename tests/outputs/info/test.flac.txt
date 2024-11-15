@@ -1,0 +1,12 @@
+ Filename : test.flac
+     Type : FLAC
+  Bitrate : 16-bit/44100Hz
+     Time : 0.5
+   Artist : Test Artist
+    Album : Test Album
+    Title : Test Title
+    Genre : Test Genre
+ Track no : 6
+     Year : 2021
+
+
