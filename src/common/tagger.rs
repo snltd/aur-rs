@@ -5,7 +5,7 @@ use std::path::PathBuf;
 
 // A common interface to apply the tags we're interested in to FLACs and MP3s.
 
-struct Tagger {
+pub struct Tagger {
     path: PathBuf,
     filetype: String,
     current_tags: AurTags,
@@ -20,28 +20,28 @@ impl Tagger {
         })
     }
 
-    fn set_artist(&self, value: &str) -> anyhow::Result<bool> {
+    pub fn set_artist(&self, value: &str) -> anyhow::Result<bool> {
         self.set_generic("artist", value)
     }
 
-    fn set_title(&self, value: &str) -> anyhow::Result<bool> {
+    pub fn set_title(&self, value: &str) -> anyhow::Result<bool> {
         self.set_generic("title", value)
     }
 
-    fn set_album(&self, value: &str) -> anyhow::Result<bool> {
+    pub fn set_album(&self, value: &str) -> anyhow::Result<bool> {
         self.set_generic("album", value)
     }
 
-    fn set_t_num(&self, value: &str) -> anyhow::Result<bool> {
+    pub fn set_t_num(&self, value: &str) -> anyhow::Result<bool> {
         self.set_generic("t_num", value)
     }
 
     // Watch out for this one! Some call it "year", others call it "date".
-    fn set_year(&self, value: &str) -> anyhow::Result<bool> {
+    pub fn set_year(&self, value: &str) -> anyhow::Result<bool> {
         self.set_generic("date", value)
     }
 
-    fn set_genre(&self, value: &str) -> anyhow::Result<bool> {
+    pub fn set_genre(&self, value: &str) -> anyhow::Result<bool> {
         self.set_generic("genre", value)
     }
 

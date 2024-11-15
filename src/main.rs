@@ -20,7 +20,6 @@ enum Commands {
         /// One or more media files
         files: Vec<String>,
     },
-
     /// Display the raw tags for the given file(s)
     Tags {
         /// One or more media files
@@ -41,6 +40,15 @@ enum Commands {
         /// One or more media files
         files: Vec<String>,
     },
+    /// Set a tag in one or more files
+    Set {
+        /// Tag name
+        tag: String,
+        /// Tag value
+        value: String,
+        /// One or more media files
+        files: Vec<String>,
+    },
 }
 
 fn handle_error(err: anyhow::Error) {
@@ -56,6 +64,7 @@ fn handle_error(err: anyhow::Error) {
 fn main() {
     let cli = Cli::parse();
     let result = match cli.command {
+        Commands::Set { tag, value, files } => commands::set::run(&tag, &value, &files),
         Commands::Get { property, files } => commands::get::run(&property, files),
         Commands::Info { files } => commands::info::run(files),
         Commands::Tags { files } => commands::tags::run(files),
