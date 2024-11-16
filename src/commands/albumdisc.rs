@@ -1,4 +1,4 @@
-use crate::common::info::AurMetadata;
+use crate::common::metadata::AurMetadata;
 use crate::common::tagger::Tagger;
 use regex::Regex;
 use std::path::{Path, PathBuf};

@@ -1,5 +1,5 @@
-use crate::common::info::AurTags;
-use crate::common::{dir, info, term};
+use crate::common::metadata::{AurMetadata, AurTags};
+use crate::common::{dir, term};
 use std::fs;
 use std::path::Path;
 
@@ -24,9 +24,7 @@ fn list_info(dir: &Path) -> anyhow::Result<Vec<String>> {
         .filter_map(|entry| entry.ok())
         .filter_map(|entry| {
             let file = entry.path();
-            info::AurMetadata::new(&file)
-                .ok()
-                .map(|metadata| metadata.tags)
+            AurMetadata::new(&file).ok().map(|metadata| metadata.tags)
         })
         .collect();
 

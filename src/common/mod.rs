@@ -1,5 +1,5 @@
 pub mod dir;
-pub mod info;
+pub mod metadata;
 pub mod string;
 pub mod tagger;
 pub mod term;

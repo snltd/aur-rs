@@ -1,4 +1,4 @@
-use crate::common::info;
+use crate::common::metadata::AurMetadata;
 use anyhow::anyhow;
 use std::path::{Path, PathBuf};
 
@@ -22,7 +22,7 @@ pub fn run(property: &str, files: &[String]) -> anyhow::Result<()> {
 }
 
 fn info_for_file(property: &str, file: &Path) -> anyhow::Result<String> {
-    let data = info::AurMetadata::new(file)?;
+    let data = AurMetadata::new(file)?;
 
     let ret = match property {
         "bit_depth" => data.quality.bit_depth.to_string(),

@@ -1,4 +1,4 @@
-use crate::common::info;
+use crate::common::metadata::AurMetadata;
 use std::path::{Path, PathBuf};
 
 pub fn run(files: &[String]) -> anyhow::Result<()> {
@@ -12,7 +12,7 @@ pub fn run(files: &[String]) -> anyhow::Result<()> {
 }
 
 fn info_for_file(file: &Path) -> anyhow::Result<Vec<String>> {
-    let data = info::AurMetadata::new(file)?;
+    let data = AurMetadata::new(file)?;
     let mut tags = data.rawtags;
     tags.sort();
     Ok(tags
