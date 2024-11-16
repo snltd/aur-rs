@@ -40,7 +40,6 @@ pub struct AurTags {
 }
 
 #[derive(Debug)]
-#[allow(dead_code)]
 pub struct AurQuality {
     pub bit_depth: u16,
     pub sample_rate: u32,
@@ -48,7 +47,6 @@ pub struct AurQuality {
 }
 
 #[derive(Debug)]
-#[allow(dead_code)]
 pub struct AurTime {
     pub raw: u64,
     pub formatted: String,
