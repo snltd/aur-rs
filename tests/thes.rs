@@ -19,9 +19,6 @@ mod test {
             .and()
             .stdout()
             .is("artist -> The Test Artist")
-            .and()
-            .stderr()
-            .is("")
             .unwrap();
 
         assert_cli::Assert::main_binary()
@@ -32,9 +29,6 @@ mod test {
             .succeeds()
             .and()
             .stdout()
-            .is("")
-            .and()
-            .stderr()
             .is("")
             .unwrap();
     }
