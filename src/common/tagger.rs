@@ -72,7 +72,17 @@ impl Tagger {
 
     fn set_flac_tag(&self, tag_name: &str, value: &str) -> anyhow::Result<bool> {
         let mut tag = metaflac::Tag::read_from_path(&self.path)?;
-        tag.set_vorbis(tag_name.to_string(), vec![value]);
+        let val = vec![value];
+
+        match tag_name {
+            "artist" => tag.set_vorbis("artist".to_string(), val),
+            "album" => tag.set_vorbis("album".to_string(), val),
+            "title" => tag.set_vorbis("title".to_string(), val),
+            "t_num" => tag.set_vorbis("tracknumber".to_string(), val),
+            "date" => tag.set_vorbis("date".to_string(), val),
+            "genre" => tag.set_vorbis("genre".to_string(), val),
+            _ => return Err(anyhow!("unknown tag name")),
+        }
         tag.save()?;
         Ok(true)
     }

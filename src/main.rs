@@ -15,13 +15,20 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Commands {
-    /// Shows tag, time, and bitrate information about the given file(s)
-    Info {
+    /// If the given files are in a disc_n directory, add (Disc n) to the album tag
+    Albumdisc {
         /// One or more media files
         files: Vec<String>,
     },
-    /// Display the raw tags for the given file(s)
-    Tags {
+    /// Display a given property for the given file(s)
+    Get {
+        /// Property, e.g. time, title, or bitrate
+        property: String,
+        /// One or more media files
+        files: Vec<String>,
+    },
+    /// Shows tag, time, and bitrate information about the given file(s)
+    Info {
         /// One or more media files
         files: Vec<String>,
     },
@@ -33,10 +40,8 @@ enum Commands {
         /// Directories to list
         directories: Vec<String>,
     },
-    /// Display a given property for the given file(s)
-    Get {
-        /// Property, e.g. time, title, or bitrate
-        property: String,
+    /// If the file name begins with a number, set its track number tag to that number
+    Name2num {
         /// One or more media files
         files: Vec<String>,
     },
@@ -49,13 +54,13 @@ enum Commands {
         /// One or more media files
         files: Vec<String>,
     },
-    /// Prefixes the artist name with "The" for all given file(s)
-    Thes {
+    /// Display the raw tags for the given file(s)
+    Tags {
         /// One or more media files
         files: Vec<String>,
     },
-    /// If the given files are in a disc_n directory, add (Disc n) to the album tag
-    Albumdisc {
+    /// Prefixes the artist name with "The" for all given file(s)
+    Thes {
         /// One or more media files
         files: Vec<String>,
     },
@@ -74,16 +79,17 @@ fn handle_error(err: anyhow::Error) {
 fn main() {
     let cli = Cli::parse();
     let result = match cli.command {
-        Commands::Set { tag, value, files } => commands::set::run(&tag, &value, &files),
-        Commands::Get { property, files } => commands::get::run(&property, &files),
         Commands::Albumdisc { files } => commands::albumdisc::run(&files),
+        Commands::Get { property, files } => commands::get::run(&property, &files),
         Commands::Info { files } => commands::info::run(&files),
-        Commands::Thes { files } => commands::thes::run(&files),
-        Commands::Tags { files } => commands::tags::run(&files),
         Commands::Ls {
             recurse,
             directories,
         } => commands::ls::run(&directories, recurse),
+        Commands::Name2num { files } => commands::name2num::run(&files),
+        Commands::Set { tag, value, files } => commands::set::run(&tag, &value, &files),
+        Commands::Tags { files } => commands::tags::run(&files),
+        Commands::Thes { files } => commands::thes::run(&files),
     };
 
     if let Err(e) = result {
