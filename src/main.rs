@@ -54,6 +54,11 @@ enum Commands {
         /// One or more media files
         files: Vec<String>,
     },
+    /// If the given files are in a disc_n directory, add (Disc n) to the album tag
+    Albumdisc {
+        /// One or more media files
+        files: Vec<String>,
+    },
 }
 
 fn handle_error(err: anyhow::Error) {
@@ -71,6 +76,7 @@ fn main() {
     let result = match cli.command {
         Commands::Set { tag, value, files } => commands::set::run(&tag, &value, &files),
         Commands::Get { property, files } => commands::get::run(&property, &files),
+        Commands::Albumdisc { files } => commands::albumdisc::run(&files),
         Commands::Info { files } => commands::info::run(&files),
         Commands::Thes { files } => commands::thes::run(&files),
         Commands::Tags { files } => commands::tags::run(&files),
