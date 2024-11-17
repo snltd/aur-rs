@@ -1,72 +1,47 @@
 use crate::common::metadata::AurMetadata;
-use anyhow::anyhow;
-use std::path::{Path, PathBuf};
-
-type RenameOption = Option<RenameAction>;
-type RenameAction = (PathBuf, PathBuf);
+use crate::common::rename;
+use std::path::Path;
 
 pub fn run(files: &[String]) -> anyhow::Result<()> {
-    for file in files {
-        match rename_action(&PathBuf::from(file))? {
-            Some(action) => rename(action)?,
-            None => continue, // Skip to the next file if there's no action
-        }
-    }
-    Ok(())
+    rename::rename_files(files, rename_action)
 }
 
-fn number_from_filename(fname: &str) -> Option<(String, u32)> {
-    let bits = fname.split('.').collect::<Vec<&str>>();
-
-    match bits.first() {
-        Some(bit) => match bit.parse::<u32>() {
-            Ok(num) => Some((bit.to_string(), num)),
-            Err(_) => None,
-        },
-        None => None,
-    }
-}
-
-fn padded_num(num: u32) -> String {
-    format!("{:02}", num)
-}
-
-fn rename((src, dest): RenameAction) -> anyhow::Result<()> {
-    if dest.exists() {
-        Err(anyhow!(format!("destination exists: {}", dest.display())))
-    } else {
-        println!(
-            "  {} -> {}",
-            src.file_name().unwrap().to_string_lossy(),
-            dest.file_name().unwrap().to_string_lossy(),
-        );
-        std::fs::rename(src, dest).map_err(|e| anyhow::anyhow!(e))
-    }
-}
-
-fn rename_action(file: &Path) -> anyhow::Result<RenameOption> {
+pub fn rename_action(file: &Path) -> anyhow::Result<rename::RenameOption> {
     let info = AurMetadata::new(file)?;
     let tag_track_number = info.tags.t_num;
+    let filename = &info.filename;
 
-    let dest_name: String;
+    match rename::number_from_filename(filename.as_str()) {
+        Some((num_str, num_u32)) => {
+            if num_u32 == tag_track_number {
+                return Ok(None);
+            }
 
-    if let Some((num_str, num_u32)) = number_from_filename(info.filename.as_str()) {
-        // file has a number already
-        if num_u32 == tag_track_number {
-            return Ok(None);
-        } else {
-            dest_name =
-                info.filename
-                    .replacen(num_str.as_str(), padded_num(tag_track_number).as_str(), 1);
+            let dest_name = filename.replacen(
+                num_str.as_str(),
+                rename::padded_num(tag_track_number).as_str(),
+                1,
+            );
+
+            let dest = info
+                .path
+                .parent()
+                .ok_or_else(|| anyhow::anyhow!("Failed to get directory of {:?}", file))?
+                .join(dest_name);
+
+            Ok(Some((file.to_path_buf(), dest)))
         }
-    } else {
-        // File does not have a leadnign number so give it the tag.
-        dest_name = format!("{}.{}", padded_num(tag_track_number), info.filename);
+        None => {
+            let dest_name = format!("{}.{}", rename::padded_num(tag_track_number), filename);
+            let dest = info
+                .path
+                .parent()
+                .ok_or_else(|| anyhow::anyhow!("Failed to get directory of {:?}", file))?
+                .join(dest_name);
+
+            Ok(Some((file.to_path_buf(), dest)))
+        }
     }
-
-    let dest = info.path.parent().unwrap().join(dest_name);
-
-    Ok(Some((file.to_path_buf(), dest.to_path_buf())))
 }
 
 #[cfg(test)]
@@ -79,27 +54,6 @@ mod test {
         if let Err(e) = run(&["/does/not/exist".to_string()]) {
             println!("{}", e);
         }
-    }
-
-    #[test]
-    fn test_number_from_filename() {
-        assert_eq!(
-            ("03".to_string(), 3),
-            number_from_filename("03.singer.song.flac").unwrap()
-        );
-        assert_eq!(
-            ("99".to_string(), 99),
-            number_from_filename("99.singer.song.flac").unwrap()
-        );
-        assert_eq!(None, number_from_filename("singer.song.flac"));
-        assert_eq!(None, number_from_filename(".0a.singer.song.flac"));
-    }
-
-    #[test]
-    fn test_padded_num() {
-        assert_eq!("01".to_string(), padded_num(1));
-        assert_eq!("00".to_string(), padded_num(0));
-        assert_eq!("76".to_string(), padded_num(76));
     }
 
     #[test]

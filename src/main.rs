@@ -59,6 +59,11 @@ enum Commands {
         /// One or more media files
         files: Vec<String>,
     },
+    /// Rename the file(s) according to its tags
+    Tag2name {
+        /// One or more media files
+        files: Vec<String>,
+    },
     /// Display the raw tags for the given file(s)
     Tags {
         /// One or more media files
@@ -94,6 +99,7 @@ fn main() {
         Commands::Name2num { files } => commands::name2num::run(&files),
         Commands::Num2name { files } => commands::num2name::run(&files),
         Commands::Set { tag, value, files } => commands::set::run(&tag, &value, &files),
+        Commands::Tag2name { files } => commands::tag2name::run(&files),
         Commands::Tags { files } => commands::tags::run(&files),
         Commands::Thes { files } => commands::thes::run(&files),
     };

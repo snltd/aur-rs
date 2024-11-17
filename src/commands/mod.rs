@@ -5,5 +5,6 @@ pub mod ls;
 pub mod name2num;
 pub mod num2name;
 pub mod set;
+pub mod tag2name;
 pub mod tags;
 pub mod thes;
