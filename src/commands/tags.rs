@@ -1,4 +1,4 @@
-use crate::common::metadata::AurMetadata;
+use crate::utils::metadata::AurMetadata;
 use std::path::{Path, PathBuf};
 
 pub fn run(files: &[String]) -> anyhow::Result<()> {
@@ -29,7 +29,7 @@ fn print_file_info(info: &[String]) {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::common::spec_helper::fixture;
+    use crate::utils::spec_helper::fixture;
 
     #[test]
     fn test_run_no_file() {

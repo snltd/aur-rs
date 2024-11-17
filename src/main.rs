@@ -1,9 +1,6 @@
 use clap::{Parser, Subcommand};
 mod commands;
-mod common;
-
-// use crate::common::info;
-// use std::path::PathBuf;
+mod utils;
 
 #[derive(Parser)]
 #[clap(version, about = "Seriously opinionated FLAC and MP3 tagger", long_about = None)]

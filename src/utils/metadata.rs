@@ -264,7 +264,7 @@ impl Default for AurTags {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::common::spec_helper::fixture;
+    use crate::utils::spec_helper::fixture;
 
     #[test]
     fn test_metadata_valid_files() {

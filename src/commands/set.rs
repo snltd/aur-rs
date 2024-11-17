@@ -1,5 +1,5 @@
-use crate::common::metadata::AurMetadata;
-use crate::common::tagger::Tagger;
+use crate::utils::metadata::AurMetadata;
+use crate::utils::tagger::Tagger;
 use anyhow::anyhow;
 use std::path::{Path, PathBuf};
 
@@ -29,7 +29,7 @@ fn tag_file(key: &str, value: &str, file: &Path) -> anyhow::Result<bool> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::common::spec_helper::fixture;
+    use crate::utils::spec_helper::fixture;
     use assert_fs::prelude::*;
 
     #[test]

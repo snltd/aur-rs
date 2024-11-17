@@ -1,5 +1,5 @@
-use crate::common::metadata::{AurMetadata, AurTags};
-use crate::common::{dir, term};
+use crate::utils::metadata::{AurMetadata, AurTags};
+use crate::utils::{dir, term};
 use std::fs;
 use std::path::Path;
 
@@ -55,7 +55,7 @@ fn print_listing(lines: Vec<String>) {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::common::spec_helper::fixture;
+    use crate::utils::spec_helper::fixture;
 
     #[test]
     fn test_list_info() {

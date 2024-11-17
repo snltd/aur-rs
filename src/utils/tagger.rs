@@ -1,4 +1,4 @@
-use crate::common::metadata::{AurMetadata, AurTags};
+use crate::utils::metadata::{AurMetadata, AurTags};
 use anyhow::anyhow;
 use id3::TagLike;
 use std::path::PathBuf;
@@ -108,8 +108,8 @@ impl Tagger {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::common::metadata::AurMetadata;
-    use crate::common::spec_helper::fixture;
+    use crate::utils::metadata::AurMetadata;
+    use crate::utils::spec_helper::fixture;
     use assert_fs::prelude::*;
 
     #[test]

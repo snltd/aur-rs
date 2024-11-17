@@ -1,5 +1,5 @@
-use crate::common::metadata::AurMetadata;
-use crate::common::rename;
+use crate::utils::metadata::AurMetadata;
+use crate::utils::rename;
 use std::path::Path;
 
 pub fn run(files: &[String]) -> anyhow::Result<()> {
@@ -28,7 +28,7 @@ fn rename_action(file: &Path) -> anyhow::Result<rename::RenameOption> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::common::spec_helper::fixture;
+    use crate::utils::spec_helper::fixture;
 
     #[test]
     fn test_run_no_file() {
