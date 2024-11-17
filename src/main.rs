@@ -45,6 +45,11 @@ enum Commands {
         /// One or more media files
         files: Vec<String>,
     },
+    /// Prefix the file's name with its zero-padded track number
+    Num2name {
+        /// One or more media files
+        files: Vec<String>,
+    },
     /// Set a tag in one or more files
     Set {
         /// Tag name
@@ -87,6 +92,7 @@ fn main() {
             directories,
         } => commands::ls::run(&directories, recurse),
         Commands::Name2num { files } => commands::name2num::run(&files),
+        Commands::Num2name { files } => commands::num2name::run(&files),
         Commands::Set { tag, value, files } => commands::set::run(&tag, &value, &files),
         Commands::Tags { files } => commands::tags::run(&files),
         Commands::Thes { files } => commands::thes::run(&files),
