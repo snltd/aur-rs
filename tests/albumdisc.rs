@@ -5,8 +5,6 @@ mod test {
 
     #[test]
     fn test_cli() {
-        // let file_name = "test.flac";
-
         let tmp = assert_fs::TempDir::new().unwrap();
         tmp.child("album/disc_3").create_dir_all().unwrap();
         let target = tmp.child("album/disc_3");
@@ -18,9 +16,6 @@ mod test {
             .unwrap();
 
         let file_under_test = target.path().join("01.artist.song.mp3");
-        // let tmp = assert_fs::TempDir::new().unwrap();
-        // tmp.copy_from(fixture("info"), &[file_name]).unwrap();
-        // let file_under_test = tmp.path().join(file_name);
 
         assert_cli::Assert::main_binary()
             .with_args(&[
