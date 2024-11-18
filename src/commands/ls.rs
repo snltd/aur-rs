@@ -11,7 +11,7 @@ pub fn run(dirlist: &[String], recurse: bool) -> anyhow::Result<()> {
         dirlist
     };
 
-    for dir in dir::expand_dirlist(dirs.to_vec(), recurse) {
+    for dir in dir::expand_dir_list(dirs.to_vec(), recurse) {
         print_listing(list_info(&dir)?);
     }
     Ok(())

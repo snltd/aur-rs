@@ -5,6 +5,10 @@ pub trait ToSafe {
     fn to_safe(&self) -> String;
 }
 
+pub trait ReplaceLast {
+    fn replace_last(&self, from: &str, to: &str) -> String;
+}
+
 impl ToSafe for String {
     // The rules for making a filename-safe string are to:
     //   - replace accented characters with basic Latin
@@ -75,6 +79,23 @@ impl ToSafe for &str {
     }
 }
 
+impl ReplaceLast for String {
+    fn replace_last(&self, from: &str, to: &str) -> String {
+        if let Some(idx) = self.rfind(from) {
+            let (start, end) = self.split_at(idx);
+            format!("{}{}{}", start, to, &end[from.len()..])
+        } else {
+            self.to_string()
+        }
+    }
+}
+
+impl ReplaceLast for &str {
+    fn replace_last(&self, from: &str, to: &str) -> String {
+        self.to_string().replace_last(from, to)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -118,5 +139,12 @@ mod test {
             "I'm almost sure you're not...".to_safe(),
             "im_almost_sure_youre_not"
         );
+    }
+
+    #[test]
+    fn test_replace_last() {
+        assert_eq!("filename.mp3", "filename.flac".replace_last("flac", "mp3"));
+        assert_eq!("flacname.mp3", "flacname.flac".replace_last("flac", "mp3"));
+        assert_eq!("me_me_me_you", "me_me_me_me".replace_last("me", "you"));
     }
 }

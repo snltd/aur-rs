@@ -17,6 +17,17 @@ enum Commands {
         /// One or more media files
         files: Vec<String>,
     },
+    /// Assuming parallel flac/ and mp3/ directories, copies tags from FLACs to MP3s
+    Copytags {
+        /// Recurse
+        #[arg(short, long)]
+        recurse: bool,
+        /// Force tag copy: otherwise tags are only copied if the source is newer
+        #[arg(short, long)]
+        force: bool,
+        /// Files and/or directories to retag
+        files: Vec<String>,
+    },
     /// Display a given property for the given file(s)
     Get {
         /// Property, e.g. time, title, or bitrate
@@ -87,6 +98,11 @@ fn main() {
     let cli = Cli::parse();
     let result = match cli.command {
         Commands::Albumdisc { files } => commands::albumdisc::run(&files),
+        Commands::Copytags {
+            recurse,
+            force,
+            files,
+        } => commands::copytags::run(&files, &utils::types::CopytagsOptions { recurse, force }),
         Commands::Get { property, files } => commands::get::run(&property, &files),
         Commands::Info { files } => commands::info::run(&files),
         Commands::Ls {
