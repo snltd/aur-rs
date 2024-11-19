@@ -29,7 +29,7 @@ fn format_dupes(dupe_cluster: Vec<PathBuf>) -> String {
     dupe_cluster[1..]
         .iter()
         .for_each(|d| ret.push_str(&format!("\n  {}", d.display())));
-    ret.push_str("\n");
+    ret.push('\n');
 
     ret
 }
