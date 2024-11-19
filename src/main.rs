@@ -28,6 +28,8 @@ enum Commands {
         /// Files and/or directories to retag
         files: Vec<String>,
     },
+    /// Finds files in tracks/ which could be duplicates of tracks in albums/ or eps/.
+    Dupes { root_dir: String },
     /// Display a given property for the given file(s)
     Get {
         /// Property, e.g. time, title, or bitrate
@@ -103,6 +105,7 @@ fn main() {
             force,
             files,
         } => commands::copytags::run(&files, &utils::types::CopytagsOptions { recurse, force }),
+        Commands::Dupes { root_dir } => commands::dupes::run(&root_dir),
         Commands::Get { property, files } => commands::get::run(&property, &files),
         Commands::Info { files } => commands::info::run(&files),
         Commands::Ls {

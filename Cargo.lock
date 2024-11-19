@@ -119,6 +119,7 @@ dependencies = [
  "assert_fs",
  "clap",
  "id3",
+ "lazy_static",
  "metaflac",
  "mp3-metadata",
  "regex",
