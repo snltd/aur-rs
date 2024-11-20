@@ -287,9 +287,6 @@ mod test {
         assert_eq!(expected_tags, mp3_result.tags);
         assert_eq!("64kbps".to_string(), mp3_result.quality.formatted);
         assert_eq!("00:00:00".to_string(), mp3_result.time.formatted);
-
-        println!("{:?}", flac_result.rawtags);
-        println!("{:?}", mp3_result.rawtags);
     }
 
     #[test]

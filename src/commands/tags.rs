@@ -33,9 +33,7 @@ mod test {
 
     #[test]
     fn test_run_no_file() {
-        if let Err(e) = run(&["/does/not/exist".to_string()]) {
-            println!("{}", e);
-        }
+        assert!(run(&["/does/not/exist".to_string()]).is_err());
     }
 
     #[test]
@@ -44,8 +42,6 @@ mod test {
             info_for_file(&fixture("commands/tags/01.test_artist.test_track.flac")).unwrap();
         let mp3_result =
             info_for_file(&fixture("commands/tags/01.test_artist.test_track.mp3")).unwrap();
-
-        println!("{:#?}", flac_result);
 
         assert_eq!(14, flac_result.len());
         assert_eq!("         album : Test Album".to_string(), flac_result[0]);

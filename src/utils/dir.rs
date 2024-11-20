@@ -66,7 +66,6 @@ fn collect_directories(dir: &Path, aggr: &mut HashSet<PathBuf>) {
 mod tests {
     use super::*;
     use aur::test_utils::spec_helper::{fixture, fixture_as_string};
-    // use std::{fs, ptr::slice_from_raw_parts_mut};
     use tempfile::tempdir;
 
     #[test]
