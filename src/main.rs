@@ -42,6 +42,11 @@ enum Commands {
         /// One or more media files
         files: Vec<String>,
     },
+    /// For each given file, interactively supply a track number
+    Inumber {
+        /// One or more media files
+        files: Vec<String>,
+    },
     /// Shows tag information about files in the given directory, one file per line
     Ls {
         /// Recurse
@@ -108,6 +113,7 @@ fn main() {
         Commands::Dupes { root_dir } => commands::dupes::run(&root_dir),
         Commands::Get { property, files } => commands::get::run(&property, &files),
         Commands::Info { files } => commands::info::run(&files),
+        Commands::Inumber { files } => commands::inumber::run(&files),
         Commands::Ls {
             recurse,
             directories,

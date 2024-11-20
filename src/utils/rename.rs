@@ -1,3 +1,4 @@
+use crate::utils::metadata::AurMetadata;
 use crate::utils::string::ToSafe;
 use anyhow::anyhow;
 use std::path::{Path, PathBuf};
@@ -46,8 +47,10 @@ pub fn safe_filename(num: u32, artist: &str, title: &str, filetype: &str) -> Str
     )
 }
 
-fn rename((src, dest): RenameAction) -> anyhow::Result<()> {
-    if dest.exists() {
+pub fn rename((src, dest): RenameAction) -> anyhow::Result<bool> {
+    if src == dest {
+        Ok(false)
+    } else if dest.exists() {
         Err(anyhow!(format!("destination exists: {}", dest.display())))
     } else {
         println!(
@@ -55,13 +58,51 @@ fn rename((src, dest): RenameAction) -> anyhow::Result<()> {
             src.file_name().unwrap().to_string_lossy(),
             dest.file_name().unwrap().to_string_lossy(),
         );
-        std::fs::rename(src, dest).map_err(|e| anyhow::anyhow!(e))
+        std::fs::rename(src, dest).map_err(|e| anyhow::anyhow!(e))?;
+        Ok(true)
     }
+}
+
+// Makes the file number match the tag number
+pub fn renumber_file(info: &AurMetadata) -> anyhow::Result<RenameOption> {
+    let filename = info.filename.as_str();
+    let tag_track_number = info.tags.t_num;
+
+    let dest_name = match number_from_filename(filename) {
+        Some((num_str, num_u32)) => {
+            if num_u32 == tag_track_number {
+                return Ok(None);
+            }
+
+            filename.replacen(num_str.as_str(), padded_num(tag_track_number).as_str(), 1)
+        }
+        None => {
+            format!("{}.{}", padded_num(tag_track_number), filename)
+        }
+    };
+
+    let dest = info
+        .path
+        .parent()
+        .ok_or_else(|| anyhow::anyhow!("Failed to get directory of {:?}", info.path))?
+        .join(dest_name);
+
+    Ok(Some((info.path.to_owned(), dest)))
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::utils::spec_helper::fixture;
+
+    #[test]
+    fn test_renumber_file() {
+        let info = AurMetadata::new(&fixture("rename/test.mp3")).unwrap();
+        assert_eq!(
+            (fixture("rename/test.mp3"), fixture("rename/06.test.mp3")),
+            renumber_file(&info).unwrap().unwrap(),
+        );
+    }
 
     #[test]
     fn test_padded_num() {

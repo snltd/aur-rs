@@ -3,6 +3,7 @@ pub mod copytags;
 pub mod dupes;
 pub mod get;
 pub mod info;
+pub mod inumber;
 pub mod ls;
 pub mod name2num;
 pub mod num2name;
