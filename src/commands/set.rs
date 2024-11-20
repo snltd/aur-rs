@@ -13,7 +13,7 @@ pub fn run(tag: &str, value: &str, files: &[String]) -> anyhow::Result<()> {
 
 fn tag_file(key: &str, value: &str, file: &Path) -> anyhow::Result<bool> {
     let info = AurMetadata::new(file)?;
-    let tagger = Tagger::new(info)?;
+    let tagger = Tagger::new(&info)?;
 
     match key {
         "artist" => tagger.set_artist(value),

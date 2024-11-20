@@ -5,18 +5,18 @@ use std::path::PathBuf;
 
 // A common interface to apply the tags we're interested in to FLACs and MP3s.
 
-pub struct Tagger {
-    path: PathBuf,
-    filetype: String,
-    current_tags: AurTags,
+pub struct Tagger<'a> {
+    path: &'a PathBuf,
+    filetype: &'a String,
+    current_tags: &'a AurTags,
 }
 
-impl Tagger {
-    pub fn new(fileinfo: AurMetadata) -> anyhow::Result<Self> {
+impl<'a> Tagger<'a> {
+    pub fn new(fileinfo: &'a AurMetadata) -> anyhow::Result<Self> {
         Ok(Tagger {
-            path: fileinfo.path,
-            filetype: fileinfo.filetype,
-            current_tags: fileinfo.tags,
+            path: &fileinfo.path,
+            filetype: &fileinfo.filetype,
+            current_tags: &fileinfo.tags,
         })
     }
 
@@ -119,7 +119,7 @@ mod test {
         tmp.copy_from(fixture("info"), &[file]).unwrap();
         let flac = tmp.path().join(file);
         let original_info = AurMetadata::new(&flac).unwrap();
-        let tagger = Tagger::new(original_info).unwrap();
+        let tagger = Tagger::new(&original_info).unwrap();
         assert_eq!(tagger.current_tags.artist, "Test Artist".to_string());
         assert!(!tagger.set_artist("Test Artist").unwrap());
         assert!(tagger.set_artist("New Artist").unwrap());
@@ -134,7 +134,7 @@ mod test {
         tmp.copy_from(fixture("info"), &[file]).unwrap();
         let flac = tmp.path().join(file);
         let original_info = AurMetadata::new(&flac).unwrap();
-        let tagger = Tagger::new(original_info).unwrap();
+        let tagger = Tagger::new(&original_info).unwrap();
         assert_eq!(tagger.current_tags.album, "Test Album".to_string());
         assert!(!tagger.set_album("Test Album").unwrap());
         assert!(tagger.set_album("New Album").unwrap());
@@ -149,7 +149,7 @@ mod test {
         tmp.copy_from(fixture("info"), &[file]).unwrap();
         let flac = tmp.path().join(file);
         let original_info = AurMetadata::new(&flac).unwrap();
-        let tagger = Tagger::new(original_info).unwrap();
+        let tagger = Tagger::new(&original_info).unwrap();
         assert_eq!(tagger.current_tags.title, "Test Title".to_string());
         assert!(!tagger.set_title("Test Title").unwrap());
         assert!(tagger.set_title("New Title").unwrap());
@@ -164,7 +164,7 @@ mod test {
         tmp.copy_from(fixture("info"), &[file]).unwrap();
         let flac = tmp.path().join(file);
         let original_info = AurMetadata::new(&flac).unwrap();
-        let tagger = Tagger::new(original_info).unwrap();
+        let tagger = Tagger::new(&original_info).unwrap();
         assert_eq!(tagger.current_tags.genre, "Test Genre".to_string());
         assert!(!tagger.set_genre("Test Genre").unwrap());
         assert!(tagger.set_genre("New Genre").unwrap());
@@ -179,7 +179,7 @@ mod test {
         tmp.copy_from(fixture("info"), &[file]).unwrap();
         let flac = tmp.path().join(file);
         let original_info = AurMetadata::new(&flac).unwrap();
-        let tagger = Tagger::new(original_info).unwrap();
+        let tagger = Tagger::new(&original_info).unwrap();
         assert_eq!(tagger.current_tags.year, 2021);
         assert!(!tagger.set_year("2021").unwrap());
         assert!(tagger.set_year("2001").unwrap());

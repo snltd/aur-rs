@@ -8,40 +8,7 @@ pub fn run(files: &[String]) -> anyhow::Result<()> {
 
 pub fn rename_action(file: &Path) -> anyhow::Result<rename::RenameOption> {
     let info = AurMetadata::new(file)?;
-    let tag_track_number = info.tags.t_num;
-    let filename = &info.filename;
-
-    match rename::number_from_filename(filename.as_str()) {
-        Some((num_str, num_u32)) => {
-            if num_u32 == tag_track_number {
-                return Ok(None);
-            }
-
-            let dest_name = filename.replacen(
-                num_str.as_str(),
-                rename::padded_num(tag_track_number).as_str(),
-                1,
-            );
-
-            let dest = info
-                .path
-                .parent()
-                .ok_or_else(|| anyhow::anyhow!("Failed to get directory of {:?}", file))?
-                .join(dest_name);
-
-            Ok(Some((file.to_path_buf(), dest)))
-        }
-        None => {
-            let dest_name = format!("{}.{}", rename::padded_num(tag_track_number), filename);
-            let dest = info
-                .path
-                .parent()
-                .ok_or_else(|| anyhow::anyhow!("Failed to get directory of {:?}", file))?
-                .join(dest_name);
-
-            Ok(Some((file.to_path_buf(), dest)))
-        }
-    }
+    rename::renumber_file(&info)
 }
 
 #[cfg(test)]

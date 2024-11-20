@@ -18,7 +18,7 @@ fn tag_file(file: &Path) -> anyhow::Result<bool> {
         return Ok(false);
     }
 
-    let tagger = Tagger::new(info)?;
+    let tagger = Tagger::new(&info)?;
     tagger.set_artist(format!("The {}", current_artist).as_str())
 }
 

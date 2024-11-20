@@ -31,7 +31,7 @@ fn tag_file(file: &Path, opts: &CopytagsOptions) -> anyhow::Result<bool> {
         return Ok(false);
     }
 
-    let tagger = Tagger::new(info)?;
+    let tagger = Tagger::new(&info)?;
 
     let changes = [
         tagger.set_artist(partner_tags.artist.as_str())?,

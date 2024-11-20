@@ -34,7 +34,7 @@ fn tag_file(file: &Path) -> anyhow::Result<bool> {
         return Ok(false);
     }
 
-    let tagger = Tagger::new(info)?;
+    let tagger = Tagger::new(&info)?;
     tagger.set_t_num(suggested_track_number.to_string().as_str())
 }
 

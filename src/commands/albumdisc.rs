@@ -47,7 +47,7 @@ fn tag_file(file: &Path, rx: &Regex) -> anyhow::Result<bool> {
         return Ok(false);
     }
 
-    let tagger = Tagger::new(info)?;
+    let tagger = Tagger::new(&info)?;
     tagger.set_album(format!("{}{}", current_album_name, end_pattern).as_str())
 }
 
