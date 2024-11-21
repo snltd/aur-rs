@@ -65,6 +65,16 @@ enum Commands {
         /// One or more media files
         files: Vec<String>,
     },
+    /// Increments or decrements tag and filename numbers
+    Renumber {
+        /// renumber up or down
+        #[arg(value_enum)]
+        direction: utils::types::RenumberDirection,
+        /// Increment/decrement delta
+        delta: u32,
+        /// One or more media files
+        files: Vec<String>,
+    },
     /// Set a tag in one or more files
     Set {
         /// Tag name
@@ -120,6 +130,11 @@ fn main() {
         } => commands::ls::run(&directories, recurse),
         Commands::Name2num { files } => commands::name2num::run(&files),
         Commands::Num2name { files } => commands::num2name::run(&files),
+        Commands::Renumber {
+            direction,
+            delta,
+            files,
+        } => commands::renumber::run(&direction, delta, &files),
         Commands::Set { tag, value, files } => commands::set::run(&tag, &value, &files),
         Commands::Tag2name { files } => commands::tag2name::run(&files),
         Commands::Tags { files } => commands::tags::run(&files),

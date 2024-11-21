@@ -3,6 +3,8 @@ use crate::utils::string::ToSafe;
 use anyhow::anyhow;
 use std::path::{Path, PathBuf};
 
+// Code shared by inumber and renumber.
+
 pub type RenameOption = Option<RenameAction>;
 pub type RenameAction = (PathBuf, PathBuf);
 

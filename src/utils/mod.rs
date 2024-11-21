@@ -1,6 +1,7 @@
 pub mod dir;
 pub mod metadata;
 pub mod rename;
+pub mod renumber_file;
 pub mod string;
 pub mod tagger;
 pub mod term;
