@@ -71,7 +71,7 @@ impl<'a> Tagger<'a> {
     }
 
     fn set_flac_tag(&self, tag_name: &str, value: &str) -> anyhow::Result<bool> {
-        let mut tag = metaflac::Tag::read_from_path(&self.path)?;
+        let mut tag = metaflac::Tag::read_from_path(self.path)?;
         let val = vec![value];
 
         match tag_name {
@@ -88,7 +88,7 @@ impl<'a> Tagger<'a> {
     }
 
     fn set_mp3_tag(&self, tag_name: &str, value: &str) -> anyhow::Result<bool> {
-        let mut tag = id3::Tag::read_from_path(&self.path)?;
+        let mut tag = id3::Tag::read_from_path(self.path)?;
 
         match tag_name {
             "artist" => tag.set_artist(value),
@@ -100,7 +100,7 @@ impl<'a> Tagger<'a> {
             _ => return Err(anyhow!("unknown tag name")),
         }
 
-        tag.write_to_path(&self.path, id3::Version::Id3v24)?;
+        tag.write_to_path(self.path, id3::Version::Id3v24)?;
         Ok(true)
     }
 }
