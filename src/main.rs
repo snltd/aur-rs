@@ -15,6 +15,7 @@ enum Commands {
     /// If the given files are in a disc_n directory, add (Disc n) to the album tag
     Albumdisc {
         /// One or more media files
+        #[arg(required = true)]
         files: Vec<String>,
     },
     /// Assuming parallel flac/ and mp3/ directories, copies tags from FLACs to MP3s
@@ -26,6 +27,7 @@ enum Commands {
         #[arg(short, long)]
         force: bool,
         /// Files and/or directories to retag
+        #[arg(required = true)]
         files: Vec<String>,
     },
     /// Finds files in tracks/ which could be duplicates of tracks in albums/ or eps/.
@@ -35,16 +37,19 @@ enum Commands {
         /// Property, e.g. time, title, or bitrate
         property: String,
         /// One or more media files
+        #[arg(required = true)]
         files: Vec<String>,
     },
     /// Shows tag, time, and bitrate information about the given file(s)
     Info {
         /// One or more media files
+        #[arg(required = true)]
         files: Vec<String>,
     },
     /// For each given file, interactively supply a track number
     Inumber {
         /// One or more media files
+        #[arg(required = true)]
         files: Vec<String>,
     },
     /// Shows tag information about files in the given directory, one file per line
@@ -58,11 +63,13 @@ enum Commands {
     /// If the file name begins with a number, set its track number tag to that number
     Name2num {
         /// One or more media files
+        #[arg(required = true)]
         files: Vec<String>,
     },
     /// Prefix the file's name with its zero-padded track number
     Num2name {
         /// One or more media files
+        #[arg(required = true)]
         files: Vec<String>,
     },
     /// Increments or decrements tag and filename numbers
@@ -73,6 +80,7 @@ enum Commands {
         /// Increment/decrement delta
         delta: u32,
         /// One or more media files
+        #[arg(required = true)]
         files: Vec<String>,
     },
     /// Set a tag in one or more files
@@ -82,21 +90,25 @@ enum Commands {
         /// Tag value
         value: String,
         /// One or more media files
+        #[arg(required = true)]
         files: Vec<String>,
     },
     /// Rename the file(s) according to its tags
     Tag2name {
         /// One or more media files
+        #[arg(required = true)]
         files: Vec<String>,
     },
     /// Display the raw tags for the given file(s)
     Tags {
         /// One or more media files
+        #[arg(required = true)]
         files: Vec<String>,
     },
     /// Prefixes the artist name with "The" for all given file(s)
     Thes {
         /// One or more media files
+        #[arg(required = true)]
         files: Vec<String>,
     },
 }

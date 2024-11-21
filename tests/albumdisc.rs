@@ -1,5 +1,8 @@
+mod common;
+
 #[cfg(test)]
 mod test {
+    use super::common;
     use assert_fs::prelude::*;
     use aur::test_utils::spec_helper::fixture;
 
@@ -39,5 +42,10 @@ mod test {
             .stdout()
             .is("")
             .unwrap();
+    }
+
+    #[test]
+    fn test_albumdisc_incorrect_usage() {
+        common::missing_file_args_test("albumdisc");
     }
 }

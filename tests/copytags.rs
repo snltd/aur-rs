@@ -1,5 +1,8 @@
+mod common;
+
 #[cfg(test)]
 mod test {
+    use super::common;
     use assert_fs::prelude::*;
     use aur::test_utils::spec_helper::fixture;
 
@@ -71,5 +74,10 @@ mod test {
             .stdout()
             .is("")
             .unwrap();
+    }
+
+    #[test]
+    fn test_copytags_incorrect_usage() {
+        common::missing_file_args_test("copytags");
     }
 }

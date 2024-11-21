@@ -1,5 +1,8 @@
+mod common;
+
 #[cfg(test)]
 mod test {
+    use super::common;
     use aur::test_utils::spec_helper::fixture_as_string;
 
     #[test]
@@ -31,5 +34,11 @@ mod test {
             // .stderr()
             // .is("ERROR: (I/O) : No such file or directory (os error 2)")
             .unwrap();
+    }
+
+    #[test]
+    #[ignore]
+    fn test_get_incorrect_usage() {
+        common::missing_file_args_test("get");
     }
 }

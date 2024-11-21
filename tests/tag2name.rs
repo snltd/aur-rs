@@ -1,5 +1,8 @@
+mod common;
+
 #[cfg(test)]
 mod test {
+    use super::common;
     use assert_fs::prelude::*;
     use aur::test_utils::spec_helper::fixture;
 
@@ -34,5 +37,11 @@ mod test {
             .stdout()
             .is("")
             .unwrap();
+    }
+
+    #[test]
+    #[ignore]
+    fn test_tag2name_incorrect_usage() {
+        common::missing_file_args_test("tag2name");
     }
 }
