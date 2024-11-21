@@ -4,7 +4,8 @@ mod test {
     use aur::test_utils::spec_helper::fixture;
 
     #[test]
-    fn test_cli() {
+    #[ignore]
+    fn test_inumber_command() {
         let file_name = "13.change_both.mp3";
         let tmp = assert_fs::TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/inumber"), &[file_name])

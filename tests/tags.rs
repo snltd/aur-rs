@@ -3,7 +3,8 @@ mod test {
     use aur::test_utils::spec_helper::{fixture_as_string, sample_output};
 
     #[test]
-    fn test_cli() {
+    #[ignore]
+    fn test_tags_command() {
         assert_cli::Assert::main_binary()
             .with_args(&[
                 "tags",

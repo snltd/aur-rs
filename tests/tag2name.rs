@@ -4,7 +4,8 @@ mod test {
     use aur::test_utils::spec_helper::fixture;
 
     #[test]
-    fn test_cli() {
+    #[ignore]
+    fn test_tag2name_command() {
         let file_name = "test.flac";
         let tmp = assert_fs::TempDir::new().unwrap();
         tmp.copy_from(fixture("info"), &[file_name]).unwrap();

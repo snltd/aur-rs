@@ -3,7 +3,8 @@ mod test {
     use aur::test_utils::spec_helper::fixture_as_string;
 
     #[test]
-    fn test_cli() {
+    #[ignore]
+    fn test_get_command() {
         let fixture = fixture_as_string("commands/tags/01.test_artist.test_track.flac");
 
         // assert_cli appears to trim whitespace

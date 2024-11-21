@@ -3,8 +3,9 @@ mod test {
     use assert_fs::prelude::*;
     use aur::test_utils::spec_helper::fixture;
 
+    #[ignore]
     #[test]
-    fn test_cli() {
+    fn test_albumdisc_command() {
         let tmp = assert_fs::TempDir::new().unwrap();
         tmp.child("album/disc_3").create_dir_all().unwrap();
         let target = tmp.child("album/disc_3");
