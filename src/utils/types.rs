@@ -11,6 +11,7 @@ pub struct CopytagsOptions {
     pub force: bool,
 }
 
+#[allow(dead_code)]
 pub struct GlobalOpts {
     pub verbose: bool,
     pub noop: bool,

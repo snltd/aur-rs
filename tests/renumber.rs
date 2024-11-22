@@ -17,9 +17,6 @@ mod test {
         let file_01_step_2 = tmp.path().join("15.test.song.flac");
         let file_02_step_2 = tmp.path().join("16.test.song.mp3");
 
-        let file_01_step_3 = tmp.path().join("08.test.song.flac");
-        let file_02_step_3 = tmp.path().join("09.test.song.mp3");
-
         // Renumber upwards
 
         assert_cli::Assert::main_binary()
@@ -71,24 +68,24 @@ mod test {
             .unwrap();
     }
 
-    // #[test]
-    // fn test_renumber_command_bad_input() {
-    //     let tmp = assert_fs::TempDir::new().unwrap();
-    //     tmp.copy_from(fixture("commands/renumber"), &["02.test.song.mp3"])
-    //         .unwrap();
-    //     let file_under_test = tmp.path().join("02.test.song.mp3");
+    #[test]
+    fn test_renumber_command_bad_input() {
+        let tmp = assert_fs::TempDir::new().unwrap();
+        tmp.copy_from(fixture("commands/renumber"), &["02.test.song.mp3"])
+            .unwrap();
+        let file_under_test = tmp.path().join("02.test.song.mp3");
 
-    //     assert_cli::Assert::main_binary()
-    //         .with_args(&[
-    //             "renumber",
-    //             file_under_test.to_string_lossy().to_string().as_str(),
-    //         ])
-    //         .fails()
-    //         .and()
-    //         .stderr()
-    //         .is("merp")
-    //         .unwrap();
-    // }
+        assert_cli::Assert::main_binary()
+            .with_args(&[
+                "renumber",
+                file_under_test.to_string_lossy().to_string().as_str(),
+            ])
+            .fails()
+            .and()
+            .stderr()
+            .contains("[possible values: up, down]")
+            .unwrap();
+    }
 
     #[test]
     #[ignore]
