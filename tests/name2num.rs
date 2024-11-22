@@ -4,7 +4,7 @@ mod common;
 mod test {
     use super::common;
     use assert_fs::prelude::*;
-    use aur::test_utils::spec_helper::fixture;
+    use aur::test_utils::spec_helper::{fixture, fixture_as_string};
 
     #[test]
     #[ignore]
@@ -35,6 +35,30 @@ mod test {
             .and()
             .stdout()
             .is("")
+            .unwrap();
+    }
+
+    #[test]
+    #[ignore]
+    fn test_name2num_command_bad_file() {
+        assert_cli::Assert::main_binary()
+            .with_args(&["name2num", fixture_as_string("info/bad_file.flac").as_str()])
+            .fails()
+            .and()
+            .stderr()
+            .is("ERROR: InvalidInput: reader does not contain flac metadata")
+            .unwrap();
+    }
+
+    #[test]
+    #[ignore]
+    fn test_name2num_command_missing_file() {
+        assert_cli::Assert::main_binary()
+            .with_args(&["name2num", "/no/such/file.flac"])
+            .fails()
+            .and()
+            .stderr()
+            .is("ERROR: (I/O) : No such file or directory (os error 2)")
             .unwrap();
     }
 

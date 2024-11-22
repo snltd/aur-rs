@@ -22,4 +22,34 @@ mod test {
             .is(sample_output("commands/ls/ls.txt").as_str())
             .unwrap();
     }
+
+    #[test]
+    #[ignore]
+    fn test_ls_command_no_media() {
+        assert_cli::Assert::main_binary()
+            .with_args(&["ls", "/"])
+            .succeeds()
+            .and()
+            .stdout()
+            .is("")
+            .and()
+            .stderr()
+            .is("")
+            .unwrap();
+    }
+
+    #[test]
+    #[ignore]
+    fn test_ls_command_no_dir() {
+        assert_cli::Assert::main_binary()
+            .with_args(&["ls", "/no/such/directory"])
+            .fails()
+            .and()
+            .stdout()
+            .is("")
+            .and()
+            .stderr()
+            .is("ERROR: (I/O) : No such file or directory (os error 2)")
+            .unwrap();
+    }
 }

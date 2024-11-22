@@ -85,6 +85,44 @@ mod test {
             .stderr()
             .contains("[possible values: up, down]")
             .unwrap();
+
+        assert_cli::Assert::main_binary()
+            .with_args(&[
+                "renumber",
+                "up",
+                "1000",
+                file_under_test.to_string_lossy().to_string().as_str(),
+            ])
+            .fails()
+            .and()
+            .stderr()
+            .is("ERROR: Delta must be from 1 to 99 inclusive")
+            .unwrap();
+
+        assert_cli::Assert::main_binary()
+            .with_args(&[
+                "renumber",
+                "down",
+                "30",
+                file_under_test.to_string_lossy().to_string().as_str(),
+            ])
+            .fails()
+            .and()
+            .stderr()
+            .is("ERROR: Tag number must be from 1 to 99 inclusive")
+            .unwrap();
+    }
+
+    #[test]
+    #[ignore]
+    fn test_renumber_command_missing_file() {
+        assert_cli::Assert::main_binary()
+            .with_args(&["renumber", "up", "2", "/no/such/file.flac"])
+            .fails()
+            .and()
+            .stderr()
+            .is("ERROR: (I/O) : No such file or directory (os error 2)")
+            .unwrap();
     }
 
     #[test]

@@ -41,6 +41,18 @@ mod test {
 
     #[test]
     #[ignore]
+    fn test_tag2name_command_missing_file() {
+        assert_cli::Assert::main_binary()
+            .with_args(&["tag2name", "/no/such/file.flac"])
+            .fails()
+            .and()
+            .stderr()
+            .is("ERROR: (I/O) : No such file or directory (os error 2)")
+            .unwrap();
+    }
+
+    #[test]
+    #[ignore]
     fn test_tag2name_incorrect_usage() {
         common::missing_file_args_test("tag2name");
     }

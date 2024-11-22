@@ -8,7 +8,7 @@ mod test {
 
     #[test]
     #[ignore]
-    fn test_dupes_command() {
+    fn test_dupes_command_valid_tree() {
         let tmp = assert_fs::TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/dupes"), &["flac/**/*"])
             .unwrap();
@@ -27,7 +27,11 @@ mod test {
             .stdout()
             .contains("flac/tracks/slint.don_aman.flac")
             .unwrap();
+    }
 
+    #[test]
+    #[ignore]
+    fn test_dupes_command_invalid_tree() {
         assert_cli::Assert::main_binary()
             .with_args(&["dupes", "/tmp"])
             .fails()

@@ -52,6 +52,32 @@ mod test {
 
     #[test]
     #[ignore]
+    fn test_inumber_command_missing_file() {
+        assert_cli::Assert::main_binary()
+            .with_args(&["inumber", "/no/such/file.flac"])
+            .stdin("1")
+            .fails()
+            .and()
+            .stderr()
+            .is("ERROR: (I/O) : No such file or directory (os error 2)")
+            .unwrap();
+    }
+
+    #[test]
+    #[ignore]
+    fn test_inumber_bad_input() {
+        assert_cli::Assert::main_binary()
+            .with_args(&["inumber", "/no/such/file.flac"])
+            .stdin("merp")
+            .fails()
+            .and()
+            .stderr()
+            .is("ERROR: (Parsing): invalid digit found in string")
+            .unwrap();
+    }
+
+    #[test]
+    #[ignore]
     fn test_inumber_incorrect_usage() {
         common::missing_file_args_test("inumber");
     }

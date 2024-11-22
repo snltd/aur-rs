@@ -7,7 +7,7 @@ mod test {
 
     #[test]
     #[ignore]
-    fn test_info_command() {
+    fn test_info_command_valid_file() {
         assert_cli::Assert::main_binary()
             .with_args(&[
                 "info",
@@ -15,6 +15,18 @@ mod test {
             ])
             .stdout()
             .is(sample_output("commands/info/01.test_artist.test_track.flac.txt").as_str())
+            .unwrap();
+    }
+
+    #[test]
+    #[ignore]
+    fn test_info_command_missing_file() {
+        assert_cli::Assert::main_binary()
+            .with_args(&["info", "/no/such/file.flac"])
+            .fails()
+            .and()
+            .stderr()
+            .is("ERROR: (I/O) : No such file or directory (os error 2)")
             .unwrap();
     }
 

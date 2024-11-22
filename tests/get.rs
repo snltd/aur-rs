@@ -7,7 +7,7 @@ mod test {
 
     #[test]
     #[ignore]
-    fn test_get_command() {
+    fn test_get_command_valid_property() {
         let fixture = fixture_as_string("commands/tags/01.test_artist.test_track.flac");
 
         // assert_cli appears to trim whitespace
@@ -20,19 +20,37 @@ mod test {
             .unwrap();
 
         assert_cli::Assert::main_binary()
+            .with_args(&["get", "bitrate", fixture.as_str()])
+            .succeeds()
+            .and()
+            .stdout()
+            .is(format!("16-bit/44100Hz : {}", fixture).as_str())
+            .unwrap();
+    }
+
+    #[test]
+    #[ignore]
+    fn test_get_command_invalid_property() {
+        let fixture = fixture_as_string("commands/tags/01.test_artist.test_track.flac");
+
+        assert_cli::Assert::main_binary()
             .with_args(&["get", "whatever", fixture.as_str()])
             .fails()
-            // .and()
-            // .stderr()
-            // .is("ERROR: Unknown property")
+            .and()
+            .stderr()
+            .is("ERROR: Unknown property")
             .unwrap();
+    }
 
+    #[test]
+    #[ignore]
+    fn test_get_command_missing_file() {
         assert_cli::Assert::main_binary()
             .with_args(&["get", "title", "/no/such/file.flac"])
             .fails()
-            // .and()
-            // .stderr()
-            // .is("ERROR: (I/O) : No such file or directory (os error 2)")
+            .and()
+            .stderr()
+            .is("ERROR: (I/O) : No such file or directory (os error 2)")
             .unwrap();
     }
 
