@@ -1,16 +1,37 @@
 use crate::utils::metadata::AurMetadata;
 use crate::utils::tagger::Tagger;
+use crate::utils::types::GlobalOpts;
+use crate::verbose;
+use anyhow::anyhow;
 use regex::Regex;
 use std::path::{Path, PathBuf};
 
-pub fn run(files: &[String]) -> anyhow::Result<()> {
+pub fn run(files: &[String], global_opts: &GlobalOpts) -> anyhow::Result<()> {
     let rx = Regex::new(r"^disc_(\d+)$")?;
 
     for file in files {
-        tag_file(&PathBuf::from(file), &rx)?;
+        tag_file(&PathBuf::from(file), &rx, global_opts)?;
     }
 
     Ok(())
+}
+
+fn tag_file(file: &Path, rx: &Regex, opts: &GlobalOpts) -> anyhow::Result<bool> {
+    let end_pattern = match disc_number(file, rx)? {
+        Some(number) => format!(" (Disc {})", number),
+        None => return Err(anyhow!("{} is not in a disc_n directory", file.display())),
+    };
+
+    let info = AurMetadata::new(file)?;
+    let current_album_name = &info.tags.album;
+
+    if current_album_name.ends_with(end_pattern.as_str()) {
+        verbose!(opts, "album tag already ends with {}", end_pattern);
+        return Ok(false);
+    }
+
+    let tagger = Tagger::new(&info)?;
+    tagger.set_album(format!("{}{}", current_album_name, end_pattern).as_str())
 }
 
 fn disc_number(file: &Path, rx: &Regex) -> anyhow::Result<Option<String>> {
@@ -34,35 +55,11 @@ fn disc_number(file: &Path, rx: &Regex) -> anyhow::Result<Option<String>> {
     }
 }
 
-fn tag_file(file: &Path, rx: &Regex) -> anyhow::Result<bool> {
-    let end_pattern = match disc_number(file, rx)? {
-        Some(number) => format!(" (Disc {})", number),
-        None => return Ok(false),
-    };
-
-    let info = AurMetadata::new(file)?;
-    let current_album_name = info.tags.album.clone();
-
-    if current_album_name.ends_with(end_pattern.as_str()) {
-        return Ok(false);
-    }
-
-    let tagger = Tagger::new(&info)?;
-    tagger.set_album(format!("{}{}", current_album_name, end_pattern).as_str())
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::spec_helper::fixture;
+    use crate::utils::spec_helper::{defopts, fixture};
     use assert_fs::prelude::*;
-
-    #[test]
-    fn test_run_no_file() {
-        if let Err(e) = run(&["/does/not/exist".to_string()]) {
-            println!("{}", e);
-        }
-    }
 
     fn regex() -> Regex {
         Regex::new(r"^disc_(\d+)$").unwrap()
@@ -101,10 +98,10 @@ mod test {
         let file_under_test = target.path().join("01.artist.song.mp3");
         let original_info = AurMetadata::new(&file_under_test).unwrap();
         assert_eq!("Test Album".to_string(), original_info.tags.album);
-        assert!(tag_file(&file_under_test, &rx).unwrap());
+        assert!(tag_file(&file_under_test, &rx, &defopts()).unwrap());
         let new_info = AurMetadata::new(&file_under_test).unwrap();
         assert_eq!("Test Album (Disc 3)".to_string(), new_info.tags.album);
-        assert!(!tag_file(&file_under_test, &rx).unwrap());
+        assert!(!tag_file(&file_under_test, &rx, &defopts()).unwrap());
         let new_new_info = AurMetadata::new(&file_under_test).unwrap();
         assert_eq!("Test Album (Disc 3)".to_string(), new_new_info.tags.album);
     }

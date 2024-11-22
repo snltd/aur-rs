@@ -6,6 +6,14 @@ mod utils;
 #[clap(version, about = "Seriously opinionated FLAC and MP3 tagger", long_about = None)]
 
 struct Cli {
+    /// Be verbose
+    #[arg(short, long, global = true)]
+    pub verbose: bool,
+
+    /// Say what would happen, without actually doing it (currently not implemented)
+    #[arg(short, long, global = true)]
+    pub noop: bool,
+
     #[command(subcommand)]
     command: Commands,
 }
@@ -125,13 +133,21 @@ fn handle_error(err: anyhow::Error) {
 
 fn main() {
     let cli = Cli::parse();
+    let global_opts = crate::utils::types::GlobalOpts {
+        verbose: cli.verbose,
+        noop: cli.noop,
+    };
     let result = match cli.command {
-        Commands::Albumdisc { files } => commands::albumdisc::run(&files),
+        Commands::Albumdisc { files } => commands::albumdisc::run(&files, &global_opts),
         Commands::Copytags {
             recurse,
             force,
             files,
-        } => commands::copytags::run(&files, &utils::types::CopytagsOptions { recurse, force }),
+        } => commands::copytags::run(
+            &files,
+            &utils::types::CopytagsOptions { recurse, force },
+            &global_opts,
+        ),
         Commands::Dupes { root_dir } => commands::dupes::run(&root_dir),
         Commands::Get { property, files } => commands::get::run(&property, &files),
         Commands::Info { files } => commands::info::run(&files),
@@ -140,7 +156,7 @@ fn main() {
             recurse,
             directories,
         } => commands::ls::run(&directories, recurse),
-        Commands::Name2num { files } => commands::name2num::run(&files),
+        Commands::Name2num { files } => commands::name2num::run(&files, &global_opts),
         Commands::Num2name { files } => commands::num2name::run(&files),
         Commands::Renumber {
             direction,

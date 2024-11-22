@@ -1,26 +1,39 @@
 use crate::utils::dir::expand_file_list;
 use crate::utils::metadata::AurMetadata;
 use crate::utils::tagger::Tagger;
-use crate::utils::types::CopytagsOptions;
+use crate::utils::types::{CopytagsOptions, GlobalOpts};
+use crate::verbose;
 use anyhow::anyhow;
 use std::ffi::{OsStr, OsString};
 use std::fs;
 use std::os::unix::fs::MetadataExt;
 use std::path::{Path, PathBuf};
 
-pub fn run(files: &[String], opts: &CopytagsOptions) -> anyhow::Result<()> {
-    let file_set = expand_file_list(files, opts.recurse)?;
+pub fn run(
+    files: &[String],
+    ct_opts: &CopytagsOptions,
+    global_opts: &GlobalOpts,
+) -> anyhow::Result<()> {
+    let file_set = expand_file_list(files, ct_opts.recurse)?;
     for f in file_set {
-        tag_file(&f, opts)?;
+        tag_file(&f, ct_opts, global_opts)?;
     }
     Ok(())
 }
 
-fn tag_file(file: &Path, opts: &CopytagsOptions) -> anyhow::Result<bool> {
+fn tag_file(file: &Path, ct_opts: &CopytagsOptions, opts: &GlobalOpts) -> anyhow::Result<bool> {
     let info = AurMetadata::new(file)?;
-    let partner_path = match find_partner(&info, opts.force)? {
-        Some(file) => file,
-        None => return Ok(false),
+    let partner_path = match find_partner(&info, ct_opts.force)? {
+        Some(file) => {
+            verbose!(opts, "Partner is {}", file.display());
+            file
+        }
+        None => {
+            return Err(anyhow!(
+                "{} has no partner from which to copy tags",
+                file.display()
+            ))
+        }
     };
 
     let file_tags = &info.tags;
@@ -28,6 +41,7 @@ fn tag_file(file: &Path, opts: &CopytagsOptions) -> anyhow::Result<bool> {
     let partner_tags = &partner_info.tags;
 
     if file_tags == partner_tags {
+        verbose!(opts, "Tags already match");
         return Ok(false);
     }
 
@@ -96,18 +110,6 @@ fn find_partner(info: &AurMetadata, force: bool) -> anyhow::Result<Option<PathBu
 mod test {
     use super::*;
     use crate::utils::spec_helper::fixture;
-
-    #[test]
-    fn test_run_no_file() {
-        let opts = CopytagsOptions {
-            force: false,
-            recurse: false,
-        };
-
-        if let Err(e) = run(&["/does/not/exist".to_string()], &opts) {
-            println!("{}", e);
-        }
-    }
 
     #[test]
     fn test_find_partner() {

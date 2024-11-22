@@ -1,4 +1,5 @@
 pub mod dir;
+pub mod macros;
 pub mod metadata;
 pub mod rename;
 pub mod renumber_file;

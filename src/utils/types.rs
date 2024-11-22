@@ -10,3 +10,8 @@ pub struct CopytagsOptions {
     pub recurse: bool,
     pub force: bool,
 }
+
+pub struct GlobalOpts {
+    pub verbose: bool,
+    pub noop: bool,
+}

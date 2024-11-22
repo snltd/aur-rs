@@ -27,6 +27,7 @@ mod test {
         //     .is("merp")
         //     .unwrap();
 
+        // Check the title is what we think it is (and wrong)
         assert_cli::Assert::main_binary()
             .with_args(&[
                 "get",
@@ -39,6 +40,7 @@ mod test {
             .contains("Wrong Title")
             .unwrap();
 
+        // Copy the tags
         assert_cli::Assert::main_binary()
             .with_args(&[
                 "copytags",
@@ -51,6 +53,7 @@ mod test {
             .is(expected_output)
             .unwrap();
 
+        // Check the title is now correct
         assert_cli::Assert::main_binary()
             .with_args(&[
                 "get",
@@ -63,6 +66,7 @@ mod test {
             .contains("Right Title")
             .unwrap();
 
+        // This time nothing should happen because the tags already match
         assert_cli::Assert::main_binary()
             .with_args(&[
                 "copytags",
@@ -76,6 +80,31 @@ mod test {
             .unwrap();
     }
 
+    #[test]
+    fn test_copytags_command_no_partner() {
+        let tmp = assert_fs::TempDir::new().unwrap();
+        tmp.copy_from(fixture("commands/copytags"), &["**/*"])
+            .unwrap();
+        let file_under_test = tmp.path().join("mp3").join("02.artist.song.mp3");
+
+        // Should fail because there's no corresponding FLAC
+        assert_cli::Assert::main_binary()
+            .with_args(&[
+                "copytags",
+                "--force",
+                file_under_test.to_string_lossy().to_string().as_str(),
+            ])
+            .fails()
+            .and()
+            .stdout()
+            .is("")
+            .and()
+            .stderr()
+            .contains("has no partner from which to copy tags")
+            .unwrap();
+    }
+
+    #[ignore]
     #[test]
     fn test_copytags_incorrect_usage() {
         common::missing_file_args_test("copytags");

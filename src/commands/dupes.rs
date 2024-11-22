@@ -13,18 +13,11 @@ lazy_static! {
 
 pub fn run(root_dir: &str) -> anyhow::Result<()> {
     let dupes = dupes_under(&PathBuf::from(root_dir))?;
-    print_dupes(dupes);
-
+    dupes.iter().for_each(|d| println!("{}", format_dupes(d)));
     Ok(())
 }
 
-fn print_dupes(dupes: Dupes) {
-    for d in dupes {
-        println!("{}", format_dupes(d));
-    }
-}
-
-fn format_dupes(dupe_cluster: Vec<PathBuf>) -> String {
+fn format_dupes(dupe_cluster: &[PathBuf]) -> String {
     let mut ret: String = format!("{}", dupe_cluster.first().unwrap().display());
     dupe_cluster[1..]
         .iter()

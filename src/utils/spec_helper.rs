@@ -10,3 +10,11 @@ pub fn fixture(file: &str) -> PathBuf {
 //     let file = current_dir().unwrap().join("test/outputs").join(file);
 //     fs::read_to_string(file).unwrap()
 // }
+use crate::utils::types::GlobalOpts;
+
+pub fn defopts() -> GlobalOpts {
+    GlobalOpts {
+        verbose: false,
+        noop: false,
+    }
+}

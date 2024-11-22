@@ -1,36 +1,31 @@
 use crate::utils::metadata::AurMetadata;
+use crate::utils::rename::number_from_filename;
 use crate::utils::tagger::Tagger;
+use crate::utils::types::GlobalOpts;
+use crate::verbose;
 use std::path::{Path, PathBuf};
 
-pub fn run(files: &[String]) -> anyhow::Result<()> {
+pub fn run(files: &[String], opts: &GlobalOpts) -> anyhow::Result<()> {
     for file in files {
-        tag_file(&PathBuf::from(file))?;
+        tag_file(&PathBuf::from(file), opts)?;
     }
 
     Ok(())
 }
 
-fn number_from_filename(fname: &str) -> Option<u32> {
-    let bits = fname.split('.').collect::<Vec<&str>>();
-
-    match bits.first() {
-        Some(bit) => match bit.parse::<u32>() {
-            Ok(num) => Some(num),
-            Err(_) => None,
-        },
-        None => None,
-    }
-}
-
-fn tag_file(file: &Path) -> anyhow::Result<bool> {
+fn tag_file(file: &Path, opts: &GlobalOpts) -> anyhow::Result<bool> {
     let info = AurMetadata::new(file)?;
     let current_track_number = info.tags.t_num;
     let suggested_track_number = match number_from_filename(info.filename.as_str()) {
-        Some(num) => num,
-        None => return Ok(false),
+        Some((_path, num)) => num,
+        None => {
+            verbose!(opts, "Filename has correct track number");
+            return Ok(false);
+        }
     };
 
     if current_track_number == suggested_track_number {
+        verbose!(opts, "Track number tag is correct");
         return Ok(false);
     }
 
@@ -41,23 +36,8 @@ fn tag_file(file: &Path) -> anyhow::Result<bool> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::spec_helper::fixture;
+    use crate::utils::spec_helper::{defopts, fixture};
     use assert_fs::prelude::*;
-
-    #[test]
-    fn test_run_no_file() {
-        if let Err(e) = run(&["/does/not/exist".to_string()]) {
-            println!("{}", e);
-        }
-    }
-
-    #[test]
-    fn test_number_from_filename() {
-        assert_eq!(3, number_from_filename("03.singer.song.flac").unwrap());
-        assert_eq!(99, number_from_filename("99.singer.song.flac").unwrap());
-        assert_eq!(None, number_from_filename("singer.song.flac"));
-        assert_eq!(None, number_from_filename(".0a.singer.song.flac"));
-    }
 
     #[test]
     fn test_tag_file_flac() {
@@ -69,11 +49,11 @@ mod test {
 
         let original_info = AurMetadata::new(&file_under_test).unwrap();
         assert_eq!(2, original_info.tags.t_num);
-        assert!(tag_file(&file_under_test).unwrap());
+        assert!(tag_file(&file_under_test, &defopts()).unwrap());
         let new_info = AurMetadata::new(&file_under_test).unwrap();
         assert_eq!(1, new_info.tags.t_num);
 
-        assert!(!tag_file(&file_under_test).unwrap());
+        assert!(!tag_file(&file_under_test, &defopts()).unwrap());
         let new_new_info = AurMetadata::new(&file_under_test).unwrap();
         assert_eq!(1, new_new_info.tags.t_num);
     }
@@ -88,11 +68,11 @@ mod test {
 
         let original_info = AurMetadata::new(&file_under_test).unwrap();
         assert_eq!(13, original_info.tags.t_num);
-        assert!(tag_file(&file_under_test).unwrap());
+        assert!(tag_file(&file_under_test, &defopts()).unwrap());
         let new_info = AurMetadata::new(&file_under_test).unwrap();
         assert_eq!(3, new_info.tags.t_num);
 
-        assert!(!tag_file(&file_under_test).unwrap());
+        assert!(!tag_file(&file_under_test, &defopts()).unwrap());
         let new_new_info = AurMetadata::new(&file_under_test).unwrap();
         assert_eq!(3, new_new_info.tags.t_num);
     }
