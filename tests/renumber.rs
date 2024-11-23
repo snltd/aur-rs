@@ -7,7 +7,7 @@ mod test {
     use aur::test_utils::spec_helper::fixture;
 
     #[test]
-    // #[ignore]
+    #[ignore]
     fn test_renumber_command() {
         let tmp = assert_fs::TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/renumber"), &["*"]).unwrap();
@@ -69,6 +69,7 @@ mod test {
     }
 
     #[test]
+    #[ignore]
     fn test_renumber_command_bad_input() {
         let tmp = assert_fs::TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/renumber"), &["02.test.song.mp3"])

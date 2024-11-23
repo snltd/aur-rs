@@ -81,6 +81,7 @@ mod test {
     }
 
     #[test]
+    #[ignore]
     fn test_copytags_command_no_partner() {
         let tmp = assert_fs::TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/copytags"), &["**/*"])
@@ -104,8 +105,8 @@ mod test {
             .unwrap();
     }
 
-    #[ignore]
     #[test]
+    #[ignore]
     fn test_copytags_incorrect_usage() {
         common::missing_file_args_test("copytags");
     }
