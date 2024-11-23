@@ -1,5 +1,7 @@
 # Aur
-[![Test](https://github.com/snltd/aur/actions/workflows/test.yml/badge.svg)](https://github.com/snltd/aur/actions/workflows/test.yml) [![Release](https://github.com/snltd/aur/actions/workflows/release.yml/badge.svg)](https://github.com/snltd/aur/actions/workflows/release.yml)
+[![Test]
+
+[![Test](https://github.com/snltd/aur-rs/actions/workflows/test.yml/badge.svg)](https://github.com/snltd/aur-rs/actions/workflows/test.yml)
 
 I have a pretty large collection of digital music (and even bigger physical
 one) and I like to keep it organized. *Really* organized.
