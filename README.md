@@ -41,4 +41,5 @@ you really insist on trying it, `--help` ought to be enough.
 But, there are thousands of alternatives which do not implement all my personal
 preferences. Use one of those.
 
-This is a Rust rewrite of [a Ruby program](https://github.com/snltd/aur).
+This is a Rust rewrite of [a Ruby program](https://github.com/snltd/aur), and it
+isn't finished yet.
