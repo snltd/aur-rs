@@ -1,5 +1,4 @@
 # Aur
-[![Test]
 
 [![Test](https://github.com/snltd/aur-rs/actions/workflows/test.yml/badge.svg)](https://github.com/snltd/aur-rs/actions/workflows/test.yml)
 
