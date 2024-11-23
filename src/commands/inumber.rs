@@ -1,14 +1,14 @@
+use crate::utils::dir::{media_files, pathbuf_set};
 use crate::utils::metadata::AurMetadata;
 use crate::utils::renumber_file;
 use anyhow::anyhow;
 use std::io::{self, Write};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 pub fn run(files: &[String]) -> anyhow::Result<()> {
-    for file in files {
-        let path = PathBuf::from(file);
-        let number = read_number(&path)?;
-        let info = AurMetadata::new(&path)?;
+    for f in media_files(pathbuf_set(files)) {
+        let number = read_number(&f)?;
+        let info = AurMetadata::new(&f)?;
 
         if !(1..=99).contains(&number) {
             return Err(anyhow!("Tag number must be from 1 to 99 inclusive"));

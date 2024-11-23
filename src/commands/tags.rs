@@ -1,13 +1,15 @@
+use crate::utils::dir::{media_files, pathbuf_set};
 use crate::utils::metadata::AurMetadata;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 pub fn run(files: &[String]) -> anyhow::Result<()> {
-    let file_info: Vec<_> = files
-        .iter()
-        .map(|file| info_for_file(&PathBuf::from(file)))
-        .collect::<Result<_, _>>()?;
+    let mut info_list: Vec<Vec<String>> = Vec::new();
 
-    file_info.iter().for_each(|info| print_file_info(info));
+    for f in media_files(pathbuf_set(files)) {
+        info_list.push(info_for_file(&f)?);
+    }
+
+    info_list.iter().for_each(|info| print_file_info(info));
     Ok(())
 }
 
@@ -30,11 +32,6 @@ fn print_file_info(info: &[String]) {
 mod test {
     use super::*;
     use crate::utils::spec_helper::fixture;
-
-    #[test]
-    fn test_run_no_file() {
-        assert!(run(&["/does/not/exist".to_string()]).is_err());
-    }
 
     #[test]
     fn test_tags() {

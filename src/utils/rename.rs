@@ -1,27 +1,12 @@
 use crate::utils::metadata::AurMetadata;
 use crate::utils::string::ToSafe;
 use anyhow::anyhow;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 // Code shared by inumber and renumber.
 
 pub type RenameOption = Option<RenameAction>;
 pub type RenameAction = (PathBuf, PathBuf);
-
-/// Called by the command run() functions
-pub fn rename_files<F>(files: &[String], action: F) -> anyhow::Result<()>
-where
-    F: Fn(&Path) -> anyhow::Result<RenameOption>,
-{
-    for file in files {
-        let path = Path::new(file);
-
-        if let Some(action) = action(path)? {
-            rename(action)?;
-        }
-    }
-    Ok(())
-}
 
 pub fn number_from_filename(fname: &str) -> Option<(String, u32)> {
     let bits = fname.split('.').collect::<Vec<&str>>();

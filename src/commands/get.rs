@@ -1,3 +1,4 @@
+use crate::utils::dir::{media_files, pathbuf_set};
 use crate::utils::metadata::AurMetadata;
 use anyhow::anyhow;
 use std::path::{Path, PathBuf};
@@ -9,15 +10,14 @@ type Info = (PathBuf, String);
 type InfoList = Vec<Info>;
 
 pub fn run(property: &str, files: &[String]) -> anyhow::Result<()> {
-    let file_info: InfoList = files
-        .iter()
-        .map(|file| {
-            let path = PathBuf::from(file);
-            info_for_file(property, &path).map(|info| (path, info))
-        })
-        .collect::<Result<Vec<_>, _>>()?;
+    let mut info_list: InfoList = Vec::new();
 
-    file_info.iter().for_each(print_file_info);
+    for f in media_files(pathbuf_set(files)) {
+        let info = info_for_file(property, &f)?;
+        info_list.push((f, info));
+    }
+
+    info_list.iter().for_each(print_file_info);
     Ok(())
 }
 
