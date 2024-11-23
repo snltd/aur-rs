@@ -1,6 +1,27 @@
 use std::collections::HashSet;
+use std::ffi::OsString;
 use std::fs;
 use std::path::{Path, PathBuf};
+
+pub fn pathbuf_set(files: &[String]) -> HashSet<PathBuf> {
+    files.iter().map(PathBuf::from).collect()
+}
+
+pub fn media_files<T>(flist: T) -> T
+where
+    T: IntoIterator<Item = PathBuf> + FromIterator<PathBuf>,
+{
+    let flac_ext = OsString::from("flac");
+    let mp3_ext = OsString::from("mp3");
+
+    flist
+        .into_iter()
+        .filter(|f| match f.extension() {
+            Some(ext) => ext == flac_ext || ext == mp3_ext,
+            None => false,
+        })
+        .collect()
+}
 
 pub fn expand_file_list(flist: &[String], recurse: bool) -> anyhow::Result<HashSet<PathBuf>> {
     let mut ret: HashSet<PathBuf> = HashSet::new();
@@ -65,8 +86,32 @@ fn collect_directories(dir: &Path, aggr: &mut HashSet<PathBuf>) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use assert_unordered::assert_eq_unordered;
     use aur::test_utils::spec_helper::{fixture, fixture_as_string};
     use tempfile::tempdir;
+
+    #[test]
+    fn test_media_files() {
+        let input = vec![
+            PathBuf::from("/flac/ep/01.singer.song_01.flac"),
+            PathBuf::from("/flac/ep/02.singer.song_02.flac"),
+            PathBuf::from("/flac/ep/front.jpg"),
+            PathBuf::from("/mp3/album/01.singer.song_01.mp3"),
+            PathBuf::from("/mp3/album/02.singer.song_02.mp3"),
+            PathBuf::from("/mp3/album/03.singer.song_03.mp3"),
+            PathBuf::from("/mp3/album/something_that_should_not_be_there"),
+        ];
+
+        let expected = vec![
+            PathBuf::from("/flac/ep/01.singer.song_01.flac"),
+            PathBuf::from("/flac/ep/02.singer.song_02.flac"),
+            PathBuf::from("/mp3/album/01.singer.song_01.mp3"),
+            PathBuf::from("/mp3/album/02.singer.song_02.mp3"),
+            PathBuf::from("/mp3/album/03.singer.song_03.mp3"),
+        ];
+
+        assert_eq_unordered!(expected, media_files(input));
+    }
 
     #[test]
     fn test_expand_file_list_no_recurse() {

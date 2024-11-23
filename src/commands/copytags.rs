@@ -1,4 +1,4 @@
-use crate::utils::dir::expand_file_list;
+use crate::utils::dir::{expand_file_list, media_files};
 use crate::utils::metadata::AurMetadata;
 use crate::utils::tagger::Tagger;
 use crate::utils::types::{CopytagsOptions, GlobalOpts};
@@ -14,8 +14,7 @@ pub fn run(
     ct_opts: &CopytagsOptions,
     global_opts: &GlobalOpts,
 ) -> anyhow::Result<()> {
-    let file_set = expand_file_list(files, ct_opts.recurse)?;
-    for f in file_set {
+    for f in media_files(expand_file_list(files, ct_opts.recurse)?) {
         tag_file(&f, ct_opts, global_opts)?;
     }
     Ok(())

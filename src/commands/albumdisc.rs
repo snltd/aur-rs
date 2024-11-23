@@ -1,16 +1,17 @@
+use crate::utils::dir::{media_files, pathbuf_set};
 use crate::utils::metadata::AurMetadata;
 use crate::utils::tagger::Tagger;
 use crate::utils::types::GlobalOpts;
 use crate::verbose;
 use anyhow::anyhow;
 use regex::Regex;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 pub fn run(files: &[String], global_opts: &GlobalOpts) -> anyhow::Result<()> {
     let rx = Regex::new(r"^disc_(\d+)$")?;
 
-    for file in files {
-        tag_file(&PathBuf::from(file), &rx, global_opts)?;
+    for file in media_files(pathbuf_set(files)) {
+        tag_file(&file, &rx, global_opts)?;
     }
 
     Ok(())

@@ -1,13 +1,16 @@
+use crate::utils::dir::{media_files, pathbuf_set};
 use crate::utils::metadata::AurMetadata;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 pub fn run(files: &[String]) -> anyhow::Result<()> {
-    let file_info: Vec<_> = files
-        .iter()
-        .map(|file| info_for_file(&PathBuf::from(file)))
-        .collect::<Result<_, _>>()?;
+    let files = media_files(pathbuf_set(files));
+    let mut info_list: Vec<Vec<String>> = Vec::new();
 
-    file_info.iter().for_each(|info| print_file_info(info));
+    for f in files {
+        info_list.push(info_for_file(&f)?);
+    }
+
+    info_list.iter().for_each(|info| print_file_info(info));
     Ok(())
 }
 

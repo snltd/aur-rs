@@ -1,13 +1,14 @@
+use crate::utils::dir::{media_files, pathbuf_set};
 use crate::utils::metadata::AurMetadata;
 use crate::utils::rename::number_from_filename;
 use crate::utils::tagger::Tagger;
 use crate::utils::types::GlobalOpts;
 use crate::verbose;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 pub fn run(files: &[String], opts: &GlobalOpts) -> anyhow::Result<()> {
-    for file in files {
-        tag_file(&PathBuf::from(file), opts)?;
+    for f in media_files(pathbuf_set(files)) {
+        tag_file(&f, opts)?;
     }
 
     Ok(())

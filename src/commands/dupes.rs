@@ -1,4 +1,4 @@
-use crate::utils::dir;
+use crate::utils::dir::{expand_file_list, media_files};
 use anyhow::anyhow;
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -47,18 +47,18 @@ fn dupes_under(dir: &Path) -> anyhow::Result<Dupes> {
         }
     }
 
-    let needle_files = dir::expand_file_list(
+    let needle_files = expand_file_list(
         &[dir.join("tracks")].map(|d| d.to_string_lossy().to_string()),
         true,
     )?;
 
-    let haystack_files = dir::expand_file_list(
+    let haystack_files = expand_file_list(
         &[dir.join("albums"), dir.join("eps")].map(|d| d.to_string_lossy().to_string()),
         true,
     )?;
 
-    let needle_hash = file_hash(&needle_files);
-    let haystack_hash = file_hash(&haystack_files);
+    let needle_hash = file_hash(&media_files(needle_files));
+    let haystack_hash = file_hash(&media_files(haystack_files));
 
     let mut ret: Dupes = Vec::new();
 
