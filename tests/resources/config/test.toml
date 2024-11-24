@@ -1,0 +1,8 @@
+[ignore.wantflac]
+tracks = [
+  "singer.song",
+]
+
+albums = [
+  "artist.album",
+]
