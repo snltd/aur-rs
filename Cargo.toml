@@ -13,6 +13,7 @@ mp3-metadata = "0.3"
 regex = "1"
 terminal_size = "0.4"
 unidecode = "0.3"
+indicatif = "0.17"
 
 [dev-dependencies]
 assert_cli = "0.6"

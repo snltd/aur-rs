@@ -1,6 +1,10 @@
 // use unicode_normalization::UnicodeNormalization;
 use unidecode::unidecode;
 
+pub trait Compacted {
+    fn compacted(&self) -> String;
+}
+
 pub trait ToSafe {
     fn to_safe(&self) -> String;
 }
@@ -96,6 +100,26 @@ impl ReplaceLast for &str {
     }
 }
 
+impl Compacted for String {
+    fn compacted(&self) -> String {
+        let mut ret = String::new();
+
+        for c in self.to_lowercase().chars() {
+            if c.is_alphanumeric() {
+                ret.push(c);
+            }
+        }
+
+        ret
+    }
+}
+
+impl Compacted for &str {
+    fn compacted(&self) -> String {
+        self.to_string().compacted()
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -146,5 +170,12 @@ mod test {
         assert_eq!("filename.mp3", "filename.flac".replace_last("flac", "mp3"));
         assert_eq!("flacname.mp3", "flacname.flac".replace_last("flac", "mp3"));
         assert_eq!("me_me_me_you", "me_me_me_me".replace_last("me", "you"));
+    }
+
+    #[test]
+    fn test_compacted() {
+        assert_eq!("theb52s".to_string(), "The B52s".compacted());
+        assert_eq!("theb52s".to_string(), "The B52's".compacted());
+        assert_eq!("theb52s".to_string(), "The B-52's".compacted());
     }
 }
