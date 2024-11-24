@@ -1,89 +1,119 @@
-use crate::utils::dir;
+use crate::utils::dir::{expand_file_list, media_files};
 use crate::utils::metadata::AurMetadata;
 use crate::utils::string::Compacted;
+use crate::utils::types::GlobalOpts;
 use anyhow::anyhow;
+use indicatif::ProgressBar;
 use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 
-pub fn run(root_dir: &str) -> anyhow::Result<()> {
-    for name_cluster in check_names(root_dir.to_string())? {
-        println!("{}", format_dupes(&name_cluster));
+type ArtistDirs = HashMap<String, HashSet<PathBuf>>;
+type Dupes = Vec<DupeCluster>;
+type DupeCluster = HashMap<String, HashSet<PathBuf>>;
+
+pub fn run(root_dir: &str, opts: &GlobalOpts) -> anyhow::Result<()> {
+    for cluster in find_dupes(root_dir.to_string(), opts)? {
+        println!("{}", format_dupes(&cluster));
     }
 
     Ok(())
 }
 
-fn check_names(root_dir: String) -> anyhow::Result<Vec<Vec<String>>> {
-    let all_files = dir::expand_file_list(&[root_dir], true)?;
+fn find_dupes(root_dir: String, opts: &GlobalOpts) -> anyhow::Result<Dupes> {
+    let all_files = media_files(expand_file_list(&[root_dir], true)?);
 
     if all_files.is_empty() {
         return Err(anyhow!("No files found"));
     }
 
-    let unique_artists = artist_list(all_files)?;
-
-    let mut ret = check_thes(&unique_artists);
+    let unique_artists = artist_dirs(all_files, opts)?;
+    let mut ret: Dupes = check_thes(&unique_artists);
     ret.extend(check_compacted(&unique_artists));
 
     Ok(ret)
 }
 
-fn artist_list(file_hash: HashSet<PathBuf>) -> anyhow::Result<HashSet<String>> {
-    println!("Getting Artist list");
-    let mut unique_artists: HashSet<String> = HashSet::new();
+fn artist_dirs(file_hash: HashSet<PathBuf>, opts: &GlobalOpts) -> anyhow::Result<ArtistDirs> {
+    let mut ret: ArtistDirs = HashMap::new();
+
+    let bar = if opts.verbose {
+        Some(ProgressBar::new(file_hash.len() as u64))
+    } else {
+        None
+    };
 
     for file in file_hash {
         let info = AurMetadata::new(&file)?;
-        unique_artists.insert(info.tags.artist);
+        if let Some(ref bar) = bar {
+            bar.inc(1);
+        }
+        let dir = file.parent().unwrap();
+        ret.entry(info.tags.artist)
+            .or_default()
+            .insert(dir.to_owned());
     }
-    println!("finished Getting Artist list");
 
-    Ok(unique_artists)
+    if let Some(ref bar) = bar {
+        bar.finish();
+    }
+
+    Ok(ret)
 }
 
-fn check_thes(artists: &HashSet<String>) -> Vec<Vec<String>> {
-    println!("checking thes");
-    let thes = artists.iter().filter(|a| a.starts_with("The "));
+fn check_thes(artists: &ArtistDirs) -> Dupes {
+    let thes = artists.keys().filter(|k| k.starts_with("The "));
 
-    let mut maybe_the_same: Vec<Vec<String>> = Vec::new();
+    let mut ret: Dupes = Vec::new();
 
     for the in thes {
-        let un_thed = the.replacen("The ", "", 1);
-        if artists.contains(&un_thed) {
-            maybe_the_same.push(vec![the.to_owned(), un_thed]);
+        let no_the = the.replacen("The ", "", 1);
+        if artists.contains_key(&no_the) {
+            ret.push(HashMap::from([
+                (the.to_owned(), artists.get(the).unwrap().to_owned()),
+                (no_the.to_owned(), artists.get(&no_the).unwrap().to_owned()),
+            ]));
         }
     }
-    println!("finished checking thes");
 
-    maybe_the_same
-}
-
-fn check_compacted(artists: &HashSet<String>) -> Vec<Vec<String>> {
-    println!("checking compacted");
-    let mut seen: HashMap<String, Vec<String>> = HashMap::new();
-    // compacted -> [artist_1, artist_2...]
-
-    for artist in artists {
-        let compacted = artist.compacted();
-        seen.entry(compacted).or_default().push(artist.to_owned());
-    }
-
-    let ret = seen
-        .values()
-        .filter(|v| v.len() > 1)
-        .map(|v| v.to_vec())
-        .collect();
-
-    println!("finished checking compacted");
     ret
 }
 
-fn format_dupes(dupe_cluster: &[String]) -> String {
-    let mut ret = dupe_cluster.first().unwrap().to_string();
-    dupe_cluster[1..]
-        .iter()
-        .for_each(|d| ret.push_str(&format!("\n  {}", d)));
-    ret.push('\n');
+fn check_compacted(artists: &ArtistDirs) -> Dupes {
+    let mut groups: HashMap<String, DupeCluster> = HashMap::new();
+
+    for (artist, dirs) in artists {
+        let compacted = artist.compacted();
+        let dc: DupeCluster = HashMap::from([(artist.to_string(), dirs.to_owned())]);
+
+        groups
+            .entry(compacted)
+            .and_modify(|e| {
+                for (key, value) in &dc {
+                    e.entry(key.clone())
+                        .or_insert_with(HashSet::new)
+                        .extend(value.to_owned());
+                }
+            })
+            .or_insert(dc);
+    }
+
+    groups
+        .into_iter()
+        .filter(|(_, cluster)| cluster.len() > 1)
+        .map(|(_, cluster)| cluster)
+        .collect()
+}
+
+fn format_dupes(dupe_cluster: &DupeCluster) -> String {
+    let mut ret = String::new();
+
+    for (name, paths) in dupe_cluster {
+        ret.push_str(name.as_str());
+        for path in paths {
+            ret.push_str(format!("\n    {}", path.display()).as_str());
+        }
+        ret.push('\n');
+    }
 
     ret
 }
@@ -91,83 +121,121 @@ fn format_dupes(dupe_cluster: &[String]) -> String {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::utils::spec_helper::defopts;
     use assert_unordered::assert_eq_unordered;
-    use aur::test_utils::spec_helper::fixture_as_string;
+    use aur::test_utils::spec_helper::{fixture, fixture_as_string};
 
     #[test]
-    fn test_artist_list() {
-        let fixture_dir_flac = fixture_as_string("commands/namecheck/flac");
-        let all_files = dir::expand_file_list(&[fixture_dir_flac], true).unwrap();
+    fn test_artist_list_flac() {
+        let fixture_dir = fixture_as_string("commands/namecheck/flac");
+        let all_files = expand_file_list(&[fixture_dir], true).unwrap();
 
-        let mut expected_flac: HashSet<String> = HashSet::new();
-        expected_flac.insert("Singer".to_string());
-        expected_flac.insert("Artist".to_string());
-        expected_flac.insert("The Artist".to_string());
-
-        assert_eq!(expected_flac, artist_list(all_files).unwrap());
-
-        let fixture_dir_mp3 = fixture_as_string("commands/namecheck/mp3");
-        let all_files = dir::expand_file_list(&[fixture_dir_mp3], true).unwrap();
-
-        let mut expected_mp3: HashSet<String> = HashSet::new();
-        expected_mp3.insert("The B52's".to_string());
-        expected_mp3.insert("The B-52's".to_string());
-        expected_mp3.insert("The B52s".to_string());
-        assert_eq!(expected_mp3, artist_list(all_files).unwrap());
+        assert_eq_unordered!(
+            flac_artist_list(),
+            artist_dirs(all_files, &defopts()).unwrap()
+        );
     }
 
     #[test]
-    fn test_check_thes_matches() {
-        let mut input: HashSet<String> = HashSet::new();
-        input.insert("Singer".to_string());
-        input.insert("Artist".to_string());
-        input.insert("The Artist".to_string());
-        input.insert("Merpers".to_string());
-        input.insert("The Merp".to_string());
-        input.insert("The Null Set".to_string());
-        input.insert("Null Set".to_string());
+    fn test_artist_list_mp3() {
+        let fixture_dir = fixture_as_string("commands/namecheck/mp3");
+        let all_files = expand_file_list(&[fixture_dir], true).unwrap();
 
-        let mut expected = [
-            vec!["The Artist".to_string(), "Artist".to_string()],
-            vec!["The Null Set".to_string(), "Null Set".to_string()],
-        ];
-
-        let mut result = check_thes(&input);
-        expected.sort();
-        result.sort();
-
-        assert_eq_unordered!(&expected[0], &result[0]);
-        assert_eq_unordered!(&expected[1], &result[1]);
+        assert_eq_unordered!(
+            mp3_artist_list(),
+            artist_dirs(all_files, &defopts()).unwrap()
+        );
     }
 
     #[test]
-    fn test_check_no_matches() {
-        let mut input: HashSet<String> = HashSet::new();
-        input.insert("Singer".to_string());
-        input.insert("Artist".to_string());
-        input.insert("The Merp".to_string());
-        input.insert("The Null Set".to_string());
+    fn test_check_thes_matches_flac() {
+        let mut expected: Dupes = Vec::new();
+        let mut expected_cluster: DupeCluster = HashMap::new();
 
-        let expected: Vec<Vec<String>> = Vec::new();
+        expected_cluster.insert(
+            "Artist".to_string(),
+            HashSet::from([fixture("commands/namecheck/flac/thes/tracks")]),
+        );
+        expected_cluster.insert(
+            "The Artist".to_string(),
+            HashSet::from([fixture(
+                "commands/namecheck/flac/thes/albums/abc/artist.album",
+            )]),
+        );
 
-        assert_eq!(expected, check_thes(&input));
+        expected.push(expected_cluster);
+
+        assert_eq_unordered!(expected, check_thes(&flac_artist_list()));
+    }
+
+    #[test]
+    fn test_check_thes_matches_mp3() {
+        assert!(check_thes(&mp3_artist_list()).is_empty());
     }
 
     #[test]
     fn test_check_compacted() {
-        let mut input: HashSet<String> = HashSet::new();
-        input.insert("The B52's".to_string());
-        input.insert("The B-52's".to_string());
-        input.insert("B-52's".to_string());
-        input.insert("The Merpers".to_string());
-        input.insert("The B52s".to_string());
+        let mut expected: Dupes = Vec::new();
+        let mut expected_cluster: DupeCluster = HashMap::new();
 
-        let expected = [vec![
-            "The B52's".to_string(),
-            "The B-52's".to_string(),
+        expected_cluster.insert(
             "The B52s".to_string(),
-        ]];
+            HashSet::from([fixture("commands/namecheck/mp3/similar/tracks")]),
+        );
 
-        assert_eq_unordered!(&expected[0], &check_compacted(&input)[0]);
+        expected_cluster.insert(
+            "The B-52's".to_string(),
+            HashSet::from([fixture(
+                "commands/namecheck/mp3/similar/albums/b-52s.wild_planet",
+            )]),
+        );
+
+        expected_cluster.insert(
+            "The B52's".to_string(),
+            HashSet::from([fixture("commands/namecheck/mp3/similar/tracks")]),
+        );
+
+        expected.push(expected_cluster);
+
+        assert_eq_unordered!(&expected, &check_compacted(&mp3_artist_list()));
+    }
+
+    // Views of the resource directories, used as test inputs and outputs
+    fn flac_artist_list() -> ArtistDirs {
+        HashMap::from([
+            (
+                "Artist".to_string(),
+                HashSet::from([fixture("commands/namecheck/flac/thes/tracks")]),
+            ),
+            (
+                "The Artist".to_string(),
+                HashSet::from([fixture(
+                    "commands/namecheck/flac/thes/albums/abc/artist.album",
+                )]),
+            ),
+            (
+                "Singer".to_string(),
+                HashSet::from([fixture("commands/namecheck/flac/thes/tracks")]),
+            ),
+        ])
+    }
+
+    fn mp3_artist_list() -> ArtistDirs {
+        HashMap::from([
+            (
+                "The B52s".to_string(),
+                HashSet::from([fixture("commands/namecheck/mp3/similar/tracks")]),
+            ),
+            (
+                "The B-52's".to_string(),
+                HashSet::from([fixture(
+                    "commands/namecheck/mp3/similar/albums/b-52s.wild_planet",
+                )]),
+            ),
+            (
+                "The B52's".to_string(),
+                HashSet::from([fixture("commands/namecheck/mp3/similar/tracks")]),
+            ),
+        ])
     }
 }
