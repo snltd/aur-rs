@@ -1,7 +1,8 @@
+use crate::utils::dir::expand_dir_list;
 use crate::utils::metadata::{AurMetadata, AurTags};
-use crate::utils::{dir, term};
+use crate::utils::term::term_width;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 pub fn run(dirlist: &[String], recurse: bool) -> anyhow::Result<()> {
     // If no argument is given, default to the cwd, just like real ls(1).
@@ -11,7 +12,8 @@ pub fn run(dirlist: &[String], recurse: bool) -> anyhow::Result<()> {
         dirlist
     };
 
-    for dir in dir::expand_dir_list(dirs.to_vec(), recurse) {
+    let dirs_to_list: Vec<PathBuf> = dirs.to_vec().iter().map(|d| PathBuf::from(d)).collect();
+    for dir in expand_dir_list(&dirs_to_list, recurse) {
         print_listing(list_info(&dir)?);
     }
     Ok(())
@@ -29,10 +31,10 @@ fn list_info(dir: &Path) -> anyhow::Result<Vec<String>> {
         .collect();
 
     all_file_tags.sort_by_key(|tags| tags.t_num);
-    let width = term::term_width();
-    let ret: Vec<String> = all_file_tags
+    let width = term_width();
+    let ret = all_file_tags
         .iter()
-        .map(|tags| format_line(tags, width))
+        .map(|t| format_line(t, width))
         .collect();
     Ok(ret)
 }
