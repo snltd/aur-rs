@@ -50,7 +50,7 @@ pub fn expand_file_list(flist: &[String], recurse: bool) -> anyhow::Result<HashS
     Ok(ret)
 }
 
-pub fn expand_dir_list(dirlist: Vec<String>, recurse: bool) -> Vec<PathBuf> {
+pub fn expand_dir_list(dirlist: Vec<String>, recurse: bool) -> HashSet<PathBuf> {
     if recurse {
         dirs_under(dirlist)
     } else {
@@ -58,7 +58,7 @@ pub fn expand_dir_list(dirlist: Vec<String>, recurse: bool) -> Vec<PathBuf> {
     }
 }
 
-fn dirs_under(dirs: Vec<String>) -> Vec<PathBuf> {
+fn dirs_under(dirs: Vec<String>) -> HashSet<PathBuf> {
     let mut ret = HashSet::new();
 
     for dir in dirs {
@@ -184,7 +184,7 @@ mod tests {
 
     #[test]
     fn test_expand_dir_list_recurse_mp3() {
-        let mut result = expand_dir_list(
+        let result = expand_dir_list(
             vec![
                 fixture_as_string("recurse/mp3/albums"),
                 fixture_as_string("recurse/mp3/eps"),
@@ -192,21 +192,20 @@ mod tests {
             true,
         );
 
-        let expected = vec![
+        let expected = HashSet::from([
             fixture("recurse/mp3/albums"),
             fixture("recurse/mp3/albums/abc"),
             fixture("recurse/mp3/albums/abc/artist.lp"),
             fixture("recurse/mp3/eps"),
             fixture("recurse/mp3/eps/artist.extended_play"),
-        ];
+        ]);
 
-        result.sort();
         assert_eq!(expected, result);
     }
 
     #[test]
     fn test_expand_dir_list_no_recurse() {
-        let mut result = expand_dir_list(
+        let result = expand_dir_list(
             vec![
                 fixture_as_string("recurse/albums"),
                 fixture_as_string("recurse/eps"),
@@ -214,14 +213,13 @@ mod tests {
             false,
         );
 
-        let expected = vec![fixture("recurse/albums"), fixture("recurse/eps")];
-        result.sort();
+        let expected = HashSet::from([fixture("recurse/albums"), fixture("recurse/eps")]);
         assert_eq!(expected, result);
     }
 
     #[test]
     fn test_expand_dir_list_recurse_flac() {
-        let expected = vec![
+        let expected = HashSet::from([
             fixture("recurse/flac/albums"),
             fixture("recurse/flac/albums/pqrs"),
             fixture("recurse/flac/albums/pqrs/singer.album"),
@@ -232,9 +230,9 @@ mod tests {
             fixture("recurse/flac/eps"),
             fixture("recurse/flac/eps/artist.extended_play"),
             fixture("recurse/flac/tracks"),
-        ];
+        ]);
 
-        let mut result = expand_dir_list(
+        let result = expand_dir_list(
             vec![
                 fixture_as_string("recurse/flac/eps"),
                 fixture_as_string("recurse/flac/albums"),
@@ -243,7 +241,6 @@ mod tests {
             true,
         );
 
-        result.sort();
         assert_eq!(expected, result);
     }
 }
