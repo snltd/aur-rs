@@ -15,4 +15,5 @@ pub struct CopytagsOptions {
 pub struct GlobalOpts {
     pub verbose: bool,
     pub noop: bool,
+    pub config: String,
 }
