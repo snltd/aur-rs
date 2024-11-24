@@ -4,21 +4,25 @@ use std::fs::read_to_string;
 use std::path::Path;
 
 #[derive(Deserialize, Debug)]
+#[allow(dead_code)]
 struct Ignore {
     wantflac: WantFlac,
 }
 
 #[derive(Deserialize, Debug)]
+#[allow(dead_code)]
 struct WantFlac {
     tracks: Vec<String>,
     albums: Vec<String>,
 }
 
 #[derive(Deserialize, Debug)]
-struct Config {
+#[allow(dead_code)]
+pub struct Config {
     ignore: Ignore,
 }
 
+#[allow(dead_code)]
 pub fn load_config(file: &Path) -> anyhow::Result<Config> {
     if !file.exists() {
         return Err(anyhow!(format!("Cannot find config at {}", file.display())));
