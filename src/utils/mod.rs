@@ -1,3 +1,4 @@
+pub mod config;
 pub mod dir;
 pub mod macros;
 pub mod metadata;
