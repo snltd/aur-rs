@@ -106,6 +106,20 @@ impl AurMetadata {
         })
     }
 
+    pub fn get_tag(&self, tag: &str) -> anyhow::Result<String> {
+        let ret = match tag {
+            "artist" => self.tags.artist.to_string(),
+            "album" => self.tags.album.to_string(),
+            "title" => self.tags.title.to_string(),
+            "genre" => self.tags.genre.to_string(),
+            "t_num" => self.tags.t_num.to_string(),
+            "year" => self.tags.year.to_string(),
+            _ => return Err(anyhow!("Unknown tag: {}", tag)),
+        };
+
+        Ok(ret)
+    }
+
     fn rawtags_from_flac(raw_info: &FlacTag) -> anyhow::Result<RawTags> {
         let ret: RawTags;
 
@@ -279,6 +293,15 @@ mod test {
 
         let flac_result = AurMetadata::new(&fixture("info/test.flac")).unwrap();
         let mp3_result = AurMetadata::new(&fixture("info/test.mp3")).unwrap();
+
+        assert_eq!(
+            "Test Artist".to_string(),
+            flac_result.get_tag("artist").unwrap()
+        );
+
+        assert_eq!("6".to_string(), flac_result.get_tag("t_num").unwrap());
+
+        assert!(flac_result.get_tag("whatever").is_err());
 
         assert_eq!(expected_tags, flac_result.tags);
         assert_eq!("16-bit/44100Hz".to_string(), flac_result.quality.formatted);

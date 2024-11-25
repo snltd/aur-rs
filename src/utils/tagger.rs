@@ -21,32 +21,32 @@ impl<'a> Tagger<'a> {
     }
 
     pub fn set_artist(&self, value: &str) -> anyhow::Result<bool> {
-        self.set_generic("artist", value)
+        self.set_tag("artist", value)
     }
 
     pub fn set_title(&self, value: &str) -> anyhow::Result<bool> {
-        self.set_generic("title", value)
+        self.set_tag("title", value)
     }
 
     pub fn set_album(&self, value: &str) -> anyhow::Result<bool> {
-        self.set_generic("album", value)
+        self.set_tag("album", value)
     }
 
     pub fn set_t_num(&self, value: &str) -> anyhow::Result<bool> {
-        self.set_generic("t_num", value)
+        self.set_tag("t_num", value)
     }
 
     // Watch out for this one! Some call it "year", others call it "date".
     pub fn set_year(&self, value: &str) -> anyhow::Result<bool> {
-        self.set_generic("date", value)
+        self.set_tag("date", value)
     }
 
     pub fn set_genre(&self, value: &str) -> anyhow::Result<bool> {
-        self.set_generic("genre", value)
+        self.set_tag("genre", value)
     }
 
     // The bool return is for testing. True if it tried to retag, false if it didn't.
-    fn set_generic(&self, tag_name: &str, value: &str) -> anyhow::Result<bool> {
+    pub fn set_tag(&self, tag_name: &str, value: &str) -> anyhow::Result<bool> {
         let current_value = match tag_name {
             "artist" => &self.current_tags.artist,
             "title" => &self.current_tags.title,
