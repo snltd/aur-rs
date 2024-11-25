@@ -12,5 +12,6 @@ pub mod renumber;
 pub mod set;
 pub mod tag2name;
 pub mod tags;
+pub mod tagsub;
 pub mod thes;
 pub mod wantflac;

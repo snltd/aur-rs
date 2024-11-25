@@ -117,6 +117,18 @@ enum Commands {
         #[arg(required = true)]
         files: Vec<String>,
     },
+    /// Globally find and replace in the given tag. Accepts any Rust regex
+    Tagsub {
+        /// Tag on which to operate
+        tag: String,
+        /// Find pattern
+        find: String,
+        /// Replace string
+        replace: String,
+        /// One or more media files
+        #[arg(required = true)]
+        files: Vec<String>,
+    },
     /// Prefixes the artist name with "The" for all given file(s)
     Thes {
         /// One or more media files
@@ -179,6 +191,12 @@ fn main() {
             files,
         } => commands::renumber::run(&direction, delta, &files),
         Commands::Set { tag, value, files } => commands::set::run(&tag, &value, &files),
+        Commands::Tagsub {
+            tag,
+            find,
+            replace,
+            files,
+        } => commands::tagsub::run(&files, &tag, &find, &replace, &global_opts),
         Commands::Tag2name { files } => commands::tag2name::run(&files),
         Commands::Tags { files } => commands::tags::run(&files),
         Commands::Thes { files } => commands::thes::run(&files),
