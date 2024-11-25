@@ -1,7 +1,6 @@
 use crate::utils::dir::{media_files, pathbuf_set};
 use crate::utils::metadata::AurMetadata;
 use crate::utils::tagger::Tagger;
-use anyhow::anyhow;
 use std::path::Path;
 
 pub fn run(tag: &str, value: &str, files: &[String]) -> anyhow::Result<()> {
@@ -15,16 +14,7 @@ pub fn run(tag: &str, value: &str, files: &[String]) -> anyhow::Result<()> {
 fn tag_file(key: &str, value: &str, file: &Path) -> anyhow::Result<bool> {
     let info = AurMetadata::new(file)?;
     let tagger = Tagger::new(&info)?;
-
-    match key {
-        "artist" => tagger.set_artist(value),
-        "album" => tagger.set_album(value),
-        "title" => tagger.set_title(value),
-        "genre" => tagger.set_genre(value),
-        "t_num" => tagger.set_t_num(value),
-        "year" => tagger.set_year(value),
-        _ => Err(anyhow!("Unknown tag name")),
-    }
+    tagger.set_tag(key, value)
 }
 
 #[cfg(test)]

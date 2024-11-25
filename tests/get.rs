@@ -38,7 +38,7 @@ mod test {
             .fails()
             .and()
             .stderr()
-            .is("ERROR: Unknown property")
+            .is("ERROR: Unknown tag: whatever")
             .unwrap();
     }
 
