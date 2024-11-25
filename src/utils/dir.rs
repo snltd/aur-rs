@@ -25,19 +25,19 @@ where
 
 pub fn expand_file_list(flist: &[String], recurse: bool) -> anyhow::Result<HashSet<PathBuf>> {
     let mut ret: HashSet<PathBuf> = HashSet::new();
-    let mut dirlist: Vec<String> = Vec::new();
+    let mut dirlist: Vec<PathBuf> = Vec::new();
 
     for file in flist {
         let f = PathBuf::from(&file);
         if f.is_file() {
             ret.insert(f);
         } else if f.is_dir() {
-            dirlist.push(file.clone());
+            dirlist.push(PathBuf::from(file));
         }
     }
 
     if recurse {
-        for dir in expand_dir_list(dirlist, true) {
+        for dir in expand_dir_list(&dirlist, true) {
             for entry in fs::read_dir(dir)? {
                 let path = entry?.path();
                 if path.is_file() {
@@ -50,7 +50,7 @@ pub fn expand_file_list(flist: &[String], recurse: bool) -> anyhow::Result<HashS
     Ok(ret)
 }
 
-pub fn expand_dir_list(dirlist: Vec<String>, recurse: bool) -> HashSet<PathBuf> {
+pub fn expand_dir_list(dirlist: &[PathBuf], recurse: bool) -> HashSet<PathBuf> {
     if recurse {
         dirs_under(dirlist)
     } else {
@@ -58,7 +58,7 @@ pub fn expand_dir_list(dirlist: Vec<String>, recurse: bool) -> HashSet<PathBuf> 
     }
 }
 
-fn dirs_under(dirs: Vec<String>) -> HashSet<PathBuf> {
+fn dirs_under(dirs: &[PathBuf]) -> HashSet<PathBuf> {
     let mut ret = HashSet::new();
 
     for dir in dirs {
@@ -166,12 +166,9 @@ mod tests {
         fs::create_dir_all(&subdir2).unwrap();
         fs::create_dir_all(&subdir3).unwrap();
 
-        let dirs = vec![
-            temp_dir.path().to_string_lossy().to_string(),
-            subdir3.to_string_lossy().to_string(),
-        ];
+        let dirs = vec![temp_dir.path().to_path_buf(), subdir3.to_path_buf()];
 
-        let all_dirs = dirs_under(dirs);
+        let all_dirs = dirs_under(&dirs);
 
         let expected_dirs: HashSet<_> =
             vec![temp_dir.path().to_path_buf(), subdir1, subdir2, subdir3]
@@ -185,10 +182,7 @@ mod tests {
     #[test]
     fn test_expand_dir_list_recurse_mp3() {
         let result = expand_dir_list(
-            vec![
-                fixture_as_string("recurse/mp3/albums"),
-                fixture_as_string("recurse/mp3/eps"),
-            ],
+            &vec![fixture("recurse/mp3/albums"), fixture("recurse/mp3/eps")],
             true,
         );
 
@@ -206,10 +200,7 @@ mod tests {
     #[test]
     fn test_expand_dir_list_no_recurse() {
         let result = expand_dir_list(
-            vec![
-                fixture_as_string("recurse/albums"),
-                fixture_as_string("recurse/eps"),
-            ],
+            &vec![fixture("recurse/albums"), fixture("recurse/eps")],
             false,
         );
 
@@ -233,10 +224,10 @@ mod tests {
         ]);
 
         let result = expand_dir_list(
-            vec![
-                fixture_as_string("recurse/flac/eps"),
-                fixture_as_string("recurse/flac/albums"),
-                fixture_as_string("recurse/flac/tracks"),
+            &vec![
+                fixture("recurse/flac/eps"),
+                fixture("recurse/flac/albums"),
+                fixture("recurse/flac/tracks"),
             ],
             true,
         );

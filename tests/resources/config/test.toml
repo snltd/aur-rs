@@ -4,5 +4,9 @@ tracks = [
 ]
 
 albums = [
-  "artist.album",
+  "albums/abc/artist.album",
+]
+
+top_level = [
+  "audiobooks",
 ]

@@ -1,5 +1,6 @@
 use clap::{Parser, Subcommand};
 mod commands;
+use std::path::PathBuf;
 mod utils;
 
 #[derive(Parser)]
@@ -9,11 +10,12 @@ struct Cli {
     /// Be verbose
     #[arg(short, long, global = true)]
     pub verbose: bool,
-
     /// Say what would happen, without actually doing it (currently not implemented)
     #[arg(short, long, global = true)]
     pub noop: bool,
-
+    /// Path to config file
+    #[arg(short, long, global = true, default_value_t = utils::config::default_location())]
+    pub config: String,
     #[command(subcommand)]
     command: Commands,
 }
@@ -121,6 +123,15 @@ enum Commands {
         #[arg(required = true)]
         files: Vec<String>,
     },
+    /// Lists albums and EPs, or tracks, which exists as MP3 but not as FLAC
+    Wantflac {
+        /// Root directory for media files, containing flac/ and mp3/
+        #[arg(short = 'R', long, default_value = "/storage")]
+        root: String,
+        /// Find tracks rather than albums/eps
+        #[arg(short = 'T', long)]
+        tracks: bool,
+    },
 }
 
 fn handle_error(err: anyhow::Error) {
@@ -138,6 +149,7 @@ fn main() {
     let global_opts = crate::utils::types::GlobalOpts {
         verbose: cli.verbose,
         noop: cli.noop,
+        config: PathBuf::from(cli.config),
     };
     let result = match cli.command {
         Commands::Albumdisc { files } => commands::albumdisc::run(&files, &global_opts),
@@ -170,6 +182,7 @@ fn main() {
         Commands::Tag2name { files } => commands::tag2name::run(&files),
         Commands::Tags { files } => commands::tags::run(&files),
         Commands::Thes { files } => commands::thes::run(&files),
+        Commands::Wantflac { root, tracks } => commands::wantflac::run(&root, tracks, &global_opts),
     };
 
     if let Err(e) = result {
