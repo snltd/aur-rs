@@ -1,6 +1,5 @@
 use crate::utils::dir::{media_files, pathbuf_set};
 use crate::utils::metadata::AurMetadata;
-use anyhow::anyhow;
 use std::path::{Path, PathBuf};
 
 // Get prints things "the wrong way round", because I sometimes want to run the results through
@@ -30,13 +29,7 @@ fn info_for_file(property: &str, file: &Path) -> anyhow::Result<String> {
         "bitrate" => data.quality.formatted,
         "time" => data.time.formatted,
         "time_raw" => data.time.raw.to_string(),
-        "artist" => data.tags.artist,
-        "album" => data.tags.album,
-        "title" => data.tags.title,
-        "genre" => data.tags.genre,
-        "t_num" => data.tags.t_num.to_string(),
-        "year" => data.tags.year.to_string(),
-        _ => return Err(anyhow!("Unknown property")),
+        _ => data.get_tag(property)?,
     };
 
     Ok(ret)

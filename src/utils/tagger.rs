@@ -54,7 +54,7 @@ impl<'a> Tagger<'a> {
             "t_num" => &self.current_tags.t_num.to_string(),
             "date" => &self.current_tags.year.to_string(),
             "genre" => &self.current_tags.genre,
-            _ => return Err(anyhow!("Unsupported tag name")),
+            _ => return Err(anyhow!("Unknown tag name")),
         };
 
         if current_value == value {
