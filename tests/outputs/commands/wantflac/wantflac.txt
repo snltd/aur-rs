@@ -1,0 +1,3 @@
+albums/abc/artist.album_1
+albums/pqrs/singer.second_lp
+eps/other_band.ep

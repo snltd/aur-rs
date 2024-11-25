@@ -1,23 +1,49 @@
+use crate::utils::config;
 use crate::utils::dir::{expand_dir_list, expand_file_list};
-use crate::utils::types::GlobalOpts;
+use crate::utils::types::{GlobalOpts, WantsList};
 use anyhow::anyhow;
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 
-type WantsList = HashSet<String>;
-
 pub fn run(root: &str, tracks: bool, opts: &GlobalOpts) -> anyhow::Result<()> {
     let root = PathBuf::from(root).canonicalize()?;
 
+    let config = config::load_config(&opts.config)?;
+
     let wants_list = if tracks {
-        find_missing_tracks(&root)?
+        filter_by_config(
+            find_missing_tracks(&root)?,
+            config.get_wantflac_ignore_tracks(),
+        )
     } else {
-        find_missing_albums(&root)?
+        filter_by_config(
+            filter_by_top_level(
+                find_missing_albums(&root)?,
+                config.get_wantflac_ignore_top_level(),
+            ),
+            config.get_wantflac_ignore_albums(),
+        )
     };
 
     print_output(wants_list);
-
     Ok(())
+}
+
+fn filter_by_top_level(list: WantsList, config_list: Option<&WantsList>) -> WantsList {
+    match config_list {
+        Some(config_list) => list
+            .into_iter()
+            .filter(|list_element| !config_list.iter().any(|p| list_element.starts_with(p)))
+            .collect(),
+        None => list,
+    }
+}
+
+fn filter_by_config(list: WantsList, config_list: Option<&WantsList>) -> WantsList {
+    match config_list {
+        Some(config_list) => list.difference(config_list).cloned().collect(),
+        None => list,
+    }
 }
 
 fn print_output(wants_list: WantsList) {
@@ -101,7 +127,20 @@ fn find_missing_tracks(root: &Path) -> anyhow::Result<WantsList> {
 mod test {
     use super::*;
     use crate::utils::spec_helper::fixture;
-    // use assert_unordered::assert_eq_unordered;
+
+    #[test]
+    fn test_filter_by_config() {
+        let config = config::load_config(&fixture("config/test.toml")).unwrap();
+        let input: WantsList = HashSet::from([
+            "albums/abc/artist.album".to_string(),
+            "albums/abc/band.record".to_string(),
+        ]);
+
+        assert_eq!(
+            HashSet::from(["albums/abc/band.record".to_string()]),
+            filter_by_config(input, config.get_wantflac_ignore_albums())
+        );
+    }
 
     #[test]
     fn test_find_missing_albums() {
@@ -109,11 +148,35 @@ mod test {
             "albums/abc/artist.album_1".to_string(),
             "albums/pqrs/singer.second_lp".to_string(),
             "eps/other_band.ep".to_string(),
+            "audiobooks".to_string(),
+            "audiobooks/writer".to_string(),
+            "eps/other_band.ep".to_string(),
+            "audiobooks/writer/writer.stories".to_string(),
         ]);
 
         assert_eq!(
             expected,
             find_missing_albums(&fixture("commands/wantflac")).unwrap()
+        );
+    }
+
+    #[test]
+    fn test_find_missing_albums_with_top_level_filter() {
+        let config = config::load_config(&fixture("config/test.toml")).unwrap();
+
+        let expected = HashSet::from([
+            "albums/abc/artist.album_1".to_string(),
+            "albums/pqrs/singer.second_lp".to_string(),
+            "eps/other_band.ep".to_string(),
+            "eps/other_band.ep".to_string(),
+        ]);
+
+        assert_eq!(
+            expected,
+            filter_by_top_level(
+                find_missing_albums(&fixture("commands/wantflac")).unwrap(),
+                config.get_wantflac_ignore_top_level()
+            )
         );
     }
 

@@ -16,6 +16,6 @@ pub fn defopts() -> GlobalOpts {
     GlobalOpts {
         verbose: false,
         noop: false,
-        config: fixture("config/test.toml").to_string_lossy().to_string(),
+        config: fixture("config/test.toml"),
     }
 }

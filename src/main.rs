@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
-use std::path::PathBuf;
 mod commands;
+use std::path::PathBuf;
 mod utils;
 
 #[derive(Parser)]
@@ -14,16 +14,10 @@ struct Cli {
     #[arg(short, long, global = true)]
     pub noop: bool,
     /// Path to config file
-    #[arg(short, long, global = true, default_value_t = config_location())]
+    #[arg(short, long, global = true, default_value_t = utils::config::default_location())]
     pub config: String,
     #[command(subcommand)]
     command: Commands,
-}
-
-fn config_location() -> String {
-    let home = std::env::var("HOME").expect("cannot find home directory");
-    let home_dir = PathBuf::from(home);
-    home_dir.join(".aur.toml").to_string_lossy().to_string()
 }
 
 #[derive(Debug, Subcommand)]
@@ -155,7 +149,7 @@ fn main() {
     let global_opts = crate::utils::types::GlobalOpts {
         verbose: cli.verbose,
         noop: cli.noop,
-        config: cli.config,
+        config: PathBuf::from(cli.config),
     };
     let result = match cli.command {
         Commands::Albumdisc { files } => commands::albumdisc::run(&files, &global_opts),
