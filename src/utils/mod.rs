@@ -8,6 +8,7 @@ pub mod string;
 pub mod tag_maker;
 pub mod tagger;
 pub mod term;
+pub mod titlecase;
 pub mod types;
 
 #[cfg(test)]

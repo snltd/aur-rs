@@ -93,7 +93,11 @@ ignore_case = [
 
 [expand] 
 "12inch" = "12\""
+<<<<<<< HEAD
 "7inch" = "7\""
+=======
+"7inch'" = "7\""
+>>>>>>> fe062e7 (rough out some titlecase stuff)
 "--" =  " - " 
 "'&'" = "and"
 "aint" = "ain't"
@@ -125,4 +129,5 @@ ignore_case = [
 "youll" = "you'll"
 "youre" = "you're"
 "youve" = "you've"
+
 
