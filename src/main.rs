@@ -76,6 +76,12 @@ enum Commands {
         #[arg(required = true)]
         files: Vec<String>,
     },
+    /// Tags a file based on its name
+    Name2tag {
+        /// One or more media files
+        #[arg(required = true)]
+        files: Vec<String>,
+    },
     /// Look for artists with similar, but not identical, names
     Namecheck { root_dir: String },
     /// Prefix the file's name with its zero-padded track number
@@ -183,6 +189,7 @@ fn main() {
             directories,
         } => commands::ls::run(&directories, recurse),
         Commands::Name2num { files } => commands::name2num::run(&files, &global_opts),
+        Commands::Name2tag { files } => commands::name2tag::run(&files, &global_opts),
         Commands::Namecheck { root_dir } => commands::namecheck::run(&root_dir, &global_opts),
         Commands::Num2name { files } => commands::num2name::run(&files),
         Commands::Renumber {

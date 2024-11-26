@@ -5,6 +5,7 @@ pub mod metadata;
 pub mod rename;
 pub mod renumber_file;
 pub mod string;
+pub mod tag_maker;
 pub mod tagger;
 pub mod term;
 pub mod types;
