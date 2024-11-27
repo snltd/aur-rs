@@ -6,6 +6,7 @@ pub mod info;
 pub mod inumber;
 pub mod ls;
 pub mod name2num;
+pub mod name2tag;
 pub mod namecheck;
 pub mod num2name;
 pub mod renumber;
