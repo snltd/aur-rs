@@ -1,16 +1,78 @@
+use super::metadata::AurMetadata;
 use crate::utils::string::Capitalize;
+use anyhow::anyhow;
 use once_cell::sync::Lazy;
 use serde::Deserialize;
 use std::collections::{HashMap, HashSet};
 use std::env::current_dir;
 use std::fs::read_to_string;
 
-pub static WORDS: Lazy<Words> = Lazy::new(|| init_words());
+pub static WORDS: Lazy<Words> = Lazy::new(init_words);
 
 type InBrackets = bool;
-struct TagMaker();
+
+pub struct TagMaker();
+
+pub struct TagMakerAllTags {
+    pub artist: String,
+    pub title: String,
+    pub album: String,
+    pub t_num: u32,
+}
 
 impl TagMaker {
+    pub fn from_info(info: &AurMetadata) -> anyhow::Result<TagMakerAllTags> {
+        let path = info.path.canonicalize()?;
+        let album_dir = match path.parent() {
+            Some(dir) => dir,
+            None => {
+                return Err(anyhow!(
+                    "could not get album directory for {}",
+                    info.path.display()
+                ))
+            }
+        };
+
+        let album_dir_name = match album_dir.file_name() {
+            Some(name) => name.to_string_lossy().to_string(),
+            None => {
+                return Err(anyhow!(
+                    "could not get album directory name for {}",
+                    info.path.display()
+                ))
+            }
+        };
+
+        let fname_chunks: Vec<_> = info.filename.split('.').collect();
+
+        if fname_chunks.len() != 4 {
+            return Err(anyhow!(
+                "Expected four parts in {}: got {}",
+                info.filename,
+                fname_chunks.len()
+            ));
+        }
+
+        let album_chunks: Vec<_> = album_dir_name.split('.').collect();
+
+        if album_chunks.len() != 2 {
+            return Err(anyhow!(
+                "Expected four parts in {}: got {}",
+                info.filename,
+                album_chunks.len()
+            ));
+        }
+
+        let ret = TagMakerAllTags {
+            artist: TagMaker::artist_from(fname_chunks[1]),
+            title: TagMaker::title_from(fname_chunks[2]),
+            album: TagMaker::album_from(album_chunks[1]),
+            t_num: TagMaker::t_num_from(fname_chunks[0]),
+        };
+
+        Ok(ret)
+    }
+
     pub fn title_from(string: &str) -> String {
         let mut in_brackets = false;
         let words: Vec<_> = string.split(['_', ' ']).collect();
@@ -34,6 +96,7 @@ impl TagMaker {
         Self::title_from(string)
     }
 
+    #[allow(dead_code)]
     pub fn genre_from(string: &str) -> String {
         Self::title_from(string).trim().to_string()
     }
@@ -147,7 +210,7 @@ fn smart_capitalize(word: &str, index: usize, count: usize) -> String {
     }
 }
 
-fn join_up(words: &Vec<String>, in_brackets: InBrackets) -> String {
+fn join_up(words: &[String], in_brackets: InBrackets) -> String {
     let mut ret = words.join(" ");
 
     if in_brackets {
@@ -192,6 +255,7 @@ mod test {
         );
     }
 
+    #[test]
     fn test_title_inches() {
         assert_eq!(
             "I Feel Love (12\" Mix)",
@@ -203,6 +267,7 @@ mod test {
         );
     }
 
+    #[test]
     fn test_title_hyphen() {
         assert_eq!("When-Never", TagMaker::title_from("when-never"));
         assert_eq!(
@@ -215,6 +280,7 @@ mod test {
         );
     }
 
+    #[test]
     fn test_title_brackets_in_middle() {
         assert_eq!(
             "This Is (Almost) Too Easy",
@@ -238,6 +304,7 @@ mod test {
         );
     }
 
+    #[test]
     fn test_title_brackets_at_end() {
         assert_eq!(
             "Suburbia (The Full Horror)",
@@ -254,12 +321,14 @@ mod test {
         );
     }
 
+    #[test]
     fn test_title_initials() {
         assert_eq!("C.R.E.E.P.", TagMaker::title_from("c-r-e-e-p"));
         assert_eq!("The N.W.R.A.", TagMaker::title_from("the_n-w-r-a"));
         assert_eq!("W.M.C. Blob 59", TagMaker::title_from("w-m-c_blob_59"));
     }
 
+    #[test]
     fn test_initials_in_brackets() {
         assert_eq!(
             "The (I.N.I.T.I.A.L.S.) In Brackets",
@@ -313,6 +382,7 @@ mod test {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Deserialize, Debug)]
 pub struct Words {
     pub no_caps: HashSet<String>,
