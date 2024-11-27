@@ -142,6 +142,7 @@ dependencies = [
  "lazy_static",
  "metaflac",
  "mp3-metadata",
+ "once_cell",
  "regex",
  "serde",
  "tempfile",

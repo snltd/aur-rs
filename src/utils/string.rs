@@ -13,6 +13,10 @@ pub trait ReplaceLast {
     fn replace_last(&self, from: &str, to: &str) -> String;
 }
 
+pub trait Capitalize {
+    fn capitalize(&self) -> String;
+}
+
 impl ToSafe for String {
     // The rules for making a filename-safe string are to:
     //   - replace accented characters with basic Latin
@@ -120,6 +124,19 @@ impl Compacted for &str {
     }
 }
 
+impl Capitalize for String {
+    fn capitalize(&self) -> String {
+        let word = self.to_lowercase();
+        word[..1].to_uppercase() + &word[1..]
+    }
+}
+
+impl Capitalize for &str {
+    fn capitalize(&self) -> String {
+        self.to_string().capitalize()
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -177,5 +194,11 @@ mod test {
         assert_eq!("theb52s".to_string(), "The B52s".compacted());
         assert_eq!("theb52s".to_string(), "The B52's".compacted());
         assert_eq!("theb52s".to_string(), "The B-52's".compacted());
+    }
+
+    #[test]
+    fn test_capitalize() {
+        assert_eq!("Merp".to_string(), "merp".capitalize());
+        assert_eq!("Merp".to_string(), "MERP".capitalize());
     }
 }
