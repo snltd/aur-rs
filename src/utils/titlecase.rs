@@ -1,8 +1,10 @@
+use crate::utils::string::Capitalize;
 use once_cell::sync::Lazy;
 use serde::Deserialize;
 use std::collections::{HashMap, HashSet};
 use std::env::current_dir;
 use std::fs::read_to_string;
+/*
 
 pub static WORDS: Lazy<Words> = Lazy::new(|| init_words());
 
@@ -19,14 +21,9 @@ pub static WORDS: Lazy<Words> = Lazy::new(|| init_words());
 // }
 
 // wrapper
-    fn titlecase(word) -> String {
+fn titlecase(word: &str) -> String {
     // if starts_with()
-    capitalize(word)
-    }
-
-fn capitalize(word: &str) -> String {
-    let word = word.to_lowercase();
-    word[..1].to_uppercase() + &word[1..]
+    word.capitalize()
 }
 
 fn is_ignore_case(word: &str) -> bool {
@@ -80,13 +77,6 @@ mod test {
     fn test_is_downcase() {
         assert!(is_downcase("the", false, "and"));
         assert!(!is_downcase("cat", false, "the"));
-    }
-
-    #[test]
-    fn test_capitalize() {
-        assert_eq!("Word".to_string(), capitalize("word"));
-        assert_eq!("Word".to_string(), capitalize("WORD"));
-        assert_eq!("Word".to_string(), capitalize("wOrD"));
     }
 
     #[test]
@@ -148,3 +138,4 @@ fn init_words() -> Words {
         .map_err(|e| anyhow::anyhow!(e))
         .expect("could not parse words file")
 }
+*/
