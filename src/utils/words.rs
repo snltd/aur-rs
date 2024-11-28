@@ -147,7 +147,7 @@ fn expand() -> HashMap<String, String> {
         ("12inch".to_string(), "12\"".to_string()),
         ("7inch".to_string(), "7\"".to_string()),
         ("--".to_string(), " - ".to_string()),
-        ("'&'".to_string(), "and".to_string()),
+        ("&".to_string(), "and".to_string()),
         ("aint".to_string(), "ain't".to_string()),
         ("cant".to_string(), "can't".to_string()),
         ("couldnt".to_string(), "couldn't".to_string()),

@@ -2,14 +2,11 @@ use super::metadata::AurMetadata;
 use crate::utils::string::Capitalize;
 use crate::utils::words::Words;
 use anyhow::anyhow;
-// use once_cell::sync::Lazy;
-// use serde::Deserialize;
-use std::collections::{HashMap, HashSet};
-// use std::env::current_dir;
-// use std::fs::read_to_string;
 
 type InBrackets = bool;
 
+/// TagMaker makes roughly correct tags given snake_cased_strings. Obviously it can't guess much
+/// in the way of punctuation, but it handles quite a lot of odd cases.
 pub struct TagMaker<'a> {
     words: &'a Words,
 }
@@ -26,7 +23,7 @@ impl<'a> TagMaker<'a> {
         Self { words }
     }
 
-    pub fn from_info(&self, info: &AurMetadata) -> anyhow::Result<TagMakerAllTags> {
+    pub fn all_tags_from(&self, info: &AurMetadata) -> anyhow::Result<TagMakerAllTags> {
         let path = info.path.canonicalize()?;
         let album_dir = match path.parent() {
             Some(dir) => dir,
@@ -233,7 +230,7 @@ impl<'a> TagMaker<'a> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::spec_helper::{fixture, sample_config};
+    use crate::utils::spec_helper::sample_config;
 
     #[test]
     fn test_title_plain() {

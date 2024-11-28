@@ -1,5 +1,5 @@
 /// Used by the functional tests
-#[warn(dead_code)]
+#[allow(dead_code)]
 pub fn missing_file_args_test(command: &str) {
     assert_cli::Assert::main_binary()
         .with_args(&[command])
