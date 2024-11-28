@@ -10,6 +10,7 @@ pub mod name2tag;
 pub mod namecheck;
 pub mod num2name;
 pub mod renumber;
+pub mod retitle;
 pub mod set;
 pub mod tag2name;
 pub mod tags;

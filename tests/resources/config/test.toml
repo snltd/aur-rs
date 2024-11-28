@@ -10,3 +10,10 @@ albums = [
 top_level = [
   "audiobooks",
 ]
+
+[words]
+ignore_case = ["mxbx"]
+all_caps = ["4ad", "abba"]
+[words.expand]
+"add_n_to_x" = "Add N to (X)"
+

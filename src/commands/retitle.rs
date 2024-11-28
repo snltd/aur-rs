@@ -1,7 +1,7 @@
 use crate::utils::config::{load_config, Config};
 use crate::utils::dir::{media_files, pathbuf_set};
 use crate::utils::metadata::AurMetadata;
-use crate::utils::tag_maker::TagMaker;
+use crate::utils::retitler::Retitler;
 use crate::utils::tagger::Tagger;
 use crate::utils::types::GlobalOpts;
 use crate::utils::words::Words;
@@ -21,12 +21,22 @@ fn tag_file(file: &Path, config: &Config) -> anyhow::Result<()> {
     let info = AurMetadata::new(file)?;
     let tagger = Tagger::new(&info)?;
     let words = Words::new(config);
-    let tag_maker = TagMaker::new(&words);
-    let new_tags = tag_maker.all_tags_from(&info)?;
+    let rt = Retitler::new(&words);
 
-    tagger.set_artist(new_tags.artist.as_str())?;
-    tagger.set_album(new_tags.album.as_str())?;
-    tagger.set_title(new_tags.title.as_str())?;
-    tagger.set_t_num(new_tags.t_num.to_string().as_str())?;
+    let artist = rt.retitle(&info.tags.artist);
+    tagger.set_artist(&artist)?;
+
+    let album = rt.retitle(&info.tags.album);
+    tagger.set_album(&album)?;
+
+    let title = rt.retitle(&info.tags.title);
+    tagger.set_title(&title)?;
+
+    let t_num = rt.retitle(&info.tags.t_num.to_string());
+    tagger.set_t_num(&t_num)?;
+
+    let genre = rt.retitle(&info.tags.genre);
+    tagger.set_genre(&genre)?;
+
     Ok(())
 }

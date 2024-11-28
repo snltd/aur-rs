@@ -101,6 +101,12 @@ enum Commands {
         #[arg(required = true)]
         files: Vec<String>,
     },
+    /// Correct capitalization across all tags
+    Retitle {
+        /// One or more media files
+        #[arg(required = true)]
+        files: Vec<String>,
+    },
     /// Set a tag in one or more files
     Set {
         /// Tag name
@@ -197,6 +203,7 @@ fn main() {
             delta,
             files,
         } => commands::renumber::run(&direction, delta, &files),
+        Commands::Retitle { files } => commands::retitle::run(&files, &global_opts),
         Commands::Set { tag, value, files } => commands::set::run(&tag, &value, &files),
         Commands::Tagsub {
             tag,
