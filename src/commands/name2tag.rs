@@ -24,9 +24,9 @@ fn tag_file(file: &Path, config: &Config) -> anyhow::Result<()> {
     let tag_maker = TagMaker::new(&words);
     let new_tags = tag_maker.all_tags_from(&info)?;
 
-    tagger.set_artist(new_tags.artist.as_str())?;
-    tagger.set_album(new_tags.album.as_str())?;
-    tagger.set_title(new_tags.title.as_str())?;
-    tagger.set_t_num(new_tags.t_num.to_string().as_str())?;
+    tagger.set_artist(&new_tags.artist)?;
+    tagger.set_album(&new_tags.album)?;
+    tagger.set_title(&new_tags.title)?;
+    tagger.set_t_num(&new_tags.t_num.to_string())?;
     Ok(())
 }

@@ -128,7 +128,7 @@ impl<'a> TagMaker<'a> {
             (self.handle_short_dash(string, index, count), in_brackets)
         } else {
             (
-                self.smart_capitalize(self.expand(string).as_str(), index, count),
+                self.smart_capitalize(&self.expand(string), index, count),
                 in_brackets,
             )
         }
@@ -179,7 +179,7 @@ impl<'a> TagMaker<'a> {
         let final_word = self.expand(words.last().unwrap()).capitalize();
 
         if words.len() > 3 {
-            inner_words = self.handle_initials(words[1..words.len() - 2].join("-").as_str());
+            inner_words = self.handle_initials(&words[1..words.len() - 2].join("-"));
         }
 
         (

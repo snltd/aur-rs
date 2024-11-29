@@ -15,10 +15,7 @@ mod test {
         let file_under_test = tmp.path().join(file_name);
 
         assert_cli::Assert::main_binary()
-            .with_args(&[
-                "thes",
-                file_under_test.to_string_lossy().to_string().as_str(),
-            ])
+            .with_args(&["thes", &file_under_test.to_string_lossy()])
             .succeeds()
             .and()
             .stdout()
@@ -26,10 +23,7 @@ mod test {
             .unwrap();
 
         assert_cli::Assert::main_binary()
-            .with_args(&[
-                "thes",
-                file_under_test.to_string_lossy().to_string().as_str(),
-            ])
+            .with_args(&["thes", &file_under_test.to_string_lossy()])
             .succeeds()
             .and()
             .stdout()

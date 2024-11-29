@@ -108,9 +108,9 @@ fn format_dupes(dupe_cluster: &DupeCluster) -> String {
     let mut ret = String::new();
 
     for (name, paths) in dupe_cluster {
-        ret.push_str(name.as_str());
+        ret.push_str(name);
         for path in paths {
-            ret.push_str(format!("\n    {}", path.display()).as_str());
+            ret.push_str(&format!("\n    {}", path.display()));
         }
         ret.push('\n');
     }

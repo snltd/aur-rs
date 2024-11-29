@@ -47,12 +47,12 @@ fn tag_file(file: &Path, ct_opts: &CopytagsOptions, opts: &GlobalOpts) -> anyhow
     let tagger = Tagger::new(&info)?;
 
     let changes = [
-        tagger.set_artist(partner_tags.artist.as_str())?,
-        tagger.set_title(partner_tags.title.as_str())?,
-        tagger.set_album(partner_tags.album.as_str())?,
-        tagger.set_genre(partner_tags.genre.as_str())?,
-        tagger.set_t_num(partner_tags.t_num.to_string().as_str())?,
-        tagger.set_year(partner_tags.year.to_string().as_str())?,
+        tagger.set_artist(&partner_tags.artist)?,
+        tagger.set_title(&partner_tags.title)?,
+        tagger.set_album(&partner_tags.album)?,
+        tagger.set_genre(&partner_tags.genre)?,
+        tagger.set_t_num(&partner_tags.t_num.to_string())?,
+        tagger.set_year(&partner_tags.year.to_string())?,
     ]
     .iter()
     .any(|&changed| changed);
@@ -62,7 +62,7 @@ fn tag_file(file: &Path, ct_opts: &CopytagsOptions, opts: &GlobalOpts) -> anyhow
 
 fn find_partner(info: &AurMetadata, force: bool) -> anyhow::Result<Option<PathBuf>> {
     let filetype = info.filetype.as_str();
-    let filename_str = info.filename.as_str();
+    let filename_str = &info.filename;
 
     let newtype = match filetype {
         "mp3" => "flac",

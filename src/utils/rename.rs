@@ -61,7 +61,7 @@ pub fn renumber_file(info: &AurMetadata) -> anyhow::Result<RenameOption> {
                 return Ok(None);
             }
 
-            filename.replacen(num_str.as_str(), padded_num(tag_track_number).as_str(), 1)
+            filename.replacen(&num_str, &padded_num(tag_track_number), 1)
         }
         None => {
             format!("{}.{}", padded_num(tag_track_number), filename)
@@ -93,9 +93,9 @@ mod test {
 
     #[test]
     fn test_padded_num() {
-        assert_eq!("01".to_string(), padded_num(1));
-        assert_eq!("00".to_string(), padded_num(0));
-        assert_eq!("76".to_string(), padded_num(76));
+        assert_eq!("01", padded_num(1));
+        assert_eq!("00", padded_num(0));
+        assert_eq!("76", padded_num(76));
     }
 
     #[test]
@@ -115,12 +115,12 @@ mod test {
     #[test]
     fn test_safe_filename() {
         assert_eq!(
-            "04.merpers.ive_got_something--very_loud.flac".to_string(),
+            "04.merpers.ive_got_something--very_loud.flac",
             safe_filename(4, "The Merpers", "I've Got Something (Very Loud)", "FLAC")
         );
 
         assert_eq!(
-            "23.singer.song.mp3".to_string(),
+            "23.singer.song.mp3",
             safe_filename(23, "Singer", "SONG", "mp3")
         );
     }

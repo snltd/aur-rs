@@ -13,19 +13,17 @@ mod test {
         tmp.copy_from(fixture("commands/renumber"), &["*"]).unwrap();
         let file_01_step_1 = tmp.path().join("01.test.song.flac");
         let file_02_step_1 = tmp.path().join("02.test.song.mp3");
-
         let file_01_step_2 = tmp.path().join("15.test.song.flac");
         let file_02_step_2 = tmp.path().join("16.test.song.mp3");
 
         // Renumber upwards
-
         assert_cli::Assert::main_binary()
             .with_args(&[
                 "renumber",
                 "up",
                 "14",
-                file_01_step_1.to_string_lossy().to_string().as_str(),
-                file_02_step_1.to_string_lossy().to_string().as_str(),
+                &file_01_step_1.to_string_lossy(),
+                &file_02_step_1.to_string_lossy(),
             ])
             .succeeds()
             .and()
@@ -49,8 +47,8 @@ mod test {
                 "renumber",
                 "down",
                 "7",
-                file_01_step_2.to_string_lossy().to_string().as_str(),
-                file_02_step_2.to_string_lossy().to_string().as_str(),
+                &file_01_step_2.to_string_lossy(),
+                &file_02_step_2.to_string_lossy(),
             ])
             .succeeds()
             .and()
@@ -77,10 +75,7 @@ mod test {
         let file_under_test = tmp.path().join("02.test.song.mp3");
 
         assert_cli::Assert::main_binary()
-            .with_args(&[
-                "renumber",
-                file_under_test.to_string_lossy().to_string().as_str(),
-            ])
+            .with_args(&["renumber", &file_under_test.to_string_lossy()])
             .fails()
             .and()
             .stderr()
@@ -88,12 +83,7 @@ mod test {
             .unwrap();
 
         assert_cli::Assert::main_binary()
-            .with_args(&[
-                "renumber",
-                "up",
-                "1000",
-                file_under_test.to_string_lossy().to_string().as_str(),
-            ])
+            .with_args(&["renumber", "up", "1000", &file_under_test.to_string_lossy()])
             .fails()
             .and()
             .stderr()
@@ -101,12 +91,7 @@ mod test {
             .unwrap();
 
         assert_cli::Assert::main_binary()
-            .with_args(&[
-                "renumber",
-                "down",
-                "30",
-                file_under_test.to_string_lossy().to_string().as_str(),
-            ])
+            .with_args(&["renumber", "down", "30", &file_under_test.to_string_lossy()])
             .fails()
             .and()
             .stderr()

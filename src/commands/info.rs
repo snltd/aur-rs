@@ -57,29 +57,29 @@ mod test {
         let flac_info = info_for_file(&fixture("info/test.flac")).unwrap();
 
         assert_eq!(10, flac_info.len());
-        assert_eq!(" Filename : test.flac".to_string(), flac_info[0]);
-        assert_eq!("     Type : FLAC".to_string(), flac_info[1]);
-        assert_eq!("  Bitrate : 16-bit/44100Hz".to_string(), flac_info[2]);
-        assert_eq!("     Time : 00:00:00".to_string(), flac_info[3]);
-        assert_eq!("   Artist : Test Artist".to_string(), flac_info[4]);
-        assert_eq!("    Album : Test Album".to_string(), flac_info[5]);
-        assert_eq!("    Title : Test Title".to_string(), flac_info[6]);
-        assert_eq!("    Genre : Test Genre".to_string(), flac_info[7]);
-        assert_eq!(" Track no : 6".to_string(), flac_info[8]);
-        assert_eq!("     Year : 2021".to_string(), flac_info[9]);
+        assert_eq!(" Filename : test.flac", flac_info[0]);
+        assert_eq!("     Type : FLAC", flac_info[1]);
+        assert_eq!("  Bitrate : 16-bit/44100Hz", flac_info[2]);
+        assert_eq!("     Time : 00:00:00", flac_info[3]);
+        assert_eq!("   Artist : Test Artist", flac_info[4]);
+        assert_eq!("    Album : Test Album", flac_info[5]);
+        assert_eq!("    Title : Test Title", flac_info[6]);
+        assert_eq!("    Genre : Test Genre", flac_info[7]);
+        assert_eq!(" Track no : 6", flac_info[8]);
+        assert_eq!("     Year : 2021", flac_info[9]);
 
         let mp3_info = info_for_file(&fixture("info/test.mp3")).unwrap();
 
         assert_eq!(10, mp3_info.len());
-        assert_eq!(" Filename : test.mp3".to_string(), mp3_info[0]);
-        assert_eq!("     Type : MP3".to_string(), mp3_info[1]);
-        assert_eq!("  Bitrate : 64kbps".to_string(), mp3_info[2]);
-        assert_eq!("     Time : 00:00:00".to_string(), mp3_info[3]);
-        assert_eq!("   Artist : Test Artist".to_string(), mp3_info[4]);
-        assert_eq!("    Album : Test Album".to_string(), mp3_info[5]);
-        assert_eq!("    Title : Test Title".to_string(), mp3_info[6]);
-        assert_eq!("    Genre : Test Genre".to_string(), mp3_info[7]);
-        assert_eq!(" Track no : 6".to_string(), mp3_info[8]);
-        assert_eq!("     Year : 2021".to_string(), mp3_info[9]);
+        assert_eq!(" Filename : test.mp3", mp3_info[0]);
+        assert_eq!("     Type : MP3", mp3_info[1]);
+        assert_eq!("  Bitrate : 64kbps", mp3_info[2]);
+        assert_eq!("     Time : 00:00:00", mp3_info[3]);
+        assert_eq!("   Artist : Test Artist", mp3_info[4]);
+        assert_eq!("    Album : Test Album", mp3_info[5]);
+        assert_eq!("    Title : Test Title", mp3_info[6]);
+        assert_eq!("    Genre : Test Genre", mp3_info[7]);
+        assert_eq!(" Track no : 6", mp3_info[8]);
+        assert_eq!("     Year : 2021", mp3_info[9]);
     }
 }

@@ -21,10 +21,7 @@ mod test {
         let file_under_test = target.path().join(FILENAME);
 
         assert_cli::Assert::main_binary()
-            .with_args(&[
-                "albumdisc",
-                file_under_test.to_string_lossy().to_string().as_str(),
-            ])
+            .with_args(&["albumdisc", &file_under_test.to_string_lossy()])
             .succeeds()
             .and()
             .stdout()
@@ -33,10 +30,7 @@ mod test {
 
         // Running again should do nothing, because it's been corrected
         assert_cli::Assert::main_binary()
-            .with_args(&[
-                "albumdisc",
-                file_under_test.to_string_lossy().to_string().as_str(),
-            ])
+            .with_args(&["albumdisc", &file_under_test.to_string_lossy()])
             .succeeds()
             .and()
             .stdout()
@@ -53,10 +47,7 @@ mod test {
         let file_under_test = tmp.path().join(FILENAME);
 
         assert_cli::Assert::main_binary()
-            .with_args(&[
-                "albumdisc",
-                file_under_test.to_string_lossy().to_string().as_str(),
-            ])
+            .with_args(&["albumdisc", &file_under_test.to_string_lossy()])
             .fails()
             .and()
             .stderr()

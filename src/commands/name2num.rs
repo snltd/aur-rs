@@ -17,7 +17,7 @@ pub fn run(files: &[String], opts: &GlobalOpts) -> anyhow::Result<()> {
 fn tag_file(file: &Path, opts: &GlobalOpts) -> anyhow::Result<bool> {
     let info = AurMetadata::new(file)?;
     let current_track_number = info.tags.t_num;
-    let suggested_track_number = match number_from_filename(info.filename.as_str()) {
+    let suggested_track_number = match number_from_filename(&info.filename) {
         Some((_path, num)) => num,
         None => {
             verbose!(opts, "Filename has correct track number");
@@ -31,7 +31,7 @@ fn tag_file(file: &Path, opts: &GlobalOpts) -> anyhow::Result<bool> {
     }
 
     let tagger = Tagger::new(&info)?;
-    tagger.set_t_num(suggested_track_number.to_string().as_str())
+    tagger.set_t_num(&suggested_track_number.to_string())
 }
 
 #[cfg(test)]

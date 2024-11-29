@@ -20,7 +20,7 @@ fn tag_file(info: &AurMetadata, number: u32) -> anyhow::Result<bool> {
     }
 
     let tagger = Tagger::new(info)?;
-    tagger.set_t_num(number.to_string().as_str())
+    tagger.set_t_num(&number.to_string())
 }
 
 #[cfg(test)]

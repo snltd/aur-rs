@@ -19,21 +19,9 @@ mod test {
            t_num -> 1
             date -> 2021";
 
-        // assert_cli::Assert::command(&["find", "."])
-        //     .current_dir(tmp.path())
-        //     .succeeds()
-        //     .and()
-        //     .stdout()
-        //     .is("merp")
-        //     .unwrap();
-
         // Check the title is what we think it is (and wrong)
         assert_cli::Assert::main_binary()
-            .with_args(&[
-                "get",
-                "title",
-                file_under_test.to_string_lossy().to_string().as_str(),
-            ])
+            .with_args(&["get", "title", &file_under_test.to_string_lossy()])
             .succeeds()
             .and()
             .stdout()
@@ -42,11 +30,7 @@ mod test {
 
         // Copy the tags
         assert_cli::Assert::main_binary()
-            .with_args(&[
-                "copytags",
-                "--force",
-                file_under_test.to_string_lossy().to_string().as_str(),
-            ])
+            .with_args(&["copytags", "--force", &file_under_test.to_string_lossy()])
             .succeeds()
             .and()
             .stdout()
@@ -55,11 +39,7 @@ mod test {
 
         // Check the title is now correct
         assert_cli::Assert::main_binary()
-            .with_args(&[
-                "get",
-                "title",
-                file_under_test.to_string_lossy().to_string().as_str(),
-            ])
+            .with_args(&["get", "title", &file_under_test.to_string_lossy()])
             .succeeds()
             .and()
             .stdout()
@@ -68,11 +48,7 @@ mod test {
 
         // This time nothing should happen because the tags already match
         assert_cli::Assert::main_binary()
-            .with_args(&[
-                "copytags",
-                "--force",
-                file_under_test.to_string_lossy().to_string().as_str(),
-            ])
+            .with_args(&["copytags", "--force", &file_under_test.to_string_lossy()])
             .succeeds()
             .and()
             .stdout()
@@ -90,11 +66,7 @@ mod test {
 
         // Should fail because there's no corresponding FLAC
         assert_cli::Assert::main_binary()
-            .with_args(&[
-                "copytags",
-                "--force",
-                file_under_test.to_string_lossy().to_string().as_str(),
-            ])
+            .with_args(&["copytags", "--force", &file_under_test.to_string_lossy()])
             .fails()
             .and()
             .stdout()

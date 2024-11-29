@@ -113,7 +113,7 @@ mod test {
         let file_under_test = tmp.path().join(file_name);
 
         let original_info = AurMetadata::new(&file_under_test).unwrap();
-        assert_eq!("Test Artist".to_string(), original_info.tags.artist);
+        assert_eq!("Test Artist", original_info.tags.artist);
         assert!(!process_file(&file_under_test, "title", &rx, "whatever", &defopts()).unwrap());
     }
 
@@ -128,10 +128,10 @@ mod test {
         let file_under_test = tmp.path().join(file_name);
 
         let original_info = AurMetadata::new(&file_under_test).unwrap();
-        assert_eq!("Test Artist".to_string(), original_info.tags.artist);
+        assert_eq!("Test Artist", original_info.tags.artist);
 
         assert!(process_file(&file_under_test, "artist", &rx, "Tested", &defopts()).unwrap());
         let new_info = AurMetadata::new(&file_under_test).unwrap();
-        assert_eq!("Tested Artist".to_string(), new_info.tags.artist);
+        assert_eq!("Tested Artist", new_info.tags.artist);
     }
 }

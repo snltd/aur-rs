@@ -12,7 +12,7 @@ mod test {
         let dir_under_test = fixture_as_string("commands/namecheck");
 
         assert_cli::Assert::main_binary()
-            .with_args(&["namecheck", dir_under_test.as_str()])
+            .with_args(&["namecheck", &dir_under_test])
             .succeeds()
             .and()
             .stdout()

@@ -98,12 +98,12 @@ mod test {
 
         let file_under_test = target.path().join("01.artist.song.mp3");
         let original_info = AurMetadata::new(&file_under_test).unwrap();
-        assert_eq!("Test Album".to_string(), original_info.tags.album);
+        assert_eq!("Test Album", original_info.tags.album);
         assert!(tag_file(&file_under_test, &rx, &defopts()).unwrap());
         let new_info = AurMetadata::new(&file_under_test).unwrap();
-        assert_eq!("Test Album (Disc 3)".to_string(), new_info.tags.album);
+        assert_eq!("Test Album (Disc 3)", new_info.tags.album);
         assert!(!tag_file(&file_under_test, &rx, &defopts()).unwrap());
         let new_new_info = AurMetadata::new(&file_under_test).unwrap();
-        assert_eq!("Test Album (Disc 3)".to_string(), new_new_info.tags.album);
+        assert_eq!("Test Album (Disc 3)", new_new_info.tags.album);
     }
 }

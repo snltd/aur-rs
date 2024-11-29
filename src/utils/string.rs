@@ -191,14 +191,14 @@ mod test {
 
     #[test]
     fn test_compacted() {
-        assert_eq!("theb52s".to_string(), "The B52s".compacted());
-        assert_eq!("theb52s".to_string(), "The B52's".compacted());
-        assert_eq!("theb52s".to_string(), "The B-52's".compacted());
+        assert_eq!("theb52s", "The B52s".compacted());
+        assert_eq!("theb52s", "The B52's".compacted());
+        assert_eq!("theb52s", "The B-52's".compacted());
     }
 
     #[test]
     fn test_capitalize() {
-        assert_eq!("Merp".to_string(), "merp".capitalize());
-        assert_eq!("Merp".to_string(), "MERP".capitalize());
+        assert_eq!("Merp", "merp".capitalize());
+        assert_eq!("Merp", "MERP".capitalize());
     }
 }

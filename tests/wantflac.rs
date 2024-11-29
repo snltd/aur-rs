@@ -10,10 +10,10 @@ mod test {
         assert_cli::Assert::main_binary()
             .with_args(&[
                 "--config",
-                config_file_as_string().as_str(),
+                &config_file_as_string(),
                 "wantflac",
                 "--root",
-                dir_under_test.as_str(),
+                &dir_under_test,
             ])
             .succeeds()
             .and()

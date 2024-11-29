@@ -62,7 +62,7 @@ impl<'a> Retitler<'a> {
 
         let stripped_word = self.downcase_string(word);
 
-        if self.is_upcase(word, stripped_word.as_str()) {
+        if self.is_upcase(word, &stripped_word) {
             return word.to_uppercase();
         }
 
@@ -122,13 +122,11 @@ impl<'a> Retitler<'a> {
     }
 
     fn ignorecase(&self, word: &str) -> bool {
-        self.words
-            .ignore_case
-            .contains(word.to_lowercase().as_str())
+        self.words.ignore_case.contains(&word.to_lowercase())
     }
 
     fn is_downcase(&self, word: &str, previous_word: &str, run_together: bool) -> bool {
-        self.words.no_caps.contains(word.to_lowercase().as_str())
+        self.words.no_caps.contains(&word.to_lowercase())
             && (run_together || !previous_word.ends_with(['[', ':', '-', '/', '?', '!']))
     }
 
