@@ -16,10 +16,7 @@ mod test {
         let file_under_test = tmp.path().join(file_name);
 
         assert_cli::Assert::main_binary()
-            .with_args(&[
-                "inumber",
-                file_under_test.to_string_lossy().to_string().as_str(),
-            ])
+            .with_args(&["inumber", &file_under_test.to_string_lossy()])
             .stdin("1")
             .succeeds()
             .and()
@@ -38,10 +35,7 @@ mod test {
         let new_file_under_test = tmp.path().join("01.change_both.mp3");
 
         assert_cli::Assert::main_binary()
-            .with_args(&[
-                "inumber",
-                new_file_under_test.to_string_lossy().to_string().as_str(),
-            ])
+            .with_args(&["inumber", &new_file_under_test.to_string_lossy()])
             .stdin("1")
             .succeeds()
             .and()

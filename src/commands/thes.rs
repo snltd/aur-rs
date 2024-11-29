@@ -20,7 +20,7 @@ fn tag_file(file: &Path) -> anyhow::Result<bool> {
     }
 
     let tagger = Tagger::new(&info)?;
-    tagger.set_artist(format!("The {}", current_artist).as_str())
+    tagger.set_artist(&format!("The {}", current_artist))
 }
 
 #[cfg(test)]
@@ -44,13 +44,13 @@ mod test {
         let file_under_test = tmp.path().join(file_name);
 
         let original_info = AurMetadata::new(&file_under_test).unwrap();
-        assert_eq!("Test Artist".to_string(), original_info.tags.artist);
+        assert_eq!("Test Artist", original_info.tags.artist);
         assert!(tag_file(&file_under_test).unwrap());
         let new_info = AurMetadata::new(&file_under_test).unwrap();
-        assert_eq!("The Test Artist".to_string(), new_info.tags.artist);
+        assert_eq!("The Test Artist", new_info.tags.artist);
 
         assert!(!tag_file(&file_under_test).unwrap());
         let new_new_info = AurMetadata::new(&file_under_test).unwrap();
-        assert_eq!("The Test Artist".to_string(), new_new_info.tags.artist);
+        assert_eq!("The Test Artist", new_new_info.tags.artist);
     }
 }

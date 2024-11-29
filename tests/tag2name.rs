@@ -15,10 +15,7 @@ mod test {
         let file_under_test = tmp.path().join(file_name);
 
         assert_cli::Assert::main_binary()
-            .with_args(&[
-                "tag2name",
-                file_under_test.to_string_lossy().to_string().as_str(),
-            ])
+            .with_args(&["tag2name", &file_under_test.to_string_lossy()])
             .succeeds()
             .and()
             .stdout()
@@ -28,10 +25,7 @@ mod test {
         let renamed_file = tmp.path().join("06.test_artist.test_title.flac");
 
         assert_cli::Assert::main_binary()
-            .with_args(&[
-                "tag2name",
-                renamed_file.to_string_lossy().to_string().as_str(),
-            ])
+            .with_args(&["tag2name", &renamed_file.to_string_lossy()])
             .succeeds()
             .and()
             .stdout()

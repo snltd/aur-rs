@@ -6,7 +6,7 @@ mod test {
     #[ignore]
     fn test_ls_command() {
         assert_cli::Assert::main_binary()
-            .with_args(&["ls", fixture_as_string("commands/ls").as_str()])
+            .with_args(&["ls", &fixture_as_string("commands/ls")])
             .succeeds()
             .and()
             .stdout()
@@ -15,7 +15,7 @@ mod test {
 
         assert_cli::Assert::main_binary()
             .with_args(&["ls"])
-            .current_dir(fixture_as_string("commands/ls").as_str())
+            .current_dir(fixture_as_string("commands/ls"))
             .succeeds()
             .and()
             .stdout()

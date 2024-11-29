@@ -7,12 +7,6 @@ use std::path::{Path, PathBuf};
 
 const UNDEFINED: &str = "unknown";
 
-// #[derive(Debug)]
-// enum AurFiletype {
-//     Flac,
-//     Mp3,
-// }
-
 type RawTags = Vec<(String, String)>;
 
 #[derive(Debug)]
@@ -294,22 +288,19 @@ mod test {
         let flac_result = AurMetadata::new(&fixture("info/test.flac")).unwrap();
         let mp3_result = AurMetadata::new(&fixture("info/test.mp3")).unwrap();
 
-        assert_eq!(
-            "Test Artist".to_string(),
-            flac_result.get_tag("artist").unwrap()
-        );
+        assert_eq!("Test Artist", flac_result.get_tag("artist").unwrap());
 
-        assert_eq!("6".to_string(), flac_result.get_tag("t_num").unwrap());
+        assert_eq!("6", flac_result.get_tag("t_num").unwrap());
 
         assert!(flac_result.get_tag("whatever").is_err());
 
         assert_eq!(expected_tags, flac_result.tags);
-        assert_eq!("16-bit/44100Hz".to_string(), flac_result.quality.formatted);
-        assert_eq!("00:00:00".to_string(), flac_result.time.formatted);
+        assert_eq!("16-bit/44100Hz", flac_result.quality.formatted);
+        assert_eq!("00:00:00", flac_result.time.formatted);
 
         assert_eq!(expected_tags, mp3_result.tags);
-        assert_eq!("64kbps".to_string(), mp3_result.quality.formatted);
-        assert_eq!("00:00:00".to_string(), mp3_result.time.formatted);
+        assert_eq!("64kbps", mp3_result.quality.formatted);
+        assert_eq!("00:00:00", mp3_result.time.formatted);
     }
 
     #[test]

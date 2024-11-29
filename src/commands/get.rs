@@ -54,12 +54,12 @@ mod test {
     #[test]
     fn test_info_for_file() {
         assert_eq!(
-            "16-bit/44100Hz".to_string(),
+            "16-bit/44100Hz",
             info_for_file("bitrate", &fixture("info/test.flac")).unwrap()
         );
 
         assert_eq!(
-            "64kbps".to_string(),
+            "64kbps",
             info_for_file("bitrate", &fixture("info/test.mp3")).unwrap()
         );
     }

@@ -99,13 +99,13 @@ mod test {
     #[test]
     fn test_filename_from_file() {
         assert_eq!(
-            "singer.song.flac".to_string(),
+            "singer.song.flac",
             filename_from_file(&PathBuf::from("/path/to/singer.album/02.singer.song.flac"))
                 .unwrap()
         );
 
         assert_eq!(
-            "singer.song.flac".to_string(),
+            "singer.song.flac",
             filename_from_file(&PathBuf::from("/path/to/singer.album/singer.song.flac")).unwrap()
         );
     }

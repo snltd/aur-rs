@@ -41,8 +41,8 @@ mod test {
             info_for_file(&fixture("commands/tags/01.test_artist.test_track.mp3")).unwrap();
 
         assert_eq!(14, flac_result.len());
-        assert_eq!("         album : Test Album".to_string(), flac_result[0]);
+        assert_eq!("         album : Test Album", flac_result[0]);
         assert_eq!(15, mp3_result.len());
-        assert_eq!("          comm : Test Comment".to_string(), mp3_result[0]);
+        assert_eq!("          comm : Test Comment", mp3_result[0]);
     }
 }

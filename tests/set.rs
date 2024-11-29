@@ -19,7 +19,7 @@ mod test {
                 "set",
                 "title",
                 "New Title",
-                file_under_test.to_string_lossy().to_string().as_str(),
+                &file_under_test.to_string_lossy(),
             ])
             .stdout()
             .is("title -> New Title")
@@ -30,7 +30,7 @@ mod test {
                 "set",
                 "artist",
                 "Test Artist",
-                file_under_test.to_string_lossy().to_string().as_str(),
+                &file_under_test.to_string_lossy(),
             ])
             .stdout()
             .is("")
@@ -62,7 +62,7 @@ mod test {
                 "set",
                 "whatever",
                 "new title",
-                file_under_test.to_string_lossy().to_string().as_str(),
+                &file_under_test.to_string_lossy(),
             ])
             .fails()
             .and()

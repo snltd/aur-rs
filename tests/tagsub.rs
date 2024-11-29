@@ -6,15 +6,6 @@ mod test {
     use assert_fs::prelude::*;
     use aur::test_utils::spec_helper::fixture;
 
-    // fn file_under_test() -> String {
-    //     let file_name = "06.test_artist.test_title.mp3";
-    //     let tmp = assert_fs::TempDir::new().unwrap();
-    //     tmp.copy_from(fixture("commands/tagsub"), &[file_name])
-    //         .unwrap();
-    //     let file_under_test = tmp.path().join(file_name);
-    //     let file_str = .to_string_lossy().to_string();
-    // }
-
     #[test]
     #[ignore]
     fn test_tagsub_command_change() {
@@ -23,7 +14,7 @@ mod test {
         tmp.copy_from(fixture("commands/tagsub"), &[file_name])
             .unwrap();
         let file_under_test = tmp.path().join(file_name);
-        let file_str = file_under_test.to_string_lossy().to_string();
+        let file_str = file_under_test.to_string_lossy();
         assert_cli::Assert::main_binary()
             .with_args(&["--verbose", "tagsub", "artist", "Test", "Tested", &file_str])
             .stdout()
@@ -48,7 +39,7 @@ mod test {
         tmp.copy_from(fixture("commands/tagsub"), &[file_name])
             .unwrap();
         let file_under_test = tmp.path().join(file_name);
-        let file_str = file_under_test.to_string_lossy().to_string();
+        let file_str = file_under_test.to_string_lossy();
         assert_cli::Assert::main_binary()
             .with_args(&["--noop", "tagsub", "artist", "Test", "Tested", &file_str])
             .stdout()
@@ -82,7 +73,7 @@ mod test {
         tmp.copy_from(fixture("commands/tagsub"), &[file_name])
             .unwrap();
         let file_under_test = tmp.path().join(file_name);
-        let file_str = file_under_test.to_string_lossy().to_string();
+        let file_str = file_under_test.to_string_lossy();
         assert_cli::Assert::main_binary()
             .with_args(&["tagsub", "whatever", "find", "replace", &file_str])
             .fails()

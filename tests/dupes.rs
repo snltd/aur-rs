@@ -15,10 +15,7 @@ mod test {
         let file_under_test = tmp.path().join("flac");
 
         assert_cli::Assert::main_binary()
-            .with_args(&[
-                "dupes",
-                file_under_test.to_string_lossy().to_string().as_str(),
-            ])
+            .with_args(&["dupes", &file_under_test.to_string_lossy()])
             .succeeds()
             .and()
             .stdout()

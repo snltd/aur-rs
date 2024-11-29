@@ -81,12 +81,12 @@ mod test {
         };
 
         assert_eq!(
-            "04 Artist  Test Title      Test Album".to_string(),
+            "04 Artist  Test Title      Test Album",
             format_line(&tags, 30)
         );
 
         assert_eq!(
-            "04 Artist          Test Title                     Test Album".to_string(),
+            "04 Artist          Test Title                     Test Album",
             format_line(&tags, 60)
         );
     }
