@@ -62,6 +62,15 @@ enum Commands {
         #[arg(required = true)]
         files: Vec<String>,
     },
+    /// Compares the given file(s) with our standards
+    Lint {
+        /// Recurse
+        #[arg(short, long)]
+        recurse: bool,
+        /// Files and/or directories to retag
+        #[arg(required = true)]
+        files: Vec<String>,
+    },
     /// Shows tag information about files in the given directory, one file per line
     Ls {
         /// Recurse
@@ -190,6 +199,7 @@ fn main() {
         Commands::Get { property, files } => commands::get::run(&property, &files),
         Commands::Info { files } => commands::info::run(&files),
         Commands::Inumber { files } => commands::inumber::run(&files),
+        Commands::Lint { recurse, files } => commands::lint::run(&files, recurse, &global_opts),
         Commands::Ls {
             recurse,
             directories,
