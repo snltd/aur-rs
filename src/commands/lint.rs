@@ -57,6 +57,7 @@ fn run_checks(metadata: &AurMetadata, validator: &TagValidator) -> Vec<CheckResu
         has_valid_name(&metadata.filename),
         has_no_unwanted_tags(&metadata.filetype, &metadata.rawtags),
         has_no_picture(metadata.has_picture),
+        has_no_byte_order_markers(&metadata.tags),
     ]
     .into_iter()
     .chain(has_no_invalid_tags(&metadata.tags, validator))
@@ -167,6 +168,29 @@ fn is_safe(chunk: &str) -> bool {
 
 fn is_safe_num(chunk: &str) -> bool {
     chunk.len() == 2 && chunk != "00" && chunk.chars().all(|c| c.is_numeric())
+}
+
+fn has_no_byte_order_markers(tags: &AurTags) -> CheckResult {
+    if has_bom_leader(&tags.artist) {
+        CheckResult::Bad("Byte order marker in artist tag".into())
+    } else if has_bom_leader(&tags.title) {
+        CheckResult::Bad("Byte order marker in title tag".into())
+    } else if has_bom_leader(&tags.album) {
+        CheckResult::Bad("Byte order marker in album tag".into())
+    } else if has_bom_leader(&tags.genre) {
+        CheckResult::Bad("Byte order marker in genre tag".into())
+    } else {
+        CheckResult::Good
+    }
+}
+
+// does string begin with a byte-order marker?
+fn has_bom_leader(string: &str) -> bool {
+    let bytes = string.as_bytes();
+    if bytes.len() < 3 {
+        return false;
+    }
+    bytes[0..=2] == [239, 187, 191]
 }
 
 #[cfg(test)]
@@ -317,6 +341,18 @@ mod test {
         );
 
         assert_eq!(
+            vec![
+                CheckResult::Bad("Byte order marker in title tag".into()),
+                CheckResult::Bad("invalid title: \u{feff}Has BOM Leader".into())
+            ],
+            lint_file(
+                &fixture("commands/lint/03.tester.has_bom_leader.flac"),
+                &validator
+            )
+            .unwrap()
+        );
+
+        assert_eq!(
             vec![CheckResult::Bad(
                 "invalid title: File,with Bad Title".into()
             ),],
@@ -354,19 +390,5 @@ mod test {
             vec![CheckResult::Bad("has embedded artwork".into())],
             lint_file(&fixture("commands/lint/07.tester.picture.flac"), &validator).unwrap()
         );
-        //     let expected_incorrect_tags = vec![
-        //         CheckResult::Bad("invalid title: 100hz;Wrong Title".into()),
-        //         CheckResult::Bad("invalid artist: Test Tones;Test Artist".into()),
-        //     ];
-
-        //     assert_eq!(
-        //         expected_incorrect_tags,
-        //         lint_file(
-        //             &fixture("commands/lint/02.singer_and_the_band.file_for_test.flac"),
-        //             &validator
-        //         )
-        //         .unwrap()
-        //     );
-        // }
     }
 }
