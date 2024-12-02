@@ -126,8 +126,13 @@ impl Compacted for &str {
 
 impl Capitalize for String {
     fn capitalize(&self) -> String {
-        let word = self.to_lowercase();
-        word[..1].to_uppercase() + &word[1..]
+        let lc = self.to_lowercase();
+        let mut chars = lc.chars();
+        if let Some(first) = chars.next() {
+            first.to_uppercase().collect::<String>() + chars.as_str()
+        } else {
+            String::new()
+        }
     }
 }
 

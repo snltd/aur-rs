@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 
 const UNDEFINED: &str = "unknown";
 
-type RawTags = Vec<(String, String)>;
+pub type RawTags = Vec<(String, String)>;
 
 #[derive(Debug)]
 pub struct AurMetadata {
@@ -18,6 +18,7 @@ pub struct AurMetadata {
     pub time: AurTime,
     pub quality: AurQuality,
     pub rawtags: RawTags,
+    pub has_picture: bool,
 }
 
 type AurTNum = u32;
@@ -54,6 +55,7 @@ impl AurMetadata {
         let quality: AurQuality;
         let time: AurTime;
         let rawtags: RawTags;
+        let has_picture: bool;
 
         match file.extension().and_then(|ext| ext.to_str()) {
             Some("flac") => {
@@ -63,6 +65,7 @@ impl AurMetadata {
                 quality = AurQuality::from_flac(&raw_info)?;
                 time = AurTime::from_flac(&raw_info)?;
                 rawtags = Self::rawtags_from_flac(&raw_info)?;
+                has_picture = Self::has_picture_flac(&raw_info)?;
             }
             Some("mp3") => match mp3_metadata::read_from_file(&file) {
                 Ok(metadata) => {
@@ -72,6 +75,7 @@ impl AurMetadata {
                     quality = AurQuality::from_mp3(&metadata)?;
                     time = AurTime::from_mp3(&metadata)?;
                     rawtags = Self::rawtags_from_mp3(&id3tags)?;
+                    has_picture = Self::has_picture_mp3(&id3tags)?;
                 }
                 Err(e) => {
                     return Err(anyhow!(
@@ -97,6 +101,7 @@ impl AurMetadata {
             time,
             quality,
             rawtags,
+            has_picture,
         })
     }
 
@@ -143,6 +148,16 @@ impl AurMetadata {
             .collect();
 
         Ok(ret)
+    }
+
+    fn has_picture_flac(raw_info: &FlacTag) -> anyhow::Result<bool> {
+        let pictures: Vec<_> = raw_info.pictures().collect();
+        Ok(pictures.len() > 0)
+    }
+
+    fn has_picture_mp3(id3tag: &Id3Tag) -> anyhow::Result<bool> {
+        let pictures: Vec<_> = id3tag.pictures().collect();
+        Ok(pictures.len() > 0)
     }
 }
 

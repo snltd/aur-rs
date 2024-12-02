@@ -7,6 +7,7 @@ pub mod renumber_file;
 pub mod retitler;
 pub mod string;
 pub mod tag_maker;
+pub mod tag_validator;
 pub mod tagger;
 pub mod term;
 pub mod types;
