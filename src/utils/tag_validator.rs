@@ -20,7 +20,8 @@ impl<'a> TagValidator<'a> {
     }
 
     pub fn validate_title(&self, tag: &str) -> bool {
-        sanitised(tag) == self.tag_maker.title_from(tag)
+        // sanitised(tag) == self.tag_maker.title_from(tag) &&
+        self.validate_artist(tag)
     }
 
     pub fn validate_album(&self, tag: &str) -> bool {
@@ -58,39 +59,41 @@ fn has_nothing_forbidden(string: &str) -> bool {
         return false;
     }
 
-    let mut last_was_whitespace = false;
-    let last_index = string.len() - 1;
+    let last_index = string.len() - 2;
 
-    for (i, c) in string.chars().enumerate() {
-        if c == '&' || c == ';' || c == '\u{2019}' {
+    let chars: Vec<char> = string.chars().collect();
+
+    for (i, c) in chars.windows(2).enumerate() {
+        if c[0] == '&' || c[0] == ';' || c[0] == '\u{2019}' {
             return false;
         }
 
-        if c.is_whitespace() {
-            if i == 0 || i == last_index || last_was_whitespace {
-                return false;
-            }
-            last_was_whitespace = true;
-        } else {
-            last_was_whitespace = false;
+        if (c[0].is_whitespace() && (i == 0 || c[1].is_whitespace()))
+            || (c[1].is_whitespace() && i == last_index)
+        {
+            return false;
+        }
+
+        if c[0] == ',' && c[1].is_alphabetic() {
+            return false;
         }
     }
 
     true
 }
 
-// We ignore certain punctuation in titles. We have no way of encoding things like commas and
-// question marks in our filename schema. This is a best-guess thing. It can't possibly be
-// perfect.
-//
-fn sanitised(string: &str) -> String {
-    string
-        .replace([',', '’'], "")
-        .replace("Feat. ", "Feat")
-        .replace("' ", " ")
-        .trim_end_matches(['?', '!', '\''])
-        .to_string()
-}
+// // We ignore certain punctuation in titles. We have no way of encoding things like commas and
+// // question marks in our filename schema. This is a best-guess thing. It can't possibly be
+// // perfect.
+// //
+// fn sanitised(string: &str) -> String {
+//     string
+//         .replace([',', '’'], "")
+//         .replace("Feat. ", "Feat")
+//         .replace("' ", " ")
+//         .trim_end_matches(['?', '!', '\''])
+//         .to_string()
+// }
 
 fn this_year() -> i32 {
     let duration_since_epoch = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
@@ -143,7 +146,7 @@ mod test {
         let words = Words::new(&sample_config());
         let tv = TagValidator::new(&words);
         assert!(tv.validate_title("File for Test"));
-        assert!(!tv.validate_title("File For Test"));
+        assert!(!tv.validate_title("File,with Bad Title"));
     }
 
     #[test]
