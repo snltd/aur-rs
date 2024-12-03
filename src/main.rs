@@ -28,6 +28,15 @@ enum Commands {
         #[arg(required = true)]
         files: Vec<String>,
     },
+    /// Re-encodes "hi-res" FLACs at CD quality
+    Cdq {
+        /// Leave the original files. New files will have -cdq before their suffix
+        #[arg(short, long)]
+        leave: bool,
+        /// One or more media files
+        #[arg(required = true)]
+        files: Vec<String>,
+    },
     /// Assuming parallel flac/ and mp3/ directories, copies tags from FLACs to MP3s
     Copytags {
         /// Recurse
@@ -192,6 +201,7 @@ fn main() {
     };
     let result = match cli.command {
         Commands::Albumdisc { files } => commands::albumdisc::run(&files, &global_opts),
+        Commands::Cdq { files, leave } => commands::cdq::run(&files, leave),
         Commands::Copytags {
             recurse,
             force,
