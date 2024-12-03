@@ -16,6 +16,7 @@ impl<'a> Retitler<'a> {
     }
 
     pub fn retitle(&self, old_title: &str) -> String {
+        let old_title = old_title.replace(" & ", " and ");
         let mut words: Vec<_> = old_title.split_whitespace().collect();
         words.splice(0..0, [PLACEHOLDER]);
         words.push(PLACEHOLDER);
@@ -47,7 +48,7 @@ impl<'a> Retitler<'a> {
         if !chars[0].is_alphanumeric() {
             return self.start_with_nonword(word);
         } else if word.ends_with([':', '=', ')']) {
-            return self.follow_punct(word);
+            return self.follow_punct(word, previous_word, run_together);
         }
 
         for sep in ['=', '-', '+', '/', ':', '.'] {
@@ -79,19 +80,23 @@ impl<'a> Retitler<'a> {
 
         for c in chars.by_ref() {
             if c.is_alphanumeric() {
-                nonword_prefix.push(c);
+                nonword_prefix.push(c.to_ascii_uppercase()); // change
                 break;
             }
             nonword_prefix.push(c);
         }
 
         let rest: String = chars.collect();
-        format!("{}{}", nonword_prefix, self.titlecase(&rest, "/", false))
+        format!(
+            "{}{}",
+            nonword_prefix,
+            self.titlecase(&rest, &nonword_prefix, true)
+        )
     }
 
-    fn follow_punct(&self, word: &str) -> String {
+    fn follow_punct(&self, word: &str, previous_word: &str, run_together: bool) -> String {
         let mut chars = word.chars().peekable();
-        let mut result = String::new();
+        let mut ret = String::new();
         let mut first_word = String::new();
 
         while let Some(&c) = chars.peek() {
@@ -103,20 +108,20 @@ impl<'a> Retitler<'a> {
             }
         }
 
-        result.push_str(&self.titlecase(&first_word, "/", false));
+        ret.push_str(&self.titlecase(&first_word, previous_word, run_together));
 
         if let Some(c) = chars.next() {
-            result.push(c);
+            ret.push(c);
         }
 
-        result.extend(chars);
-        result
+        ret.extend(chars);
+        ret
     }
 
     fn contains_sep(&self, word: &str, sep: char) -> String {
         word.split(sep)
             .enumerate()
-            .map(|(i, w)| self.titlecase(w, "/", i > 0))
+            .map(|(i, w)| self.titlecase(w, &sep.to_string(), i > 0))
             .collect::<Vec<_>>()
             .join(&sep.to_string())
     }
@@ -126,18 +131,21 @@ impl<'a> Retitler<'a> {
     }
 
     fn is_downcase(&self, word: &str, previous_word: &str, run_together: bool) -> bool {
-        self.words.no_caps.contains(&word.to_lowercase())
-            && (run_together || !previous_word.ends_with(['[', ':', '-', '/', '?', '!']))
+        ((run_together && previous_word != "-")
+            || self.words.no_caps.contains(&word.to_lowercase()))
+            && !previous_word.ends_with(['[', ':', '=', '/', '+', '?', '!'])
     }
 
     fn is_upcase(&self, word: &str, stripped_word: &str) -> bool {
-        (self.words.all_caps.contains(stripped_word))
-            || (word.chars().count() == 3 && word.chars().nth(1) == Some('.'))
-            || (word.chars().count() == 2 && word.chars().nth(1) == Some(','))
+        self.words.all_caps.contains(stripped_word)
+            || (word.len() == 1 && !self.words.no_caps.contains(stripped_word))
     }
 
     fn downcase_string(&self, word: &str) -> String {
-        word.chars().filter(|c| c.is_alphanumeric()).collect()
+        word.chars()
+            .filter(|c| c.is_alphanumeric())
+            .collect::<String>()
+            .to_lowercase()
     }
 }
 
@@ -150,6 +158,7 @@ mod test {
         let words = Words::new(&sample_config());
         let rt = Retitler::new(&words);
         assert_eq!("Original Title", rt.retitle("Original Title"));
+        assert_eq!("Me and You", rt.retitle("Me & You"));
         assert_eq!("Fix the Article", rt.retitle("Fix The Article"));
         assert_eq!(
             "One of the Ones Where We Fix a Word or Two",
@@ -158,6 +167,10 @@ mod test {
         assert_eq!(
             "This, that, and, Yes, the Other",
             rt.retitle("This, That, And, Yes, The Other")
+        );
+        assert_eq!(
+            "A Thing (With the Brackets) Inside",
+            rt.retitle("A Thing (with The Brackets) Inside ")
         );
         assert_eq!("It is is It", rt.retitle("It Is Is It"));
         assert_eq!(
@@ -173,11 +186,16 @@ mod test {
             "The Song of the Nightingale / The Firebird Suite / The Rite of Spring",
             rt.retitle("The Song Of The Nightingale / The Firebird Suite / The Rite of Spring")
         );
+        // assert_eq!("Merp (Merp) Merp", rt.retitle("Merp (Merp) Merp"));
         assert_eq!("P.R.O.D.U.C.T.", rt.retitle("p.r.o.d.u.c.t."));
         assert_eq!("Aikea-Guinea", rt.retitle("aikea-guinea"));
         assert_eq!("Kill-a-Man", rt.retitle("kill-a-man"));
         assert_eq!("Master=Dik", rt.retitle("Master=dik"));
         assert_eq!("Fixed::Content", rt.retitle("fixed::content"));
         assert_eq!("Itchy+Scratchy", rt.retitle("itchy+scratcHy"));
+        assert_eq!(
+            "Todmorden Bells (Reprise)",
+            rt.retitle("Todmorden Bells (REprise)")
+        );
     }
 }
