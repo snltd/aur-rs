@@ -39,7 +39,7 @@ impl<'a> Tagger<'a> {
 
     // Watch out for this one! Some call it "year", others call it "date".
     pub fn set_year(&self, value: &str) -> anyhow::Result<bool> {
-        self.set_tag("date", value)
+        self.set_tag("year", value)
     }
 
     pub fn set_genre(&self, value: &str) -> anyhow::Result<bool> {
@@ -53,7 +53,7 @@ impl<'a> Tagger<'a> {
             "title" => &self.current_tags.title,
             "album" => &self.current_tags.album,
             "t_num" => &self.current_tags.t_num.to_string(),
-            "date" => &self.current_tags.year.to_string(),
+            "year" => &self.current_tags.year.to_string(),
             "genre" => &self.current_tags.genre,
             _ => return Err(anyhow!("Unknown tag name")),
         };
@@ -80,9 +80,9 @@ impl<'a> Tagger<'a> {
             "album" => tag.set_vorbis("album".to_string(), val),
             "title" => tag.set_vorbis("title".to_string(), val),
             "t_num" => tag.set_vorbis("tracknumber".to_string(), val),
-            "date" => tag.set_vorbis("date".to_string(), val),
+            "year" => tag.set_vorbis("date".to_string(), val),
             "genre" => tag.set_vorbis("genre".to_string(), val),
-            _ => return Err(anyhow!("unknown tag name")),
+            _ => return Err(anyhow!("unknown tag name: {tag_name}")),
         }
         tag.save()?;
         Ok(true)
@@ -96,9 +96,9 @@ impl<'a> Tagger<'a> {
             "album" => tag.set_album(value),
             "title" => tag.set_title(value),
             "t_num" => tag.set_track(value.to_string().parse::<u32>()?),
-            "date" => tag.set_year(value.to_string().parse::<i32>()?),
+            "year" => tag.set_year(value.to_string().parse::<i32>()?),
             "genre" => tag.set_genre(value),
-            _ => return Err(anyhow!("unknown tag name")),
+            _ => return Err(anyhow!("unknown tag name: {tag_name}")),
         }
 
         tag.write_to_path(self.path, id3::Version::Id3v24)?;
