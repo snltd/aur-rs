@@ -16,6 +16,7 @@ impl<'a> Retitler<'a> {
     }
 
     pub fn retitle(&self, old_title: &str) -> String {
+        let old_title = old_title.replace(" & ", " and ");
         let mut words: Vec<_> = old_title.split_whitespace().collect();
         words.splice(0..0, [PLACEHOLDER]);
         words.push(PLACEHOLDER);
@@ -157,6 +158,7 @@ mod test {
         let words = Words::new(&sample_config());
         let rt = Retitler::new(&words);
         assert_eq!("Original Title", rt.retitle("Original Title"));
+        assert_eq!("Me and You", rt.retitle("Me & You"));
         assert_eq!("Fix the Article", rt.retitle("Fix The Article"));
         assert_eq!(
             "One of the Ones Where We Fix a Word or Two",
