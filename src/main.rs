@@ -126,6 +126,12 @@ enum Commands {
         #[arg(required = true)]
         files: Vec<String>,
     },
+    /// Remove embedded images and unwanted tags from the given file(s)
+    Strip {
+        /// One or more media files
+        #[arg(required = true)]
+        files: Vec<String>,
+    },
     /// Rename the file(s) according to its tags
     Tag2name {
         /// One or more media files
@@ -215,6 +221,7 @@ fn main() {
         } => commands::renumber::run(&direction, delta, &files),
         Commands::Retitle { files } => commands::retitle::run(&files, &global_opts),
         Commands::Set { tag, value, files } => commands::set::run(&tag, &value, &files),
+        Commands::Strip { files } => commands::strip::run(&files),
         Commands::Tagsub {
             tag,
             find,

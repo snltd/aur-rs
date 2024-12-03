@@ -1,6 +1,6 @@
 use crate::utils::config::load_config;
 use crate::utils::dir::{expand_file_list, media_files};
-use crate::utils::metadata::{AurMetadata, AurTags, RawTags};
+use crate::utils::metadata::{expected_tags, AurMetadata, AurTags, RawTags};
 use crate::utils::tag_validator::TagValidator;
 use crate::utils::types::GlobalOpts;
 use crate::utils::words::Words;
@@ -113,26 +113,7 @@ fn has_valid_name(fname: &str) -> CheckResult {
 fn has_no_unwanted_tags(filetype: &str, rawtags: &RawTags) -> CheckResult {
     let tag_keys: HashSet<String> = rawtags.iter().map(|(k, _v)| k).cloned().collect();
 
-    let expected_tags = match filetype {
-        "flac" => HashSet::from([
-            "artist".into(),
-            "album".into(),
-            "title".into(),
-            "tracknumber".into(),
-            "genre".into(),
-            "date".into(),
-        ]),
-        "mp3" => HashSet::from([
-            "tpe1".into(),
-            "talb".into(),
-            "tit2".into(),
-            "trck".into(),
-            "tyer".into(),
-            "tcon".into(),
-        ]),
-        _ => return CheckResult::Bad("unrecognised filetype".into()),
-    };
-
+    let expected_tags = expected_tags(filetype).unwrap();
     let irrelevant_tags = HashSet::from(["encoder".into(), "blank".into()]);
     let allowed_tags: HashSet<_> = expected_tags.union(&irrelevant_tags).cloned().collect();
     let unexpected_tags: HashSet<_> = tag_keys.difference(&allowed_tags).collect();

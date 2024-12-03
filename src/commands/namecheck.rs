@@ -90,7 +90,7 @@ fn check_compacted(artists: &ArtistDirs) -> Dupes {
             .and_modify(|e| {
                 for (key, value) in &dc {
                     e.entry(key.clone())
-                        .or_insert_with(HashSet::new)
+                        .or_default()
                         .extend(value.to_owned());
                 }
             })

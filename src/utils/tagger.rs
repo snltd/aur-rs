@@ -1,6 +1,7 @@
 use crate::utils::metadata::{AurMetadata, AurTags};
 use anyhow::anyhow;
 use id3::TagLike;
+use metaflac::block::PictureType;
 use std::path::PathBuf;
 
 // A common interface to apply the tags we're interested in to FLACs and MP3s.
@@ -100,6 +101,85 @@ impl<'a> Tagger<'a> {
             _ => return Err(anyhow!("unknown tag name")),
         }
 
+        tag.write_to_path(self.path, id3::Version::Id3v24)?;
+        Ok(true)
+    }
+
+    pub fn remove_tags(&self, tags: &Vec<String>) -> anyhow::Result<bool> {
+        match self.filetype.as_str() {
+            "flac" => self.remove_flac_tags(tags),
+            "mp3" => self.remove_mp3_tags(tags),
+            _ => Err(anyhow!("Unsupported filetype")),
+        }
+    }
+
+    fn remove_flac_tags(&self, tags: &Vec<String>) -> anyhow::Result<bool> {
+        let mut tagger = metaflac::Tag::read_from_path(self.path)?;
+        let mut ret = false;
+
+        for tag_name in tags {
+            let values: Vec<String> = tagger
+                .get_vorbis(tag_name)
+                .map(|t| t.map(|v| v.to_string()).collect())
+                .unwrap_or_default();
+
+            for v in values {
+                tagger.remove_vorbis_pair(tag_name, &v);
+                ret = true;
+            }
+        }
+
+        if ret {
+            tagger.save()?;
+        }
+        Ok(ret)
+    }
+
+    fn remove_mp3_tags(&self, tags: &Vec<String>) -> anyhow::Result<bool> {
+        let mut tag = id3::Tag::read_from_path(self.path)?;
+        let mut ret = false;
+
+        for tag_name in tags {
+            if tag.get(tag_name).is_some() {
+                tag.remove(tag_name);
+                ret = true;
+            }
+
+            let tag_name_uc = tag_name.to_uppercase();
+
+            if tag.get(&tag_name_uc).is_some() {
+                tag.remove(&tag_name_uc);
+                ret = true;
+            }
+        }
+
+        if ret {
+            tag.write_to_path(self.path, id3::Version::Id3v24)?;
+        }
+
+        Ok(ret)
+    }
+
+    pub fn remove_artwork(&self) -> anyhow::Result<bool> {
+        match self.filetype.as_str() {
+            "flac" => self.remove_flac_artwork(),
+            "mp3" => self.remove_mp3_artwork(),
+            _ => Err(anyhow!("Unsupported filetype")),
+        }
+    }
+
+    fn remove_flac_artwork(&self) -> anyhow::Result<bool> {
+        let mut tagger = metaflac::Tag::read_from_path(self.path)?;
+        tagger.remove_picture_type(PictureType::CoverFront);
+        tagger.remove_picture_type(PictureType::CoverBack);
+        tagger.remove_picture_type(PictureType::Media);
+        tagger.save()?;
+        Ok(true)
+    }
+
+    fn remove_mp3_artwork(&self) -> anyhow::Result<bool> {
+        let mut tag = id3::Tag::read_from_path(self.path)?;
+        tag.remove_all_pictures();
         tag.write_to_path(self.path, id3::Version::Id3v24)?;
         Ok(true)
     }

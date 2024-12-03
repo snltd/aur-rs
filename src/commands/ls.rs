@@ -12,7 +12,7 @@ pub fn run(dirlist: &[String], recurse: bool) -> anyhow::Result<()> {
         dirlist
     };
 
-    let dirs_to_list: Vec<PathBuf> = dirs.to_vec().iter().map(|d| PathBuf::from(d)).collect();
+    let dirs_to_list: Vec<PathBuf> = dirs.to_vec().iter().map(PathBuf::from).collect();
     for dir in expand_dir_list(&dirs_to_list, recurse) {
         print_listing(list_info(&dir)?);
     }

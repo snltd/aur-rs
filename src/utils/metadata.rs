@@ -3,6 +3,7 @@ use id3::Tag as Id3Tag;
 use id3::TagLike;
 use metaflac::Tag as FlacTag;
 use mp3_metadata::{self, MP3Metadata};
+use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 
 const UNDEFINED: &str = "unknown";
@@ -152,12 +153,12 @@ impl AurMetadata {
 
     fn has_picture_flac(raw_info: &FlacTag) -> anyhow::Result<bool> {
         let pictures: Vec<_> = raw_info.pictures().collect();
-        Ok(pictures.len() > 0)
+        Ok(!pictures.is_empty())
     }
 
     fn has_picture_mp3(id3tag: &Id3Tag) -> anyhow::Result<bool> {
         let pictures: Vec<_> = id3tag.pictures().collect();
-        Ok(pictures.len() > 0)
+        Ok(!pictures.is_empty())
     }
 }
 
@@ -284,6 +285,29 @@ impl Default for AurTags {
         }
     }
 }
+
+pub fn expected_tags(filetype: &str) -> anyhow::Result<HashSet<String>> {
+    match filetype {
+        "flac" => Ok(HashSet::from([
+            "artist".into(),
+            "album".into(),
+            "title".into(),
+            "tracknumber".into(),
+            "genre".into(),
+            "date".into(),
+        ])),
+        "mp3" => Ok(HashSet::from([
+            "tpe1".into(),
+            "talb".into(),
+            "tit2".into(),
+            "trck".into(),
+            "tyer".into(),
+            "tcon".into(),
+        ])),
+        _ => Err(anyhow!("unknown filetype")),
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
