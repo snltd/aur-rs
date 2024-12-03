@@ -12,6 +12,8 @@ jobs:
       id: setup-ffmpeg
       with:
         ffmpeg-version: release
+    - name: Check ffmpeg location
+      run: which ffmpeg
     - uses: hecrj/setup-rust-action@v2
       with:
         rust-version: ${{ matrix.rust }}
