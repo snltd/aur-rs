@@ -12,8 +12,9 @@ jobs:
       id: setup-ffmpeg
       with:
         ffmpeg-version: release
-    - name: Check ffmpeg location
-      run: which ffmpeg
+    - name: Move ffmpeg to /usr/bin
+      run: |
+        cp $(which ffmpeg) /usr/bin
     - uses: hecrj/setup-rust-action@v2
       with:
         rust-version: ${{ matrix.rust }}
