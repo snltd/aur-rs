@@ -308,6 +308,14 @@ pub fn expected_tags(filetype: &str) -> anyhow::Result<HashSet<String>> {
     }
 }
 
+pub fn irrelevant_tags(filetype: &str) -> anyhow::Result<HashSet<String>> {
+    match filetype {
+        "flac" => Ok(HashSet::from(["encoder".into(), "blank".into()])),
+        "mp3" => Ok(HashSet::from(["tlen".into(), "tsse".into()])),
+        _ => Err(anyhow!("unknown filetype")),
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;

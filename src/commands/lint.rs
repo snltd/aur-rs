@@ -1,6 +1,6 @@
 use crate::utils::config::load_config;
 use crate::utils::dir::{expand_file_list, media_files};
-use crate::utils::metadata::{expected_tags, AurMetadata, AurTags, RawTags};
+use crate::utils::metadata::{expected_tags, irrelevant_tags, AurMetadata, AurTags, RawTags};
 use crate::utils::tag_validator::TagValidator;
 use crate::utils::types::GlobalOpts;
 use crate::utils::words::Words;
@@ -114,7 +114,7 @@ fn has_no_unwanted_tags(filetype: &str, rawtags: &RawTags) -> CheckResult {
     let tag_keys: HashSet<String> = rawtags.iter().map(|(k, _v)| k).cloned().collect();
 
     let expected_tags = expected_tags(filetype).unwrap();
-    let irrelevant_tags = HashSet::from(["encoder".into(), "blank".into()]);
+    let irrelevant_tags = irrelevant_tags(filetype).unwrap();
     let allowed_tags: HashSet<_> = expected_tags.union(&irrelevant_tags).cloned().collect();
     let unexpected_tags: HashSet<_> = tag_keys.difference(&allowed_tags).collect();
 
@@ -365,9 +365,7 @@ mod test {
         );
 
         assert_eq!(
-            vec![CheckResult::Bad(
-                "unexpected tags: tdrc, tlen, tsse, txxx".into()
-            ),],
+            vec![CheckResult::Bad("unexpected tags: tdrc, txxx".into()),],
             lint_file(
                 &fixture("commands/lint/05.tester.surplus_tags.mp3"),
                 &validator
@@ -377,7 +375,7 @@ mod test {
 
         assert_eq!(
             vec![
-                CheckResult::Bad("unexpected tags: apic, tcom, tenc, tlen, tsse, txxx".into()),
+                CheckResult::Bad("unexpected tags: apic, tcom, tenc, txxx".into()),
                 CheckResult::Bad("has embedded artwork".into()),
             ],
             lint_file(

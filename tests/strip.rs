@@ -54,7 +54,7 @@ mod test {
         assert_cli::Assert::main_binary()
             .with_args(&["lint", &file_str])
             .stdout()
-            .contains("Bad: unexpected tags: apic, tcom, tenc, tlen, tsse, txxx")
+            .contains("Bad: unexpected tags: apic, tcom, tenc, txxx")
             .and()
             .stdout()
             .contains("Bad: has embedded artwork")
