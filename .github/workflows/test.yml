@@ -7,8 +7,11 @@ jobs:
     strategy:
       matrix:
         rust: [stable, nightly]
-
     steps:
+    - uses: FedericoCarboni/setup-ffmpeg@v3
+      id: setup-ffmpeg
+      with:
+        ffmpeg-version: release
     - uses: hecrj/setup-rust-action@v2
       with:
         rust-version: ${{ matrix.rust }}
