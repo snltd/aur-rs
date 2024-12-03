@@ -17,7 +17,7 @@ mod test {
            title -> Right Title
            album -> Copytags Test
            t_num -> 1
-            date -> 2021";
+            year -> 2021";
 
         // Check the title is what we think it is (and wrong)
         assert_cli::Assert::main_binary()
