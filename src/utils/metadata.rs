@@ -153,12 +153,12 @@ impl AurMetadata {
 
     fn has_picture_flac(raw_info: &FlacTag) -> anyhow::Result<bool> {
         let pictures: Vec<_> = raw_info.pictures().collect();
-        Ok(pictures.len() > 0)
+        Ok(!pictures.is_empty())
     }
 
     fn has_picture_mp3(id3tag: &Id3Tag) -> anyhow::Result<bool> {
         let pictures: Vec<_> = id3tag.pictures().collect();
-        Ok(pictures.len() > 0)
+        Ok(!pictures.is_empty())
     }
 }
 

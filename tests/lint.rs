@@ -3,7 +3,7 @@ mod common;
 #[cfg(test)]
 mod test {
     use super::common;
-    use aur::test_utils::spec_helper::{fixture_as_string, sample_output};
+    use aur::test_utils::spec_helper::fixture_as_string;
 
     #[test]
     #[ignore]

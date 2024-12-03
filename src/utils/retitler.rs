@@ -77,7 +77,7 @@ impl<'a> Retitler<'a> {
         let mut chars = word.chars();
         let mut nonword_prefix = String::new();
 
-        while let Some(c) = chars.next() {
+        for c in chars.by_ref() {
             if c.is_alphanumeric() {
                 nonword_prefix.push(c);
                 break;

@@ -17,21 +17,21 @@ impl Words {
         let mut expand = expand();
 
         if let Some(more_words) = config.get_words_all_caps() {
-            all_caps.extend(more_words.into_iter().cloned());
+            all_caps.extend(more_words.iter().cloned());
         }
 
         if let Some(more_words) = config.get_words_no_caps() {
-            no_caps.extend(more_words.into_iter().cloned());
+            no_caps.extend(more_words.iter().cloned());
         }
 
         if let Some(more_words) = config.get_words_ignore_case() {
-            ignore_case.extend(more_words.into_iter().cloned());
+            ignore_case.extend(more_words.iter().cloned());
         }
 
         if let Some(more_words) = config.get_words_expand() {
             expand.extend(
                 more_words
-                    .into_iter()
+                    .iter()
                     .map(|(k, v)| (k.to_string(), v.to_string())),
             );
         }
