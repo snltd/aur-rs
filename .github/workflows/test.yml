@@ -14,7 +14,8 @@ jobs:
         ffmpeg-version: release
     - name: Move ffmpeg to /usr/bin
       run: |
-        cp $(which ffmpeg) /usr/bin
+        mkdir -p /opt/ooce/bin
+        cp $(which ffmpeg) /opt/ooce/bin
     - uses: hecrj/setup-rust-action@v2
       with:
         rust-version: ${{ matrix.rust }}
