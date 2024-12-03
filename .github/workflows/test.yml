@@ -7,8 +7,15 @@ jobs:
     strategy:
       matrix:
         rust: [stable, nightly]
-
     steps:
+    - uses: FedericoCarboni/setup-ffmpeg@v3
+      id: setup-ffmpeg
+      with:
+        ffmpeg-version: release
+    - name: Move ffmpeg to /usr/bin
+      run: |
+        mkdir -p /opt/ooce/bin
+        cp $(which ffmpeg) /opt/ooce/bin
     - uses: hecrj/setup-rust-action@v2
       with:
         rust-version: ${{ matrix.rust }}

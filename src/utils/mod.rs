@@ -1,5 +1,6 @@
 pub mod config;
 pub mod dir;
+pub mod external;
 pub mod macros;
 pub mod metadata;
 pub mod rename;

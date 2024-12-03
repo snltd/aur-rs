@@ -1,4 +1,5 @@
 pub mod albumdisc;
+pub mod cdq;
 pub mod copytags;
 pub mod dupes;
 pub mod get;
