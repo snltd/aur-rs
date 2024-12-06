@@ -41,6 +41,16 @@ pub fn default_location() -> String {
     home_dir.join(".aur.toml").to_string_lossy().to_string()
 }
 
+pub fn default_linkdir() -> String {
+    let home = std::env::var("HOME").expect("cannot find home directory");
+    let home_dir = PathBuf::from(home);
+    home_dir
+        .join("word")
+        .join("linkdir")
+        .to_string_lossy()
+        .to_string()
+}
+
 // If the user specifies a file and it doesn't exist, that's an error. If they don't, and the
 // default file doesn't exist, that's fine, and we return an empty config.
 //
