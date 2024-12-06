@@ -28,6 +28,18 @@ enum Commands {
         #[arg(required = true)]
         files: Vec<String>,
     },
+    /// Renames and resizes artwork in the given directories
+    Artfix {
+        /// Recurse
+        #[arg(short, long)]
+        recurse: bool,
+        /// Link non-square files to this directory for further processing.
+        #[arg(short = 'd', long, global = true, default_value_t = utils::config::default_linkdir())]
+        linkdir: String,
+        /// Directories to proces
+        #[arg(required = true)]
+        directories: Vec<String>,
+    },
     /// Re-encodes "hi-res" FLACs at CD quality
     Cdq {
         /// Leave the original files. New files will have -cdq before their suffix
@@ -201,6 +213,11 @@ fn main() {
     };
     let result = match cli.command {
         Commands::Albumdisc { files } => commands::albumdisc::run(&files, &global_opts),
+        Commands::Artfix {
+            recurse,
+            linkdir,
+            directories,
+        } => commands::artfix::run(&directories, recurse, linkdir),
         Commands::Cdq { files, leave } => commands::cdq::run(&files, leave),
         Commands::Copytags {
             recurse,
