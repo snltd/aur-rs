@@ -19,10 +19,10 @@ mod test {
         assert_cli::Assert::main_binary()
             .with_args(&["lint", &file_str])
             .stdout()
-            .contains("Bad: unexpected tags: composer, tempo")
+            .contains("Unexpected tags: composer, tempo")
             .and()
             .stdout()
-            .contains("Bad: has embedded artwork")
+            .contains("File contains embedded artwork")
             .unwrap();
 
         assert_cli::Assert::main_binary()
@@ -54,10 +54,10 @@ mod test {
         assert_cli::Assert::main_binary()
             .with_args(&["lint", &file_str])
             .stdout()
-            .contains("Bad: unexpected tags: apic, tcom, tenc, txxx")
+            .contains("Unexpected tags: apic, tcom, tenc, txxx")
             .and()
             .stdout()
-            .contains("Bad: has embedded artwork")
+            .contains("File contains embedded artwork")
             .unwrap();
 
         assert_cli::Assert::main_binary()
