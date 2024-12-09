@@ -1,3 +1,16 @@
+[ignore.lint]
+invalid_album_tag = [
+  "The R&B of Membership",
+]
+
+invalid_title_tag = [
+  "commands/lint/09.tester.bad_title_allowed",
+]
+
+some_junk_field =[
+  "should_be_ignored"
+]
+
 [ignore.wantflac]
 tracks = [
   "singer.song",
@@ -16,4 +29,5 @@ ignore_case = ["mxbx"]
 all_caps = ["4ad", "abba"]
 [words.expand]
 "add_n_to_x" = "Add N to (X)"
+
 

@@ -59,7 +59,11 @@ fn has_nothing_forbidden(string: &str) -> bool {
         return false;
     }
 
-    let last_index = string.len() - 2;
+    let last_index = if string.len() > 2 {
+        string.len() - 2
+    } else {
+        string.len()
+    };
 
     let chars: Vec<char> = string.chars().collect();
 

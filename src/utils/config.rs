@@ -16,6 +16,7 @@ pub struct Config {
 #[allow(dead_code)]
 pub struct Ignore {
     wantflac: Option<WantFlac>,
+    lint: Option<LintErrs>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -33,6 +34,14 @@ pub struct Words {
     pub all_caps: Option<HashSet<String>>,
     pub ignore_case: Option<HashSet<String>>,
     pub expand: Option<HashMap<String, String>>,
+}
+
+#[derive(Deserialize, Debug)]
+#[allow(dead_code)]
+pub struct LintErrs {
+    pub invalid_album_tag: Option<HashSet<String>>,
+    pub invalid_artist_tag: Option<HashSet<String>>,
+    pub invalid_title_tag: Option<HashSet<String>>,
 }
 
 pub fn default_location() -> String {
@@ -106,6 +115,30 @@ impl Config {
             .as_ref()
             .and_then(|words| words.ignore_case.as_ref())
     }
+
+    // pub fn get_ignore_lint(&self) -> Option<&LintErrs> {
+    //     self.ignore.as_ref().and_then(|ignore| ignore.lint.as_ref())
+    // }
+
+    pub fn get_ignore_lint_invalid_album(&self) -> Option<&HashSet<String>> {
+        self.ignore
+            .as_ref()
+            .and_then(|ignore| ignore.lint.as_ref())
+            .and_then(|lint| lint.invalid_album_tag.as_ref())
+    }
+
+    pub fn get_ignore_lint_invalid_title(&self) -> Option<&HashSet<String>> {
+        self.ignore
+            .as_ref()
+            .and_then(|ignore| ignore.lint.as_ref())
+            .and_then(|lint| lint.invalid_title_tag.as_ref())
+    }
+    pub fn get_ignore_lint_invalid_artist(&self) -> Option<&HashSet<String>> {
+        self.ignore
+            .as_ref()
+            .and_then(|ignore| ignore.lint.as_ref())
+            .and_then(|lint| lint.invalid_artist_tag.as_ref())
+    }
 }
 
 #[cfg(test)]
@@ -155,5 +188,16 @@ mod test {
         );
 
         assert_eq!(None, config.get_words_no_caps());
+    }
+
+    #[test]
+    fn test_ignore_lint() {
+        let config = sample_config();
+        assert_eq!(
+            &HashSet::from(["The R&B of Membership".to_string()]),
+            config.get_ignore_lint_invalid_album().unwrap()
+        );
+
+        assert_eq!(None, config.get_ignore_lint_invalid_artist());
     }
 }
