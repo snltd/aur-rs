@@ -1,5 +1,6 @@
 use crate::utils::config;
 use crate::utils::dir::{expand_dir_list, expand_file_list};
+use crate::utils::helpers::check_hierarchy;
 use crate::utils::types::{GlobalOpts, WantsList};
 use anyhow::anyhow;
 use std::collections::HashSet;
@@ -56,16 +57,10 @@ fn print_output(wants_list: WantsList) {
 }
 
 fn find_missing_albums(root: &Path) -> anyhow::Result<WantsList> {
+    check_hierarchy(root)?;
+
     let mp3_root = root.join("mp3");
     let flac_root = root.join("flac");
-
-    if !mp3_root.exists() {
-        return Err(anyhow!(format!("did not find {}", mp3_root.display())));
-    }
-
-    if !flac_root.exists() {
-        return Err(anyhow!(format!("did not find {}", flac_root.display())));
-    }
 
     let mp3_names = relative_paths(&expand_dir_list(&[mp3_root.clone()], true), &mp3_root);
     let flac_names = relative_paths(&expand_dir_list(&[flac_root.clone()], true), &flac_root);
