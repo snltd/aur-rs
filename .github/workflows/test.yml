@@ -8,14 +8,8 @@ jobs:
       matrix:
         rust: [stable, nightly]
     steps:
-    - uses: FedericoCarboni/setup-ffmpeg@v3
-      id: setup-ffmpeg
-      with:
-        ffmpeg-version: release
-    - name: Move ffmpeg to /usr/bin
-      run: |
-        mkdir -p /opt/ooce/bin
-        cp $(which ffmpeg) /opt/ooce/bin
+    - name: Install external dependencies
+      run: sudo apt-get update && sudo apt-get install -y lame flac ffmpeg
     - uses: hecrj/setup-rust-action@v2
       with:
         rust-version: ${{ matrix.rust }}

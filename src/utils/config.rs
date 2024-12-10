@@ -17,6 +17,7 @@ pub struct Config {
 pub struct Ignore {
     wantflac: Option<WantFlac>,
     lint: Option<LintErrs>,
+    syncflac: Option<HashSet<String>>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -116,9 +117,11 @@ impl Config {
             .and_then(|words| words.ignore_case.as_ref())
     }
 
-    // pub fn get_ignore_lint(&self) -> Option<&LintErrs> {
-    //     self.ignore.as_ref().and_then(|ignore| ignore.lint.as_ref())
-    // }
+    pub fn get_syncflac_list(&self) -> Option<&HashSet<String>> {
+        self.ignore
+            .as_ref()
+            .and_then(|ignore| ignore.syncflac.as_ref())
+    }
 
     pub fn get_ignore_lint_invalid_album(&self) -> Option<&HashSet<String>> {
         self.ignore

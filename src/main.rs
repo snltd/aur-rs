@@ -153,6 +153,12 @@ enum Commands {
         #[arg(required = true)]
         files: Vec<String>,
     },
+    /// Ensure we have an MP3 for every FLAC. Assumes parallel flac/ and mp3/ trees
+    Syncflac {
+        /// Root directory for media files, containing flac/ and mp3/
+        #[arg(short = 'R', long, default_value = "/storage")]
+        root: String,
+    },
     /// Rename the file(s) according to its tags
     Tag2name {
         /// One or more media files
@@ -249,6 +255,7 @@ fn main() {
         Commands::Retitle { files } => commands::retitle::run(&files, &global_opts),
         Commands::Set { tag, value, files } => commands::set::run(&tag, &value, &files),
         Commands::Strip { files } => commands::strip::run(&files),
+        Commands::Syncflac { root } => commands::syncflac::run(&root, &global_opts),
         Commands::Tagsub {
             tag,
             find,
