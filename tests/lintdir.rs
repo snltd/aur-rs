@@ -3,7 +3,6 @@ mod common;
 #[cfg(test)]
 mod test {
     use super::common;
-    use assert_fs::prelude::*;
     use aur::test_utils::spec_helper::fixture_as_string;
 
     #[test]
