@@ -232,7 +232,7 @@ fn main() {
             recurse,
             linkdir,
             directories,
-        } => commands::artfix::run(&directories, recurse, linkdir),
+        } => commands::artfix::run(&directories, recurse, linkdir, &global_opts),
         Commands::Cdq { files, leave } => commands::cdq::run(&files, leave),
         Commands::Copytags {
             recurse,
