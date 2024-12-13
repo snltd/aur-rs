@@ -10,7 +10,7 @@ use std::path::Path;
 pub fn run(files: &[String], global_opts: &GlobalOpts) -> anyhow::Result<()> {
     let rx = Regex::new(r"^disc_(\d+)$")?;
 
-    for file in media_files(pathbuf_set(files)) {
+    for file in media_files(&pathbuf_set(files)) {
         tag_file(&file, &rx, global_opts)?;
     }
 

@@ -20,7 +20,7 @@ pub fn run(root_dir: &str, opts: &GlobalOpts) -> anyhow::Result<()> {
 }
 
 fn find_dupes(root_dir: String, opts: &GlobalOpts) -> anyhow::Result<Dupes> {
-    let all_files = media_files(expand_file_list(&[root_dir], true)?);
+    let all_files = media_files(&expand_file_list(&[root_dir], true)?);
 
     if all_files.is_empty() {
         return Err(anyhow!("No files found"));
@@ -89,9 +89,7 @@ fn check_compacted(artists: &ArtistDirs) -> Dupes {
             .entry(compacted)
             .and_modify(|e| {
                 for (key, value) in &dc {
-                    e.entry(key.clone())
-                        .or_default()
-                        .extend(value.to_owned());
+                    e.entry(key.clone()).or_default().extend(value.to_owned());
                 }
             })
             .or_insert(dc);

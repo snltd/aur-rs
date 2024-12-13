@@ -3,7 +3,7 @@ use crate::utils::metadata::AurMetadata;
 use std::path::Path;
 
 pub fn run(files: &[String]) -> anyhow::Result<()> {
-    let files = media_files(pathbuf_set(files));
+    let files = media_files(&pathbuf_set(files));
     let mut info_list: Vec<Vec<String>> = Vec::new();
 
     for f in files {

@@ -5,6 +5,9 @@ use std::collections::{HashMap, HashSet};
 use std::fs::read_to_string;
 use std::path::{Path, PathBuf};
 
+pub const MAX_ARTWORK_SIZE: u32 = 750;
+pub const MIN_ARTWORK_SIZE: u32 = 350;
+
 #[derive(Deserialize, Debug)]
 #[allow(dead_code)]
 pub struct Config {
@@ -15,26 +18,27 @@ pub struct Config {
 #[derive(Deserialize, Debug)]
 #[allow(dead_code)]
 pub struct Ignore {
-    wantflac: Option<WantFlac>,
     lint: Option<LintErrs>,
+    lintdir: Option<LintDirErrs>,
     syncflac: Option<HashSet<String>>,
+    wantflac: Option<WantFlac>,
 }
 
 #[derive(Deserialize, Debug)]
 #[allow(dead_code)]
 pub struct WantFlac {
-    tracks: Option<WantsList>,
     albums: Option<WantsList>,
     top_level: Option<WantsList>,
+    tracks: Option<WantsList>,
 }
 
 #[derive(Deserialize, Debug)]
 #[allow(dead_code)]
 pub struct Words {
-    pub no_caps: Option<HashSet<String>>,
     pub all_caps: Option<HashSet<String>>,
-    pub ignore_case: Option<HashSet<String>>,
     pub expand: Option<HashMap<String, String>>,
+    pub ignore_case: Option<HashSet<String>>,
+    pub no_caps: Option<HashSet<String>>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -43,6 +47,13 @@ pub struct LintErrs {
     pub invalid_album_tag: Option<HashSet<String>>,
     pub invalid_artist_tag: Option<HashSet<String>>,
     pub invalid_title_tag: Option<HashSet<String>>,
+}
+
+#[derive(Deserialize, Debug)]
+#[allow(dead_code)]
+pub struct LintDirErrs {
+    pub bad_file_count: Option<HashSet<String>>,
+    pub inconsistent_tags: Option<HashSet<String>>,
 }
 
 pub fn default_location() -> String {
@@ -141,6 +152,20 @@ impl Config {
             .as_ref()
             .and_then(|ignore| ignore.lint.as_ref())
             .and_then(|lint| lint.invalid_artist_tag.as_ref())
+    }
+
+    pub fn get_ignore_lintdir_bad_file_count(&self) -> Option<&HashSet<String>> {
+        self.ignore
+            .as_ref()
+            .and_then(|ignore| ignore.lintdir.as_ref())
+            .and_then(|lintdir| lintdir.bad_file_count.as_ref())
+    }
+
+    pub fn get_ignore_lintdir_inconsistent_tags(&self) -> Option<&HashSet<String>> {
+        self.ignore
+            .as_ref()
+            .and_then(|ignore| ignore.lintdir.as_ref())
+            .and_then(|lintdir| lintdir.inconsistent_tags.as_ref())
     }
 }
 

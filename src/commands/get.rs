@@ -11,7 +11,7 @@ type InfoList = Vec<Info>;
 pub fn run(property: &str, files: &[String]) -> anyhow::Result<()> {
     let mut info_list: InfoList = Vec::new();
 
-    for f in media_files(pathbuf_set(files)) {
+    for f in media_files(&pathbuf_set(files)) {
         let info = info_for_file(property, &f)?;
         info_list.push((f, info));
     }

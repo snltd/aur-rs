@@ -1,3 +1,4 @@
+use crate::utils::config::MAX_ARTWORK_SIZE;
 use crate::utils::dir::expand_dir_list;
 use image::imageops::FilterType::Lanczos3;
 use image::GenericImageView;
@@ -5,8 +6,6 @@ use image::ImageReader;
 use std::fs;
 use std::os::unix::fs::symlink;
 use std::path::{Path, PathBuf};
-
-const MAX_ARTWORK_SIZE: u32 = 750;
 
 pub fn run(dirlist: &[String], recurse: bool, linkdir: String) -> anyhow::Result<()> {
     let linkdir = PathBuf::from(linkdir);

@@ -7,14 +7,15 @@ pub fn pathbuf_set(files: &[String]) -> HashSet<PathBuf> {
     files.iter().map(PathBuf::from).collect()
 }
 
-pub fn media_files<T>(flist: T) -> T
+pub fn media_files<T>(flist: &T) -> T
 where
-    T: IntoIterator<Item = PathBuf> + FromIterator<PathBuf>,
+    T: IntoIterator<Item = PathBuf> + FromIterator<PathBuf> + Clone,
 {
     let flac_ext = OsString::from("flac");
     let mp3_ext = OsString::from("mp3");
 
     flist
+        .clone()
         .into_iter()
         .filter(|f| match f.extension() {
             Some(ext) => ext == flac_ext || ext == mp3_ext,
@@ -110,7 +111,7 @@ mod tests {
             PathBuf::from("/mp3/album/03.singer.song_03.mp3"),
         ];
 
-        assert_eq_unordered!(expected, media_files(input));
+        assert_eq_unordered!(expected, media_files(&input));
     }
 
     #[test]
