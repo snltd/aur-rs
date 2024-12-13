@@ -31,7 +31,7 @@ mod test {
             .stdout()
             .contains(
                 format!(
-                    "moving {dir}/some_file.JPEG to {dir}/front.jpg",
+                    "Rename: {dir}/some_file.JPEG -> front.jpg",
                     dir = dir_under_test.display()
                 )
                 .as_str(),
@@ -66,14 +66,7 @@ mod test {
             .succeeds()
             .and()
             .stdout()
-            // .contains("front.jpg to 750x750")
-            .contains(
-                format!(
-                    "Rescaling {}/front.jpg to 750x750",
-                    dir_under_test.display()
-                )
-                .as_str(),
-            )
+            .contains(format!("Resize: {}/front.jpg -> 750x750", dir_under_test.display()).as_str())
             .unwrap();
 
         assert_cli::Assert::main_binary()

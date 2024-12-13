@@ -66,8 +66,8 @@ pub fn default_linkdir() -> String {
     let home = std::env::var("HOME").expect("cannot find home directory");
     let home_dir = PathBuf::from(home);
     home_dir
-        .join("word")
-        .join("linkdir")
+        .join("work")
+        .join("artfix")
         .to_string_lossy()
         .to_string()
 }
