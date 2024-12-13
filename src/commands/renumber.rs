@@ -15,7 +15,7 @@ pub fn run(direction: &RenumberDirection, delta: u32, files: &[String]) -> anyho
     };
 
     // The casting here is perfectly safe. We can't go outside a very narrow range
-    for f in media_files(pathbuf_set(files)) {
+    for f in media_files(&pathbuf_set(files)) {
         let info = AurMetadata::new(&f)?;
         let number = info.tags.t_num as i32 + i_delta;
 

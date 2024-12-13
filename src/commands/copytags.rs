@@ -14,7 +14,7 @@ pub fn run(
     ct_opts: &CopytagsOptions,
     global_opts: &GlobalOpts,
 ) -> anyhow::Result<()> {
-    for f in media_files(expand_file_list(files, ct_opts.recurse)?) {
+    for f in media_files(&expand_file_list(files, ct_opts.recurse)?) {
         tag_file(&f, ct_opts, global_opts)?;
     }
     Ok(())

@@ -57,8 +57,8 @@ fn dupes_under(dir: &Path) -> anyhow::Result<Dupes> {
         true,
     )?;
 
-    let needle_hash = file_hash(&media_files(needle_files));
-    let haystack_hash = file_hash(&media_files(haystack_files));
+    let needle_hash = file_hash(&media_files(&needle_files));
+    let haystack_hash = file_hash(&media_files(&haystack_files));
 
     let mut ret: Dupes = Vec::new();
 

@@ -66,7 +66,7 @@ pub fn run(files: &[String], recurse: bool, opts: &GlobalOpts) -> anyhow::Result
     let words = Words::new(&config);
     let validator = TagValidator::new(&words);
 
-    for f in media_files(expand_file_list(files, recurse)?) {
+    for f in media_files(&expand_file_list(files, recurse)?) {
         let results = filter_results(&f, lint_file(&f, &validator)?, &config);
         let problems: Vec<_> = results.iter().filter_map(Some).collect();
         if !problems.is_empty() {

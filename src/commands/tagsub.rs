@@ -15,7 +15,7 @@ pub fn run(
 ) -> anyhow::Result<()> {
     let rx = Regex::new(from)?;
 
-    for file in media_files(pathbuf_set(files)) {
+    for file in media_files(&pathbuf_set(files)) {
         process_file(&file, tag, &rx, to, opts)?;
     }
 

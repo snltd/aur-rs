@@ -5,7 +5,7 @@ use std::path::Path;
 pub fn run(files: &[String]) -> anyhow::Result<()> {
     let mut info_list: Vec<Vec<String>> = Vec::new();
 
-    for f in media_files(pathbuf_set(files)) {
+    for f in media_files(&pathbuf_set(files)) {
         info_list.push(info_for_file(&f)?);
     }
 

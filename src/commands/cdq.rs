@@ -10,7 +10,7 @@ use std::process::Command;
 pub fn run(files: &[String], leave_originals: bool) -> anyhow::Result<()> {
     let ffmpeg = find_binary("ffmpeg")?;
 
-    for f in media_files(pathbuf_set(files)) {
+    for f in media_files(&pathbuf_set(files)) {
         reencode_file(&f, leave_originals, &ffmpeg)?;
     }
 

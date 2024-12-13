@@ -6,7 +6,7 @@ use std::collections::HashSet;
 use std::path::Path;
 
 pub fn run(files: &[String]) -> anyhow::Result<()> {
-    for f in media_files(pathbuf_set(files)) {
+    for f in media_files(&pathbuf_set(files)) {
         strip_file(&f)?;
     }
 

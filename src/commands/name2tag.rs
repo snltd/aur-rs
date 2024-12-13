@@ -10,7 +10,7 @@ use std::path::Path;
 pub fn run(files: &[String], opts: &GlobalOpts) -> anyhow::Result<()> {
     let config = load_config(&opts.config)?;
 
-    for f in media_files(pathbuf_set(files)) {
+    for f in media_files(&pathbuf_set(files)) {
         tag_file(&f, &config)?
     }
 
