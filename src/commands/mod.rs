@@ -7,7 +7,6 @@ pub mod get;
 pub mod info;
 pub mod inumber;
 pub mod lint;
-pub mod lintdir;
 pub mod ls;
 pub mod name2num;
 pub mod name2tag;
