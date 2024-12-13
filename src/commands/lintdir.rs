@@ -15,6 +15,8 @@ use std::ffi::OsStr;
 use std::fs::{self, canonicalize};
 use std::path::{Path, PathBuf};
 
+const ARTIST_SEPS: [&str; 6] = ["feat", "feat.", "featuring", "and", "with", "/"];
+
 lazy_static! {
     static ref DIRNAME_REGEX: Regex =
         Regex::new(r"^[a-z0-9][a-z\-_0-9]+\.[a-z0-9][a-z\-_[0-9]]*[a-z0-9]?$").unwrap();
@@ -139,6 +141,10 @@ fn lint_dir(dir: &Path, opts: &GlobalOpts) -> anyhow::Result<Option<Vec<CheckRes
         return Ok(None);
     }
 
+    if dir.file_name().unwrap().to_string_lossy() == "tracks" {
+        return Ok(None);
+    }
+
     verbose!(opts, "Linting {}", dir.display());
 
     let hierarchy = if dir
@@ -254,39 +260,44 @@ fn has_right_file_count(file_list: &HashSet<PathBuf>) -> CheckResult {
     CheckResult::Good
 }
 
-fn looks_like_compilation(dir: &Path) -> bool {
+fn looks_like_compilation(dir: &Path, on_retry: bool) -> bool {
     let dirname = dir
         .file_name()
         .expect("looks_like_compilation couldn't parse dir")
         .to_string_lossy()
         .to_string();
 
-    if dirname.starts_with("various.") {
-        return true;
-    }
-
     let bits: Vec<&str> = dirname.split('.').collect();
-    bits[0].contains("--")
+
+    if bits.len() == 1 && !on_retry {
+        // probably a disc dir
+        looks_like_compilation(dir.parent().unwrap(), true)
+    } else {
+        bits[0] == "various" || bits[0].contains("--")
+    }
 }
 
 fn inconsistencies_are_featuring(metadata: &[AurMetadata]) -> bool {
-    for sep in ["feat", "featuring", "and", "with"] {
-        let primaries: Vec<&str> = metadata
-            .iter()
-            .map(|m| {
-                let bits: Vec<_> = m.tags.artist.split(sep).collect();
-                bits[0].trim()
-            })
-            .collect();
+    let primaries: Vec<String> = metadata
+        .iter()
+        .map(|m| {
+            let mut shortest = m.tags.artist.clone();
 
-        let ref_artist = primaries[0];
+            for sep in ARTIST_SEPS {
+                let sep_str = format!(" {} ", sep);
+                let bits: Vec<_> = m.tags.artist.split(&sep_str).collect();
+                let first_bit = bits[0].trim();
+                if first_bit.len() < shortest.len() {
+                    shortest = first_bit.to_string();
+                }
+            }
 
-        if primaries.iter().all(|&m| m == ref_artist) {
-            return true;
-        }
-    }
+            shortest
+        })
+        .collect();
 
-    false
+    let ref_artist = &primaries[0].to_string();
+    primaries.iter().all(|m| m == ref_artist)
 }
 
 fn has_consistent_tags(dir: &Path, metadata: &[AurMetadata]) -> CheckResult {
@@ -295,7 +306,7 @@ fn has_consistent_tags(dir: &Path, metadata: &[AurMetadata]) -> CheckResult {
     if !metadata
         .iter()
         .all(|m| m.tags.artist == metadata[0].tags.album)
-        && !looks_like_compilation(dir)
+        && !looks_like_compilation(dir, false)
         && !inconsistencies_are_featuring(metadata)
     {
         inconsistent_tags.insert("artist".into());
