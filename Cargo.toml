@@ -8,7 +8,7 @@ anyhow = "1.0"
 clap = { version = "4.3", features = ["derive"] }
 colored = "2.1"
 id3 = "1.14"
-image = "0.25.5"
+image = "0.25"
 indicatif = "0.17"
 lazy_static = "1.5"
 metaflac = "0.2"

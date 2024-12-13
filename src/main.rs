@@ -88,9 +88,18 @@ enum Commands {
         /// Recurse
         #[arg(short, long)]
         recurse: bool,
-        /// Files and/or directories to retag
+        /// Files and/or directories to check
         #[arg(required = true)]
         files: Vec<String>,
+    },
+    /// Compares the given file(s) with our standards
+    Lintdir {
+        /// Recurse
+        #[arg(short, long)]
+        recurse: bool,
+        /// Directories to check
+        #[arg(required = true)]
+        directories: Vec<String>,
     },
     /// Shows tag information about files in the given directory, one file per line
     Ls {
@@ -239,6 +248,10 @@ fn main() {
         Commands::Info { files } => commands::info::run(&files),
         Commands::Inumber { files } => commands::inumber::run(&files),
         Commands::Lint { recurse, files } => commands::lint::run(&files, recurse, &global_opts),
+        Commands::Lintdir {
+            recurse,
+            directories,
+        } => commands::lintdir::run(&directories, recurse, &global_opts),
         Commands::Ls {
             recurse,
             directories,
