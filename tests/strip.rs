@@ -28,10 +28,16 @@ mod test {
         assert_cli::Assert::main_binary()
             .with_args(&["strip", &file_str])
             .stdout()
-            .contains("Stripping composer, encoder, tempo")
+            .contains(
+                format!(
+                    "Strip: {} :: composer, encoder, tempo",
+                    file_under_test.display()
+                )
+                .as_str(),
+            )
             .and()
             .stdout()
-            .contains("Removing embedded artwork")
+            .contains(format!("Strip: {} :: embedded artwork", file_under_test.display()).as_str())
             .unwrap();
 
         assert_cli::Assert::main_binary()
@@ -63,10 +69,16 @@ mod test {
         assert_cli::Assert::main_binary()
             .with_args(&["strip", &file_str])
             .stdout()
-            .contains("Stripping apic, tcom, tenc, tlen, tsse, txxx")
+            .contains(
+                format!(
+                    "Strip: {} :: apic, tcom, tenc, tlen, tsse, txxx",
+                    file_under_test.display()
+                )
+                .as_str(),
+            )
             .and()
             .stdout()
-            .contains("Removing embedded artwork")
+            .contains(format!("Strip: {} :: embedded artwork", file_under_test.display()).as_str())
             .unwrap();
 
         assert_cli::Assert::main_binary()

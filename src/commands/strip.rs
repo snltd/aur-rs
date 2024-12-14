@@ -27,7 +27,8 @@ fn remove_tags(info: &AurMetadata, tagger: &Tagger) -> anyhow::Result<bool> {
     to_remove.sort();
 
     println!(
-        "Stripping {}",
+        "Strip: {} :: {}",
+        info.path.display(),
         to_remove
             .iter()
             .map(|s| s.as_str())
@@ -40,7 +41,7 @@ fn remove_tags(info: &AurMetadata, tagger: &Tagger) -> anyhow::Result<bool> {
 
 fn remove_artwork(info: &AurMetadata, tagger: &Tagger) -> anyhow::Result<bool> {
     if info.has_picture {
-        println!("Removing embedded artwork");
+        println!("Strip: {} :: embedded artwork", info.path.display());
         tagger.remove_artwork()
     } else {
         Ok(false)
