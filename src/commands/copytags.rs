@@ -4,6 +4,7 @@ use crate::utils::tagger::Tagger;
 use crate::utils::types::{CopytagsOptions, GlobalOpts};
 use crate::verbose;
 use anyhow::anyhow;
+use colored::Colorize;
 use std::ffi::{OsStr, OsString};
 use std::fs;
 use std::os::unix::fs::MetadataExt;
@@ -28,10 +29,11 @@ fn tag_file(file: &Path, ct_opts: &CopytagsOptions, opts: &GlobalOpts) -> anyhow
             file
         }
         None => {
-            return Err(anyhow!(
-                "{} has no partner from which to copy tags",
-                file.display()
-            ))
+            return Ok(false);
+            // return Err(anyhow!(
+            //     "{} has no partner from which to copy tags",
+            //     file.display()
+            // ))
         }
     };
 
@@ -45,6 +47,7 @@ fn tag_file(file: &Path, ct_opts: &CopytagsOptions, opts: &GlobalOpts) -> anyhow
     }
 
     let tagger = Tagger::new(&info)?;
+    println!("{}", file.display().to_string().bold());
 
     let changes = [
         tagger.set_artist(&partner_tags.artist)?,

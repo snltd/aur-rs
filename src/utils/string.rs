@@ -77,6 +77,7 @@ impl ToSafe for String {
         ret.trim_matches('-')
             .trim_matches('_')
             .replace("_-_", "--")
+            .replace("-_", "_")
             .to_string()
     }
 }
@@ -152,6 +153,7 @@ mod test {
         assert_eq!("basic".to_safe(), "basic");
         assert_eq!("Füxa".to_safe(), "fuxa");
         assert_eq!("R.E.M.".to_safe(), "r-e-m");
+        assert_eq!("St. Christopher".to_safe(), "st_christopher");
         assert_eq!(
             "20 Cases Suggestive of ...".to_safe(),
             "20_cases_suggestive_of"
