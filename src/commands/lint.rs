@@ -238,7 +238,11 @@ fn has_no_invalid_tags(tags: &AurTags, validator: &TagValidator) -> Vec<CheckRes
 }
 
 fn is_safe(chunk: &str) -> bool {
-    if chunk.starts_with(['-', '_']) || chunk.ends_with(['-', '_']) || chunk.contains("__") {
+    if chunk.starts_with(['-', '_'])
+        || chunk.ends_with(['-', '_'])
+        || chunk.contains("__")
+        || chunk.contains("-_")
+    {
         return false;
     }
 
@@ -303,6 +307,7 @@ mod test {
             "03.artist.title_(with_brackets).flac",
             "03.someone_&_the_somethings.song.mp3",
             "04.too__many.underscores.flac",
+            "17.st-_christopher.burnout_23.flac",
             "07.the_somethings.i-n-i-t-i-a-l-s.flac",
             "1.artist.title.flac",
             "19.my_favourite_band.their_best_song!.flac",
