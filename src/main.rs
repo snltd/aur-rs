@@ -117,6 +117,9 @@ enum Commands {
     },
     /// Tags a file based on its name
     Name2tag {
+        /// Ignore warnings, making a best effort
+        #[arg(short, long)]
+        force: bool,
         /// One or more media files
         #[arg(required = true)]
         files: Vec<String>,
@@ -257,7 +260,7 @@ fn main() {
             directories,
         } => commands::ls::run(&directories, recurse),
         Commands::Name2num { files } => commands::name2num::run(&files, &global_opts),
-        Commands::Name2tag { files } => commands::name2tag::run(&files, &global_opts),
+        Commands::Name2tag { files, force } => commands::name2tag::run(&files, force, &global_opts),
         Commands::Namecheck { root_dir } => commands::namecheck::run(&root_dir, &global_opts),
         Commands::Num2name { files } => commands::num2name::run(&files),
         Commands::Renumber {
