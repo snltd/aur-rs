@@ -2,7 +2,7 @@ use anyhow::anyhow;
 use std::path::PathBuf;
 
 pub fn find_binary(name: &str) -> anyhow::Result<PathBuf> {
-    for dir in ["/opt/ooce/bin", "/usr/bin"] {
+    for dir in ["/opt/ooce/bin", "/usr/bin", "/home/rob/bin/SunOS"] {
         let d = PathBuf::from(dir);
         let candidate = d.join(name);
 
