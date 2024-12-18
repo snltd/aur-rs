@@ -22,4 +22,5 @@ pub mod tag2name;
 pub mod tags;
 pub mod tagsub;
 pub mod thes;
+pub mod verify;
 pub mod wantflac;
