@@ -10,7 +10,7 @@ pub struct TagValidator<'a> {
 impl<'a> TagValidator<'a> {
     pub fn new(words: &'a Words) -> Self {
         TagValidator {
-            tag_maker: TagMaker::new(words),
+            tag_maker: TagMaker::new(words, false),
             current_year: this_year(),
         }
     }

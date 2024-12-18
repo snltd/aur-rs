@@ -9,6 +9,7 @@ type InBrackets = bool;
 /// in the way of punctuation, but it handles quite a lot of odd cases.
 pub struct TagMaker<'a> {
     words: &'a Words,
+    force: bool,
 }
 
 pub struct TagMakerAllTags {
@@ -19,8 +20,8 @@ pub struct TagMakerAllTags {
 }
 
 impl<'a> TagMaker<'a> {
-    pub fn new(words: &'a Words) -> Self {
-        Self { words }
+    pub fn new(words: &'a Words, force: bool) -> Self {
+        Self { words, force }
     }
 
     pub fn all_tags_from(&self, info: &AurMetadata) -> anyhow::Result<TagMakerAllTags> {
@@ -49,18 +50,23 @@ impl<'a> TagMaker<'a> {
 
         if fname_chunks.len() != 4 {
             return Err(anyhow!(
-                "Expected four parts in {}: got {}",
+                "Expected four parts in track name '{}': got {}",
                 info.filename,
                 fname_chunks.len()
             ));
         }
 
         let album_chunks: Vec<_> = album_dir_name.split('.').collect();
+        let album_name: &str;
 
-        if album_chunks.len() != 2 {
+        if album_chunks.len() == 2 {
+            album_name = album_chunks[1];
+        } else if self.force {
+            album_name = "";
+        } else {
             return Err(anyhow!(
-                "Expected four parts in {}: got {}",
-                info.filename,
+                "Expected two parts in album name '{}': got {}. Use -f to force empty album tag",
+                album_dir_name,
                 album_chunks.len()
             ));
         }
@@ -68,7 +74,7 @@ impl<'a> TagMaker<'a> {
         let ret = TagMakerAllTags {
             artist: self.artist_from(fname_chunks[1]),
             title: self.title_from(fname_chunks[2]),
-            album: self.album_from(album_chunks[1]),
+            album: self.album_from(album_name),
             t_num: self.t_num_from(fname_chunks[0]),
         };
 
@@ -235,7 +241,7 @@ mod test {
     #[test]
     fn test_title_plain() {
         let words = Words::new(&sample_config());
-        let tm = TagMaker::new(&words);
+        let tm = TagMaker::new(&words, false);
 
         assert_eq!("Blue Bell Knoll", tm.title_from("blue_bell_knoll"));
         assert_eq!(
