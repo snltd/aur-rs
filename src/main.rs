@@ -201,6 +201,15 @@ enum Commands {
         #[arg(required = true)]
         files: Vec<String>,
     },
+    /// Checks media files are valid and uncorrupted
+    Verify {
+        /// Recurse
+        #[arg(short, long)]
+        recurse: bool,
+        /// Files and/or directories to check
+        #[arg(required = true)]
+        files: Vec<String>,
+    },
     /// Lists albums and EPs, or tracks, which exists as MP3 but not as FLAC
     Wantflac {
         /// Root directory for media files, containing flac/ and mp3/
@@ -281,6 +290,7 @@ fn main() {
         Commands::Tag2name { files } => commands::tag2name::run(&files),
         Commands::Tags { files } => commands::tags::run(&files),
         Commands::Thes { files } => commands::thes::run(&files),
+        Commands::Verify { recurse, files } => commands::verify::run(&files, recurse, &global_opts),
         Commands::Wantflac { root, tracks } => commands::wantflac::run(&root, tracks, &global_opts),
     };
 
