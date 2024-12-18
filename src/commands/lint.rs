@@ -6,6 +6,7 @@ use crate::utils::types::GlobalOpts;
 use crate::utils::words::Words;
 use colored::Colorize;
 use std::collections::HashSet;
+use std::ffi::OsStr;
 use std::path::Path;
 
 #[derive(Debug)]
@@ -115,37 +116,53 @@ fn display_problems(file: &Path, problems: &Vec<&CheckResult>) {
     println!();
 }
 
+fn in_tracks(file: &Path) -> bool {
+    match file.parent() {
+        Some(parent) => match parent.file_name() {
+            Some(basename) => basename == OsStr::new("tracks"),
+            None => false,
+        },
+        None => false,
+    }
+}
+
 fn lint_file(file: &Path, validator: &TagValidator) -> anyhow::Result<Vec<CheckResult>> {
     let info = AurMetadata::new(file)?;
-    let results: Vec<_> = run_checks(&info, validator)
+    let in_tracks = in_tracks(file);
+
+    let results: Vec<_> = run_checks(&info, in_tracks, validator)
         .into_iter()
         .filter(|r| matches!(r, CheckResult::Bad(_)))
         .collect();
     Ok(results)
 }
 
-fn run_checks(metadata: &AurMetadata, validator: &TagValidator) -> Vec<CheckResult> {
+fn run_checks(
+    metadata: &AurMetadata,
+    in_tracks: bool,
+    validator: &TagValidator,
+) -> Vec<CheckResult> {
     vec![
-        has_valid_name(&metadata.filename),
+        has_valid_name(&metadata.filename, in_tracks),
         has_no_unwanted_tags(&metadata.filetype, &metadata.rawtags),
         has_no_picture(metadata.has_picture),
         has_no_byte_order_markers(&metadata.tags),
         has_disc_number_or_not(&metadata.path, &metadata.tags.album),
     ]
     .into_iter()
-    .chain(has_no_invalid_tags(&metadata.tags, validator))
+    .chain(has_no_invalid_tags(&metadata.tags, in_tracks, validator))
     .collect()
 }
 
 fn has_disc_number_or_not(file: &Path, album_tag: &str) -> CheckResult {
-    let disc_in_name = album_tag.contains(" (Disc ");
+    let disc_in_name = album_tag.contains("Disc ");
     let in_disc_dir = file
         .parent()
         .unwrap()
         .file_name()
         .unwrap()
         .to_string_lossy()
-        .starts_with("disc_");
+        .contains("disc_");
 
     if disc_in_name && !in_disc_dir {
         CheckResult::Bad(LintError::NotInDiscDirButDiscN)
@@ -164,7 +181,25 @@ fn has_no_picture(has_picture: bool) -> CheckResult {
     }
 }
 
-fn has_valid_name(fname: &str) -> CheckResult {
+fn has_valid_name(fname: &str, in_tracks: bool) -> CheckResult {
+    if in_tracks {
+        has_valid_name_tracks(fname)
+    } else {
+        has_valid_name_album(fname)
+    }
+}
+
+fn has_valid_name_tracks(fname: &str) -> CheckResult {
+    let chunks: Vec<_> = fname.split('.').collect();
+
+    if chunks.len() == 3 && chunks.iter().all(|c| is_safe(c)) && !chunks[0].starts_with("the_") {
+        CheckResult::Good
+    } else {
+        CheckResult::Bad(LintError::InvalidName(fname.into()))
+    }
+}
+
+fn has_valid_name_album(fname: &str) -> CheckResult {
     let chunks: Vec<_> = fname.split('.').collect();
 
     if chunks.len() == 4
@@ -195,7 +230,11 @@ fn has_no_unwanted_tags(filetype: &str, rawtags: &RawTags) -> CheckResult {
     }
 }
 
-fn has_no_invalid_tags(tags: &AurTags, validator: &TagValidator) -> Vec<CheckResult> {
+fn has_no_invalid_tags(
+    tags: &AurTags,
+    in_tracks: bool,
+    validator: &TagValidator,
+) -> Vec<CheckResult> {
     let mut problems: Vec<CheckResult> = Vec::new();
 
     if !validator.validate_title(&tags.title) {
@@ -210,10 +249,18 @@ fn has_no_invalid_tags(tags: &AurTags, validator: &TagValidator) -> Vec<CheckRes
         )));
     }
 
-    if !validator.validate_album(&tags.album) {
-        problems.push(CheckResult::Bad(LintError::InvalidAlbum(
-            tags.album.clone(),
-        )));
+    if in_tracks {
+        if tags.album != "" {
+            problems.push(CheckResult::Bad(LintError::InvalidAlbum(
+                tags.album.clone(),
+            )));
+        }
+    } else {
+        if !validator.validate_album(&tags.album) {
+            problems.push(CheckResult::Bad(LintError::InvalidAlbum(
+                tags.album.clone(),
+            )));
+        }
     }
 
     if !validator.validate_t_num(&tags.t_num.to_string()) {
@@ -296,7 +343,7 @@ mod test {
 
         valid_names
             .iter()
-            .for_each(|n| assert_eq!(has_valid_name(n), CheckResult::Good));
+            .for_each(|n| assert_eq!(has_valid_name(n, false), CheckResult::Good));
 
         let invalid_names = [
             "00.a_band.a_song-with_brackets.flac",
@@ -316,7 +363,7 @@ mod test {
 
         invalid_names.iter().for_each(|n| {
             assert_eq!(
-                has_valid_name(n),
+                has_valid_name(n, false),
                 CheckResult::Bad(LintError::InvalidName(n.to_string()))
             )
         });
