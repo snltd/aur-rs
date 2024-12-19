@@ -46,6 +46,18 @@ mod test {
     #[test]
     #[ignore]
     fn test_transcode_incorrect_usage() {
-        common::missing_file_args_test("transcode flac");
+        assert_cli::Assert::main_binary()
+            .with_args(&["transcode"])
+            .fails()
+            .stderr()
+            .contains("Usage: aur transcode <FORMAT> <FILES>...")
+            .unwrap();
+
+        assert_cli::Assert::main_binary()
+            .with_args(&["transcode", "flac"])
+            .fails()
+            .stderr()
+            .contains("Usage: aur transcode <FORMAT> <FILES>...")
+            .unwrap();
     }
 }
