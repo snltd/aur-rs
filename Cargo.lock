@@ -173,7 +173,6 @@ dependencies = [
  "lazy_static",
  "metaflac",
  "mp3-metadata",
- "rayon",
  "regex",
  "serde",
  "tempfile",

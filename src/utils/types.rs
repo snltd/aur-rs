@@ -13,6 +13,11 @@ pub struct CopytagsOptions {
     pub force: bool,
 }
 
+pub struct TranscodeOptions {
+    pub force: bool,
+    pub remove_originals: bool,
+}
+
 pub struct GlobalOpts {
     pub verbose: bool,
     pub noop: bool,

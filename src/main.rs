@@ -201,6 +201,20 @@ enum Commands {
         #[arg(required = true)]
         files: Vec<String>,
     },
+    /// Transcode one or more files with ffmpeg
+    Transcode {
+        ///  If that target exists, overwrite it
+        #[arg(short, long)]
+        force: bool,
+        /// Remove the original files after transcoding
+        #[arg(short = 'R', long = "remove")]
+        remove_originals: bool,
+        /// The desired format
+        format: String,
+        /// One or more media files
+        #[arg(required = true)]
+        files: Vec<String>,
+    },
     /// Checks media files are valid and uncorrupted
     Verify {
         /// Recurse
@@ -290,6 +304,20 @@ fn main() {
         Commands::Tag2name { files } => commands::tag2name::run(&files),
         Commands::Tags { files } => commands::tags::run(&files),
         Commands::Thes { files } => commands::thes::run(&files),
+        Commands::Transcode {
+            format,
+            force,
+            remove_originals,
+            files,
+        } => commands::transcode::run(
+            &files,
+            &format,
+            &utils::types::TranscodeOptions {
+                remove_originals,
+                force,
+            },
+            &global_opts,
+        ),
         Commands::Verify { recurse, files } => commands::verify::run(&files, recurse, &global_opts),
         Commands::Wantflac { root, tracks } => commands::wantflac::run(&root, tracks, &global_opts),
     };
