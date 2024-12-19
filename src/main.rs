@@ -159,6 +159,12 @@ enum Commands {
         #[arg(required = true)]
         files: Vec<String>,
     },
+    /// Split a FLAC according to a .cue file with the same filename stem
+    Split {
+        /// One or more FLAC files
+        #[arg(required = true)]
+        files: Vec<String>,
+    },
     /// Remove embedded images and unwanted tags from the given file(s)
     Strip {
         /// One or more media files
@@ -293,6 +299,7 @@ fn main() {
         } => commands::renumber::run(&direction, delta, &files),
         Commands::Retitle { files } => commands::retitle::run(&files, &global_opts),
         Commands::Set { tag, value, files } => commands::set::run(&tag, &value, &files),
+        Commands::Split { files } => commands::split::run(&files),
         Commands::Strip { files } => commands::strip::run(&files),
         Commands::Syncflac { root } => commands::syncflac::run(&root, &global_opts),
         Commands::Tagsub {
