@@ -16,6 +16,7 @@ pub mod num2name;
 pub mod renumber;
 pub mod retitle;
 pub mod set;
+pub mod sort;
 pub mod split;
 pub mod strip;
 pub mod syncflac;
