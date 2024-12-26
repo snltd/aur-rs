@@ -25,3 +25,5 @@ pub struct GlobalOpts {
 }
 
 pub type WantsList = HashSet<String>;
+pub type RenameAction = (PathBuf, PathBuf);
+pub type RenameOption = Option<RenameAction>;

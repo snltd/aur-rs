@@ -1,12 +1,9 @@
 use crate::utils::metadata::AurMetadata;
 use crate::utils::string::ToSafe;
+use crate::utils::types::{RenameAction, RenameOption};
 use anyhow::anyhow;
-use std::path::PathBuf;
 
 // Code shared by inumber and renumber.
-
-pub type RenameOption = Option<RenameAction>;
-pub type RenameAction = (PathBuf, PathBuf);
 
 pub fn number_from_filename(fname: &str) -> Option<(String, u32)> {
     let bits = fname.split('.').collect::<Vec<&str>>();
@@ -40,11 +37,31 @@ pub fn rename((src, dest): RenameAction) -> anyhow::Result<bool> {
     } else if dest.exists() {
         Err(anyhow!(format!("destination exists: {}", dest.display())))
     } else {
+        if let Some(parent_dir) = dest.parent() {
+            if !parent_dir.exists() {
+                println!("Creating {}", parent_dir.display());
+                std::fs::create_dir_all(parent_dir)?;
+            }
+        }
+
+        let src_dir = src.parent().expect("Cannot find parent of src_dir");
+        let dest_dir = dest.parent().expect("Cannot find parent of dest_dir");
+
+        let target_to_print = if dest_dir == src_dir {
+            dest.file_name().unwrap()
+        } else {
+            match dest_dir.strip_prefix(src_dir) {
+                Ok(relative_path) => relative_path.as_os_str(),
+                Err(_) => dest.file_name().unwrap(),
+            }
+        };
+
         println!(
             "  {} -> {}",
             src.file_name().unwrap().to_string_lossy(),
-            dest.file_name().unwrap().to_string_lossy(),
+            target_to_print.to_string_lossy(),
         );
+
         std::fs::rename(src, dest).map_err(|e| anyhow::anyhow!(e))?;
         Ok(true)
     }

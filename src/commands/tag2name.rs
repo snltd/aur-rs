@@ -1,6 +1,7 @@
 use crate::utils::dir::{media_files, pathbuf_set};
 use crate::utils::metadata::AurMetadata;
 use crate::utils::rename;
+use crate::utils::types::RenameOption;
 use std::path::Path;
 
 pub fn run(files: &[String]) -> anyhow::Result<()> {
@@ -13,7 +14,7 @@ pub fn run(files: &[String]) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn rename_action(file: &Path) -> anyhow::Result<rename::RenameOption> {
+fn rename_action(file: &Path) -> anyhow::Result<RenameOption> {
     let info = AurMetadata::new(file)?;
     let tags = &info.tags;
     let correct_filename =
