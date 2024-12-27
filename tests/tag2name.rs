@@ -9,9 +9,10 @@ mod test {
     #[test]
     #[ignore]
     fn test_tag2name_command() {
-        let file_name = "test.flac";
+        let file_name = "badly_named_file.mp3";
         let tmp = assert_fs::TempDir::new().unwrap();
-        tmp.copy_from(fixture("info"), &[file_name]).unwrap();
+        tmp.copy_from(fixture("commands/tag2name"), &[file_name])
+            .unwrap();
         let file_under_test = tmp.path().join(file_name);
 
         assert_cli::Assert::main_binary()
@@ -19,10 +20,10 @@ mod test {
             .succeeds()
             .and()
             .stdout()
-            .is("test.flac -> 06.test_artist.test_title.flac")
+            .is("badly_named_file.mp3 -> 01.tester.some_song--or_other.mp3")
             .unwrap();
 
-        let renamed_file = tmp.path().join("06.test_artist.test_title.flac");
+        let renamed_file = tmp.path().join("01.tester.some_song--or_other.mp3");
 
         assert_cli::Assert::main_binary()
             .with_args(&["tag2name", &renamed_file.to_string_lossy()])
