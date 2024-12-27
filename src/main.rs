@@ -61,7 +61,7 @@ enum Commands {
         #[arg(required = true)]
         files: Vec<String>,
     },
-    /// Finds files in tracks/ which could be duplicates of tracks in albums/ or eps/.
+    /// Finds files in tracks/ which could be duplicates of tracks in albums/ or eps/
     Dupes { root_dir: String },
     /// Convert one or more FLACs to MP3s
     Flac2mp3 {
@@ -83,8 +83,16 @@ enum Commands {
         #[arg(required = true)]
         files: Vec<String>,
     },
-    /// For each given file, interactively supply a track number
+    /// For each given file, interactively supply a track number. Changes file name and tag
     Inumber {
+        /// One or more media files
+        #[arg(required = true)]
+        files: Vec<String>,
+    },
+    /// For each given file, interactively a value for the given tag. Changes tag only
+    Itag {
+        /// The tag to modify
+        tag: String,
         /// One or more media files
         #[arg(required = true)]
         files: Vec<String>,
@@ -292,6 +300,7 @@ fn main() {
         Commands::Get { property, files } => commands::get::run(&property, &files),
         Commands::Info { files } => commands::info::run(&files),
         Commands::Inumber { files } => commands::inumber::run(&files),
+        Commands::Itag { files, tag } => commands::itag::run(&files, &tag),
         Commands::Lint { recurse, files } => commands::lint::run(&files, recurse, &global_opts),
         Commands::Lintdir {
             recurse,
