@@ -9,9 +9,10 @@ mod test {
     #[test]
     #[ignore]
     fn test_set_command() {
-        let file_name = "test.flac";
+        let file_name = "02.tester.song.mp3";
         let tmp = assert_fs::TempDir::new().unwrap();
-        tmp.copy_from(fixture("info"), &[file_name]).unwrap();
+        tmp.copy_from(fixture("commands/set"), &[file_name])
+            .unwrap();
         let file_under_test = tmp.path().join(file_name);
 
         assert_cli::Assert::main_binary()
@@ -28,8 +29,8 @@ mod test {
         assert_cli::Assert::main_binary()
             .with_args(&[
                 "set",
-                "artist",
-                "Test Artist",
+                "title",
+                "New Title",
                 &file_under_test.to_string_lossy(),
             ])
             .stdout()
@@ -52,9 +53,10 @@ mod test {
     #[test]
     #[ignore]
     fn test_set_command_bad_input() {
-        let file_name = "test.flac";
+        let file_name = "02.tester.song.mp3";
         let tmp = assert_fs::TempDir::new().unwrap();
-        tmp.copy_from(fixture("info"), &[file_name]).unwrap();
+        tmp.copy_from(fixture("commands/set"), &[file_name])
+            .unwrap();
         let file_under_test = tmp.path().join(file_name);
 
         assert_cli::Assert::main_binary()

@@ -47,14 +47,14 @@ mod test {
 
     #[test]
     fn test_rename_action() {
-        let fixture_dir = fixture("info");
-
         assert_eq!(
             (
-                fixture_dir.join("test.flac"),
-                fixture_dir.join("06.test_artist.test_title.flac"),
+                fixture("commands/tag2name/badly_named_file.mp3"),
+                fixture("commands/tag2name/01.tester.some_song--or_other.mp3")
             ),
-            rename_action(&fixture("info/test.flac")).unwrap().unwrap()
+            rename_action(&fixture("commands/tag2name/badly_named_file.mp3"))
+                .unwrap()
+                .unwrap()
         );
     }
 }

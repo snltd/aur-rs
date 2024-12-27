@@ -32,16 +32,17 @@ mod test {
 
     #[test]
     fn test_tag_file_flac() {
-        let file_name = "test.flac";
+        let file_name = "01.tester.song.flac";
         let tmp = assert_fs::TempDir::new().unwrap();
-        tmp.copy_from(fixture("info"), &[file_name]).unwrap();
+        tmp.copy_from(fixture("commands/set"), &[file_name])
+            .unwrap();
         let file_under_test = tmp.path().join(file_name);
 
         let original_info = AurMetadata::new(&file_under_test).unwrap();
-        assert_eq!("Test Artist", original_info.tags.artist);
-        assert!(!tag_file("artist", "Test Artist", &file_under_test).unwrap());
+        assert_eq!("Tester", original_info.tags.artist);
+        assert!(!tag_file("artist", "Tester", &file_under_test).unwrap());
         let new_info = AurMetadata::new(&file_under_test).unwrap();
-        assert_eq!("Test Artist", new_info.tags.artist);
+        assert_eq!("Tester", new_info.tags.artist);
 
         assert!(tag_file("artist", "New Artist", &file_under_test).unwrap());
         let new_new_info = AurMetadata::new(&file_under_test).unwrap();
@@ -50,16 +51,17 @@ mod test {
 
     #[test]
     fn test_tag_file_mp3() {
-        let file_name = "test.mp3";
+        let file_name = "02.tester.song.mp3";
         let tmp = assert_fs::TempDir::new().unwrap();
-        tmp.copy_from(fixture("info"), &[file_name]).unwrap();
+        tmp.copy_from(fixture("commands/set"), &[file_name])
+            .unwrap();
         let file_under_test = tmp.path().join(file_name);
 
         let original_info = AurMetadata::new(&file_under_test).unwrap();
-        assert_eq!("Test Album", original_info.tags.album);
-        assert!(!tag_file("album", "Test Album", &file_under_test).unwrap());
+        assert_eq!("Test Set", original_info.tags.album);
+        assert!(!tag_file("album", "Test Set", &file_under_test).unwrap());
         let new_info = AurMetadata::new(&file_under_test).unwrap();
-        assert_eq!("Test Album", new_info.tags.album);
+        assert_eq!("Test Set", new_info.tags.album);
 
         assert!(tag_file("album", "New Album", &file_under_test).unwrap());
         let new_new_info = AurMetadata::new(&file_under_test).unwrap();
