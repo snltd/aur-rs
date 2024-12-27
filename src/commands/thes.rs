@@ -45,13 +45,13 @@ mod test {
         let file_under_test = tmp.path().join(file_name);
 
         let original_info = AurMetadata::new(&file_under_test).unwrap();
-        assert_eq!("Tester ", original_info.tags.artist);
+        assert_eq!("Tester", original_info.tags.artist);
         assert!(tag_file(&file_under_test).unwrap());
         let new_info = AurMetadata::new(&file_under_test).unwrap();
-        assert_eq!("The Test Artist", new_info.tags.artist);
+        assert_eq!("The Tester", new_info.tags.artist);
 
         assert!(!tag_file(&file_under_test).unwrap());
         let new_new_info = AurMetadata::new(&file_under_test).unwrap();
-        assert_eq!("The Tester ", new_new_info.tags.artist);
+        assert_eq!("The Tester", new_new_info.tags.artist);
     }
 }

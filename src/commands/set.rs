@@ -39,10 +39,10 @@ mod test {
         let file_under_test = tmp.path().join(file_name);
 
         let original_info = AurMetadata::new(&file_under_test).unwrap();
-        assert_eq!("Test Artist", original_info.tags.artist);
-        assert!(!tag_file("artist", "Test Artist", &file_under_test).unwrap());
+        assert_eq!("Tester", original_info.tags.artist);
+        assert!(!tag_file("artist", "Tester", &file_under_test).unwrap());
         let new_info = AurMetadata::new(&file_under_test).unwrap();
-        assert_eq!("Test Artist", new_info.tags.artist);
+        assert_eq!("Tester", new_info.tags.artist);
 
         assert!(tag_file("artist", "New Artist", &file_under_test).unwrap());
         let new_new_info = AurMetadata::new(&file_under_test).unwrap();
@@ -58,10 +58,10 @@ mod test {
         let file_under_test = tmp.path().join(file_name);
 
         let original_info = AurMetadata::new(&file_under_test).unwrap();
-        assert_eq!("Test Album", original_info.tags.album);
-        assert!(!tag_file("album", "Test Album", &file_under_test).unwrap());
+        assert_eq!("Test Set", original_info.tags.album);
+        assert!(!tag_file("album", "Test Set", &file_under_test).unwrap());
         let new_info = AurMetadata::new(&file_under_test).unwrap();
-        assert_eq!("Test Album", new_info.tags.album);
+        assert_eq!("Test Set", new_info.tags.album);
 
         assert!(tag_file("album", "New Album", &file_under_test).unwrap());
         let new_new_info = AurMetadata::new(&file_under_test).unwrap();
