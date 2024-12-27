@@ -63,6 +63,12 @@ enum Commands {
     },
     /// Finds files in tracks/ which could be duplicates of tracks in albums/ or eps/.
     Dupes { root_dir: String },
+    /// Convert one or more FLACs to MP3s
+    Flac2mp3 {
+        /// One or more FLAC files
+        #[arg(required = true)]
+        files: Vec<String>,
+    },
     /// Display a given property for the given file(s)
     Get {
         /// Property, e.g. time, title, or bitrate
@@ -282,6 +288,7 @@ fn main() {
             &global_opts,
         ),
         Commands::Dupes { root_dir } => commands::dupes::run(&root_dir),
+        Commands::Flac2mp3 { files } => commands::flac2mp3::run(&files, &global_opts),
         Commands::Get { property, files } => commands::get::run(&property, &files),
         Commands::Info { files } => commands::info::run(&files),
         Commands::Inumber { files } => commands::inumber::run(&files),

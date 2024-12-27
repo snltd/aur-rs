@@ -2,6 +2,7 @@ pub mod config;
 pub mod dir;
 pub mod external;
 pub mod helpers;
+pub mod lame_wrapper;
 pub mod macros;
 pub mod metadata;
 pub mod rename;

@@ -3,6 +3,7 @@ pub mod artfix;
 pub mod cdq;
 pub mod copytags;
 pub mod dupes;
+pub mod flac2mp3;
 pub mod get;
 pub mod info;
 pub mod inumber;
