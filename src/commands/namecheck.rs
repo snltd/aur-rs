@@ -4,12 +4,12 @@ use crate::utils::string::Compacted;
 use crate::utils::types::GlobalOpts;
 use anyhow::anyhow;
 use indicatif::ProgressBar;
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap};
 use std::path::PathBuf;
 
-type ArtistDirs = HashMap<String, HashSet<PathBuf>>;
+type ArtistDirs = HashMap<String, BTreeSet<PathBuf>>;
 type Dupes = Vec<DupeCluster>;
-type DupeCluster = HashMap<String, HashSet<PathBuf>>;
+type DupeCluster = HashMap<String, BTreeSet<PathBuf>>;
 
 pub fn run(root_dir: &str, opts: &GlobalOpts) -> anyhow::Result<()> {
     for cluster in find_dupes(root_dir.to_string(), opts)? {
@@ -33,7 +33,7 @@ fn find_dupes(root_dir: String, opts: &GlobalOpts) -> anyhow::Result<Dupes> {
     Ok(ret)
 }
 
-fn artist_dirs(file_hash: HashSet<PathBuf>, opts: &GlobalOpts) -> anyhow::Result<ArtistDirs> {
+fn artist_dirs(file_hash: BTreeSet<PathBuf>, opts: &GlobalOpts) -> anyhow::Result<ArtistDirs> {
     let mut ret: ArtistDirs = HashMap::new();
 
     let bar = if opts.verbose {
@@ -152,11 +152,11 @@ mod test {
 
         expected_cluster.insert(
             "Artist".to_string(),
-            HashSet::from([fixture("commands/namecheck/flac/thes/tracks")]),
+            BTreeSet::from([fixture("commands/namecheck/flac/thes/tracks")]),
         );
         expected_cluster.insert(
             "The Artist".to_string(),
-            HashSet::from([fixture(
+            BTreeSet::from([fixture(
                 "commands/namecheck/flac/thes/albums/abc/artist.album",
             )]),
         );
@@ -178,19 +178,19 @@ mod test {
 
         expected_cluster.insert(
             "The B52s".to_string(),
-            HashSet::from([fixture("commands/namecheck/mp3/similar/tracks")]),
+            BTreeSet::from([fixture("commands/namecheck/mp3/similar/tracks")]),
         );
 
         expected_cluster.insert(
             "The B-52's".to_string(),
-            HashSet::from([fixture(
+            BTreeSet::from([fixture(
                 "commands/namecheck/mp3/similar/albums/b-52s.wild_planet",
             )]),
         );
 
         expected_cluster.insert(
             "The B52's".to_string(),
-            HashSet::from([fixture("commands/namecheck/mp3/similar/tracks")]),
+            BTreeSet::from([fixture("commands/namecheck/mp3/similar/tracks")]),
         );
 
         expected.push(expected_cluster);
@@ -203,17 +203,17 @@ mod test {
         HashMap::from([
             (
                 "Artist".to_string(),
-                HashSet::from([fixture("commands/namecheck/flac/thes/tracks")]),
+                BTreeSet::from([fixture("commands/namecheck/flac/thes/tracks")]),
             ),
             (
                 "The Artist".to_string(),
-                HashSet::from([fixture(
+                BTreeSet::from([fixture(
                     "commands/namecheck/flac/thes/albums/abc/artist.album",
                 )]),
             ),
             (
                 "Singer".to_string(),
-                HashSet::from([fixture("commands/namecheck/flac/thes/tracks")]),
+                BTreeSet::from([fixture("commands/namecheck/flac/thes/tracks")]),
             ),
         ])
     }
@@ -222,17 +222,17 @@ mod test {
         HashMap::from([
             (
                 "The B52s".to_string(),
-                HashSet::from([fixture("commands/namecheck/mp3/similar/tracks")]),
+                BTreeSet::from([fixture("commands/namecheck/mp3/similar/tracks")]),
             ),
             (
                 "The B-52's".to_string(),
-                HashSet::from([fixture(
+                BTreeSet::from([fixture(
                     "commands/namecheck/mp3/similar/albums/b-52s.wild_planet",
                 )]),
             ),
             (
                 "The B52's".to_string(),
-                HashSet::from([fixture("commands/namecheck/mp3/similar/tracks")]),
+                BTreeSet::from([fixture("commands/namecheck/mp3/similar/tracks")]),
             ),
         ])
     }

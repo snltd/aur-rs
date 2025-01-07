@@ -173,7 +173,7 @@ impl Config {
 mod test {
     use super::*;
     use crate::utils::spec_helper::{fixture, sample_config};
-    use std::collections::HashSet;
+    use std::collections::BTreeSet;
 
     #[test]
     fn test_load_config() {
@@ -184,12 +184,12 @@ mod test {
     fn test_wantflac() {
         let config = sample_config();
         assert_eq!(
-            &HashSet::from(["singer.song".to_string()]),
+            &BTreeSet::from(["singer.song".to_string()]),
             config.get_wantflac_ignore_tracks().unwrap()
         );
 
         assert_eq!(
-            &HashSet::from(["albums/abc/artist.album".to_string()]),
+            &BTreeSet::from(["albums/abc/artist.album".to_string()]),
             config.get_wantflac_ignore_albums().unwrap()
         );
 

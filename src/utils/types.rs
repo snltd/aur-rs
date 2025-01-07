@@ -1,5 +1,5 @@
 use clap::ValueEnum;
-use std::collections::HashSet;
+use std::collections::BTreeSet;
 use std::path::PathBuf;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
@@ -24,6 +24,6 @@ pub struct GlobalOpts {
     pub config: PathBuf,
 }
 
-pub type WantsList = HashSet<String>;
+pub type WantsList = BTreeSet<String>;
 pub type RenameAction = (PathBuf, PathBuf);
 pub type RenameOption = Option<RenameAction>;

@@ -1,9 +1,9 @@
-use std::collections::HashSet;
+use std::collections::BTreeSet;
 use std::ffi::OsString;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-pub fn pathbuf_set(files: &[String]) -> HashSet<PathBuf> {
+pub fn pathbuf_set(files: &[String]) -> BTreeSet<PathBuf> {
     files.iter().map(PathBuf::from).collect()
 }
 
@@ -24,8 +24,8 @@ where
         .collect()
 }
 
-pub fn expand_file_list(flist: &[String], recurse: bool) -> anyhow::Result<HashSet<PathBuf>> {
-    let mut ret: HashSet<PathBuf> = HashSet::new();
+pub fn expand_file_list(flist: &[String], recurse: bool) -> anyhow::Result<BTreeSet<PathBuf>> {
+    let mut ret: BTreeSet<PathBuf> = BTreeSet::new();
     let mut dirlist: Vec<PathBuf> = Vec::new();
 
     for file in flist {
@@ -51,7 +51,7 @@ pub fn expand_file_list(flist: &[String], recurse: bool) -> anyhow::Result<HashS
     Ok(ret)
 }
 
-pub fn expand_dir_list(dirlist: &[PathBuf], recurse: bool) -> HashSet<PathBuf> {
+pub fn expand_dir_list(dirlist: &[PathBuf], recurse: bool) -> BTreeSet<PathBuf> {
     if recurse {
         dirs_under(dirlist)
     } else {
@@ -59,8 +59,8 @@ pub fn expand_dir_list(dirlist: &[PathBuf], recurse: bool) -> HashSet<PathBuf> {
     }
 }
 
-fn dirs_under(dirs: &[PathBuf]) -> HashSet<PathBuf> {
-    let mut ret = HashSet::new();
+fn dirs_under(dirs: &[PathBuf]) -> BTreeSet<PathBuf> {
+    let mut ret = BTreeSet::new();
 
     for dir in dirs {
         let path = Path::new(&dir);
@@ -72,7 +72,7 @@ fn dirs_under(dirs: &[PathBuf]) -> HashSet<PathBuf> {
     ret.into_iter().collect()
 }
 
-fn collect_directories(dir: &Path, aggr: &mut HashSet<PathBuf>) {
+fn collect_directories(dir: &Path, aggr: &mut BTreeSet<PathBuf>) {
     aggr.insert(dir.to_path_buf());
 
     if let Ok(entries) = fs::read_dir(dir) {
@@ -124,7 +124,7 @@ mod tests {
             false,
         );
 
-        let mut expected: HashSet<PathBuf> = HashSet::new();
+        let mut expected: BTreeSet<PathBuf> = BTreeSet::new();
         expected.insert(fixture("recurse/flac/tracks/band.single.flac"));
         assert_eq!(expected, result.unwrap());
     }
@@ -140,7 +140,7 @@ mod tests {
             true,
         );
 
-        let mut expected: HashSet<PathBuf> = HashSet::new();
+        let mut expected: BTreeSet<PathBuf> = BTreeSet::new();
 
         expected.insert(fixture("recurse/flac/tracks/band.single.flac"));
         expected.insert(fixture(
@@ -171,12 +171,12 @@ mod tests {
 
         let all_dirs = dirs_under(&dirs);
 
-        let expected_dirs: HashSet<_> =
+        let expected_dirs: BTreeSet<_> =
             vec![temp_dir.path().to_path_buf(), subdir1, subdir2, subdir3]
                 .into_iter()
                 .collect();
 
-        let result_dirs: HashSet<_> = all_dirs.into_iter().collect();
+        let result_dirs: BTreeSet<_> = all_dirs.into_iter().collect();
         assert_eq!(result_dirs, expected_dirs);
     }
 
@@ -187,7 +187,7 @@ mod tests {
             true,
         );
 
-        let expected = HashSet::from([
+        let expected = BTreeSet::from([
             fixture("recurse/mp3/albums"),
             fixture("recurse/mp3/albums/abc"),
             fixture("recurse/mp3/albums/abc/artist.lp"),
@@ -205,13 +205,13 @@ mod tests {
             false,
         );
 
-        let expected = HashSet::from([fixture("recurse/albums"), fixture("recurse/eps")]);
+        let expected = BTreeSet::from([fixture("recurse/albums"), fixture("recurse/eps")]);
         assert_eq!(expected, result);
     }
 
     #[test]
     fn test_expand_dir_list_recurse_flac() {
-        let expected = HashSet::from([
+        let expected = BTreeSet::from([
             fixture("recurse/flac/albums"),
             fixture("recurse/flac/albums/pqrs"),
             fixture("recurse/flac/albums/pqrs/singer.album"),

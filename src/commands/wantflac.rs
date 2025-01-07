@@ -3,7 +3,7 @@ use crate::utils::dir::{expand_dir_list, expand_file_list};
 use crate::utils::helpers::check_hierarchy;
 use crate::utils::types::{GlobalOpts, WantsList};
 use anyhow::anyhow;
-use std::collections::HashSet;
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 pub fn run(root: &str, tracks: bool, opts: &GlobalOpts) -> anyhow::Result<()> {
@@ -65,14 +65,14 @@ fn find_missing_albums(root: &Path) -> anyhow::Result<WantsList> {
     let mp3_names = relative_paths(&expand_dir_list(&[mp3_root.clone()], true), &mp3_root);
     let flac_names = relative_paths(&expand_dir_list(&[flac_root.clone()], true), &flac_root);
 
-    let wanted: HashSet<_> = mp3_names
+    let wanted: BTreeSet<_> = mp3_names
         .difference(&flac_names)
         .map(|s| s.to_owned())
         .collect();
     Ok(wanted)
 }
 
-fn relative_paths(dirs: &HashSet<PathBuf>, root: &PathBuf) -> WantsList {
+fn relative_paths(dirs: &BTreeSet<PathBuf>, root: &PathBuf) -> WantsList {
     dirs.iter()
         .filter_map(|p| {
             p.strip_prefix(root)
@@ -82,7 +82,7 @@ fn relative_paths(dirs: &HashSet<PathBuf>, root: &PathBuf) -> WantsList {
         .collect()
 }
 
-fn simple_filenames(files: &HashSet<PathBuf>) -> WantsList {
+fn simple_filenames(files: &BTreeSet<PathBuf>) -> WantsList {
     files
         .iter()
         .filter_map(|p| p.file_stem().map(|s| s.to_string_lossy().to_string()))
@@ -111,7 +111,7 @@ fn find_missing_tracks(root: &Path) -> anyhow::Result<WantsList> {
         true,
     )?);
 
-    let wanted: HashSet<_> = mp3_names
+    let wanted: BTreeSet<_> = mp3_names
         .difference(&flac_names)
         .map(|s| s.to_owned())
         .collect();
@@ -126,20 +126,20 @@ mod test {
     #[test]
     fn test_filter_by_config() {
         let config = config::load_config(&fixture("config/test.toml")).unwrap();
-        let input: WantsList = HashSet::from([
+        let input: WantsList = BTreeSet::from([
             "albums/abc/artist.album".to_string(),
             "albums/abc/band.record".to_string(),
         ]);
 
         assert_eq!(
-            HashSet::from(["albums/abc/band.record".to_string()]),
+            BTreeSet::from(["albums/abc/band.record".to_string()]),
             filter_by_config(input, config.get_wantflac_ignore_albums())
         );
     }
 
     #[test]
     fn test_find_missing_albums() {
-        let expected = HashSet::from([
+        let expected = BTreeSet::from([
             "albums/abc/artist.album_1".to_string(),
             "albums/pqrs/singer.second_lp".to_string(),
             "eps/other_band.ep".to_string(),
@@ -159,7 +159,7 @@ mod test {
     fn test_find_missing_albums_with_top_level_filter() {
         let config = config::load_config(&fixture("config/test.toml")).unwrap();
 
-        let expected = HashSet::from([
+        let expected = BTreeSet::from([
             "albums/abc/artist.album_1".to_string(),
             "albums/pqrs/singer.second_lp".to_string(),
             "eps/other_band.ep".to_string(),
@@ -177,7 +177,7 @@ mod test {
 
     #[test]
     fn test_find_missing_tracks() {
-        let expected = HashSet::from(["artist.tune".to_string(), "band.dirge".to_string()]);
+        let expected = BTreeSet::from(["artist.tune".to_string(), "band.dirge".to_string()]);
 
         assert_eq!(
             expected,
