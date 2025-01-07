@@ -285,7 +285,7 @@ fn main() {
             linkdir,
             directories,
         } => commands::artfix::run(&directories, recurse, linkdir, &global_opts),
-        Commands::Cdq { files, leave } => commands::cdq::run(&files, leave),
+        Commands::Cdq { files, leave } => commands::cdq::run(&files, leave, &global_opts),
         Commands::Copytags {
             recurse,
             force,

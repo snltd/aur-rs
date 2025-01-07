@@ -2,7 +2,7 @@ use crate::utils::dir::{expand_file_list, media_files};
 use anyhow::anyhow;
 use lazy_static::lazy_static;
 use regex::Regex;
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap};
 use std::path::{Path, PathBuf};
 
 type Dupes = Vec<Vec<PathBuf>>;
@@ -27,7 +27,7 @@ fn format_dupes(dupe_cluster: &[PathBuf]) -> String {
     ret
 }
 
-fn file_hash(paths: &HashSet<PathBuf>) -> HashMap<String, Vec<PathBuf>> {
+fn file_hash(paths: &BTreeSet<PathBuf>) -> HashMap<String, Vec<PathBuf>> {
     let mut ret: HashMap<String, Vec<PathBuf>> = HashMap::new();
 
     for p in paths {
@@ -112,7 +112,7 @@ mod test {
 
     #[test]
     fn test_file_hash() {
-        let mut input = HashSet::new();
+        let mut input = BTreeSet::new();
         input.insert(PathBuf::from("/flac/eps/singer.ep/01.singer.song_1.flac"));
         input.insert(PathBuf::from("/flac/eps/singer.ep/02.singer.song_2.flac"));
         input.insert(PathBuf::from(
