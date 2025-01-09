@@ -22,10 +22,16 @@ pub fn padded_num(num: u32) -> String {
 }
 
 pub fn safe_filename(num: u32, artist: &str, title: &str, filetype: &str) -> String {
+    let mut artist = artist.to_safe();
+
+    if artist.starts_with("the_") {
+        artist = artist.replacen("the_", "", 1);
+    }
+
     format!(
         "{}.{}.{}.{}",
         padded_num(num),
-        artist.to_safe().replacen("the_", "", 1),
+        artist,
         title.to_safe(),
         filetype.to_lowercase()
     )
@@ -134,6 +140,11 @@ mod test {
         assert_eq!(
             "04.merpers.ive_got_something--very_loud.flac",
             safe_filename(4, "The Merpers", "I've Got Something (Very Loud)", "FLAC")
+        );
+
+        assert_eq!(
+            "03.big_merp_and_the_merpers.merping.mp3",
+            safe_filename(3, "Big Merp and The Merpers", "Merping!", "mp3")
         );
 
         assert_eq!(
