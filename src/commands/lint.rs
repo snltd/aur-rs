@@ -250,17 +250,15 @@ fn has_no_invalid_tags(
     }
 
     if in_tracks {
-        if tags.album != "" {
+        if !tags.album.is_empty() {
             problems.push(CheckResult::Bad(LintError::InvalidAlbum(
                 tags.album.clone(),
             )));
         }
-    } else {
-        if !validator.validate_album(&tags.album) {
-            problems.push(CheckResult::Bad(LintError::InvalidAlbum(
-                tags.album.clone(),
-            )));
-        }
+    } else if !validator.validate_album(&tags.album) {
+        problems.push(CheckResult::Bad(LintError::InvalidAlbum(
+            tags.album.clone(),
+        )));
     }
 
     if !validator.validate_t_num(&tags.t_num.to_string()) {

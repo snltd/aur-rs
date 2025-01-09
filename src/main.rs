@@ -5,7 +5,6 @@ mod utils;
 
 #[derive(Parser)]
 #[clap(version, about = "Seriously opinionated FLAC and MP3 tagger", long_about = None)]
-
 struct Cli {
     /// Be verbose
     #[arg(short, long, global = true)]
