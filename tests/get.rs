@@ -26,6 +26,14 @@ mod test {
             .stdout()
             .is(format!("16-bit/44100Hz : {}", file_under_test).as_str())
             .unwrap();
+
+        assert_cli::Assert::main_binary()
+            .with_args(&["get", "bitrate", "-s", &file_under_test])
+            .succeeds()
+            .and()
+            .stdout()
+            .is("16-bit/44100Hz")
+            .unwrap();
     }
 
     #[test]
