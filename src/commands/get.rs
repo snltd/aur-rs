@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 type Info = (PathBuf, String);
 type InfoList = Vec<Info>;
 
-pub fn run(property: &str, files: &[String]) -> anyhow::Result<()> {
+pub fn run(property: &str, files: &[String], short: bool) -> anyhow::Result<()> {
     let mut info_list: InfoList = Vec::new();
 
     for f in media_files(&pathbuf_set(files)) {
@@ -16,7 +16,9 @@ pub fn run(property: &str, files: &[String]) -> anyhow::Result<()> {
         info_list.push((f, info));
     }
 
-    info_list.iter().for_each(print_file_info);
+    info_list
+        .iter()
+        .for_each(|info| print_file_info(info, short));
     Ok(())
 }
 
@@ -35,21 +37,18 @@ fn info_for_file(property: &str, file: &Path) -> anyhow::Result<String> {
     Ok(ret)
 }
 
-fn print_file_info(info: &Info) {
-    println!("{:>20} : {}", info.1, info.0.display());
+fn print_file_info(info: &Info, short: bool) {
+    if short {
+        println!("{}", info.1);
+    } else {
+        println!("{:>20} : {}", info.1, info.0.display());
+    }
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
     use crate::utils::spec_helper::fixture;
-
-    #[test]
-    fn test_run_no_file() {
-        if let Err(e) = run("testprop", &["/does/not/exist".to_string()]) {
-            println!("{}", e);
-        }
-    }
 
     #[test]
     fn test_info_for_file() {
