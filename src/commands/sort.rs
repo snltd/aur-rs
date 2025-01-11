@@ -5,10 +5,10 @@ use crate::utils::string::ToSafe;
 use crate::utils::types::GlobalOpts;
 use std::path::{Path, PathBuf};
 
-pub fn run(files: &[String], _opts: &GlobalOpts) -> anyhow::Result<()> {
+pub fn run(files: &[String], opts: &GlobalOpts) -> anyhow::Result<()> {
     for f in media_files(&pathbuf_set(files)) {
         if let Some(target) = rename_action(&f)? {
-            rename((f, target))?;
+            rename((f, target), opts.noop)?;
         } else {
             println!("nothing to do for {}", f.display());
         }
