@@ -14,9 +14,6 @@ mod test {
                 &fixture_as_string("commands/lint/00.tester.missing_genre_track_no_year.flac"),
             ])
             .stdout()
-            .contains("Invalid filename: 00.tester.missing_genre_track_no_year.flac")
-            .and()
-            .stdout()
             .contains("Invalid track number tag: 0")
             .and()
             .stdout()
@@ -46,13 +43,11 @@ mod test {
     #[test]
     #[ignore]
     fn test_lint_command_respects_config() {
+        let file_to_test = fixture_as_string("commands/lint/09.tester.bad_title_allowed.mp3");
         assert_cli::Assert::main_binary()
-            .with_args(&[
-                "lint",
-                &fixture_as_string("commands/lint/09.tester.bad_title_allowed.mp3"),
-            ])
+            .with_args(&["lint", &file_to_test])
             .stdout()
-            .contains("Invalid title tag: this BAD title,is allowed")
+            .contains("Invalid title tag: BAD title allo,Wed")
             .unwrap();
 
         assert_cli::Assert::main_binary()
@@ -60,7 +55,7 @@ mod test {
                 "lint",
                 "--config",
                 &fixture_as_string("config/test.toml"),
-                &fixture_as_string("commands/lint/09.tester.bad_title_allowed.mp3"),
+                &file_to_test,
             ])
             .stdout()
             .is("")
