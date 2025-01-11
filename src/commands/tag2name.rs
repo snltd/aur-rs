@@ -1,13 +1,13 @@
 use crate::utils::dir::{media_files, pathbuf_set};
 use crate::utils::metadata::AurMetadata;
 use crate::utils::rename;
-use crate::utils::types::RenameOption;
+use crate::utils::types::{GlobalOpts, RenameOption};
 use std::path::Path;
 
-pub fn run(files: &[String]) -> anyhow::Result<()> {
+pub fn run(files: &[String], opts: &GlobalOpts) -> anyhow::Result<()> {
     for f in media_files(&pathbuf_set(files)) {
         if let Some(action) = rename_action(&f)? {
-            rename::rename(action)?;
+            rename::rename(action, opts.noop)?;
         }
     }
 
@@ -37,13 +37,6 @@ fn rename_action(file: &Path) -> anyhow::Result<RenameOption> {
 mod test {
     use super::*;
     use crate::utils::spec_helper::fixture;
-
-    #[test]
-    fn test_run_no_file() {
-        if let Err(e) = run(&["/does/not/exist".to_string()]) {
-            println!("{}", e);
-        }
-    }
 
     #[test]
     fn test_rename_action() {

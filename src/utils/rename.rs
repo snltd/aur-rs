@@ -22,16 +22,22 @@ pub fn padded_num(num: u32) -> String {
 }
 
 pub fn safe_filename(num: u32, artist: &str, title: &str, filetype: &str) -> String {
+    let mut artist = artist.to_safe();
+
+    if artist.starts_with("the_") {
+        artist = artist.replacen("the_", "", 1);
+    }
+
     format!(
         "{}.{}.{}.{}",
         padded_num(num),
-        artist.to_safe().replacen("the_", "", 1),
+        artist,
         title.to_safe(),
         filetype.to_lowercase()
     )
 }
 
-pub fn rename((src, dest): RenameAction) -> anyhow::Result<bool> {
+pub fn rename((src, dest): RenameAction, noop: bool) -> anyhow::Result<bool> {
     if src == dest {
         Ok(false)
     } else if dest.exists() {
@@ -40,14 +46,16 @@ pub fn rename((src, dest): RenameAction) -> anyhow::Result<bool> {
         if let Some(parent_dir) = dest.parent() {
             if !parent_dir.exists() {
                 println!("Creating {}", parent_dir.display());
-                std::fs::create_dir_all(parent_dir)?;
+                if !noop {
+                    std::fs::create_dir_all(parent_dir)?;
+                }
             }
         }
 
         let src_dir = src.parent().expect("Cannot find parent of src_dir");
         let dest_dir = dest.parent().expect("Cannot find parent of dest_dir");
 
-        let target_to_print = if dest_dir == src_dir {
+        let target_to_print = if dest_dir == src_dir || src_dir.to_string_lossy() == "" {
             dest.file_name().unwrap()
         } else {
             match dest_dir.strip_prefix(src_dir) {
@@ -62,7 +70,9 @@ pub fn rename((src, dest): RenameAction) -> anyhow::Result<bool> {
             target_to_print.to_string_lossy(),
         );
 
-        std::fs::rename(src, dest).map_err(|e| anyhow::anyhow!(e))?;
+        if !noop {
+            std::fs::rename(src, dest).map_err(|e| anyhow::anyhow!(e))?;
+        }
         Ok(true)
     }
 }
@@ -134,6 +144,11 @@ mod test {
         assert_eq!(
             "04.merpers.ive_got_something--very_loud.flac",
             safe_filename(4, "The Merpers", "I've Got Something (Very Loud)", "FLAC")
+        );
+
+        assert_eq!(
+            "03.big_merp_and_the_merpers.merping.mp3",
+            safe_filename(3, "Big Merp and The Merpers", "Merping!", "mp3")
         );
 
         assert_eq!(

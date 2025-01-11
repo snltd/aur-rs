@@ -1,6 +1,7 @@
 use crate::utils::config::{load_config, Config};
 use crate::utils::dir::{expand_file_list, media_files};
 use crate::utils::metadata::{expected_tags, irrelevant_tags, AurMetadata, AurTags, RawTags};
+use crate::utils::rename;
 use crate::utils::tag_validator::TagValidator;
 use crate::utils::types::GlobalOpts;
 use crate::utils::words::Words;
@@ -68,7 +69,7 @@ pub fn run(files: &[String], recurse: bool, opts: &GlobalOpts) -> anyhow::Result
     let validator = TagValidator::new(&words);
 
     for f in media_files(&expand_file_list(files, recurse)?) {
-        let results = filter_results(&f, lint_file(&f, &validator)?, &config);
+        let results = filter_results(&f, lint_file(&f, &validator, opts)?, &config);
         let problems: Vec<_> = results.iter().filter_map(Some).collect();
         if !problems.is_empty() {
             display_problems(&f, &problems);
@@ -126,11 +127,15 @@ fn in_tracks(file: &Path) -> bool {
     }
 }
 
-fn lint_file(file: &Path, validator: &TagValidator) -> anyhow::Result<Vec<CheckResult>> {
+fn lint_file(
+    file: &Path,
+    validator: &TagValidator,
+    opts: &GlobalOpts,
+) -> anyhow::Result<Vec<CheckResult>> {
     let info = AurMetadata::new(file)?;
     let in_tracks = in_tracks(file);
 
-    let results: Vec<_> = run_checks(&info, in_tracks, validator)
+    let results: Vec<_> = run_checks(&info, in_tracks, validator, opts)
         .into_iter()
         .filter(|r| matches!(r, CheckResult::Bad(_)))
         .collect();
@@ -141,9 +146,10 @@ fn run_checks(
     metadata: &AurMetadata,
     in_tracks: bool,
     validator: &TagValidator,
+    opts: &GlobalOpts,
 ) -> Vec<CheckResult> {
     vec![
-        has_valid_name(&metadata.filename, in_tracks),
+        has_valid_name(&metadata, in_tracks, opts),
         has_no_unwanted_tags(&metadata.filetype, &metadata.rawtags),
         has_no_picture(metadata.has_picture),
         has_no_byte_order_markers(&metadata.tags),
@@ -181,35 +187,27 @@ fn has_no_picture(has_picture: bool) -> CheckResult {
     }
 }
 
-fn has_valid_name(fname: &str, in_tracks: bool) -> CheckResult {
-    if in_tracks {
-        has_valid_name_tracks(fname)
+fn has_valid_name(metadata: &AurMetadata, in_tracks: bool, opts: &GlobalOpts) -> CheckResult {
+    let tags = &metadata.tags;
+    let mut filename =
+        rename::safe_filename(tags.t_num, &tags.artist, &tags.title, &metadata.filetype);
+
+    let expected_filename = if in_tracks {
+        filename.split_off(3)
     } else {
-        has_valid_name_album(fname)
-    }
-}
+        filename
+    };
 
-fn has_valid_name_tracks(fname: &str) -> CheckResult {
-    let chunks: Vec<_> = fname.split('.').collect();
-
-    if chunks.len() == 3 && chunks.iter().all(|c| is_safe(c)) && !chunks[0].starts_with("the_") {
+    if metadata.filename == expected_filename {
         CheckResult::Good
     } else {
-        CheckResult::Bad(LintError::InvalidName(fname.into()))
-    }
-}
-
-fn has_valid_name_album(fname: &str) -> CheckResult {
-    let chunks: Vec<_> = fname.split('.').collect();
-
-    if chunks.len() == 4
-        && chunks.iter().all(|c| is_safe(c))
-        && !chunks[1].starts_with("the_")
-        && is_safe_num(chunks[0])
-    {
-        CheckResult::Good
-    } else {
-        CheckResult::Bad(LintError::InvalidName(fname.into()))
+        if opts.verbose {
+            println!(
+                "{} || {}\n Expected : {}\n   Actual : {}",
+                tags.artist, tags.title, expected_filename, &metadata.filename
+            );
+        }
+        CheckResult::Bad(LintError::InvalidName(metadata.filename.clone()))
     }
 }
 
@@ -282,24 +280,6 @@ fn has_no_invalid_tags(
     }
 }
 
-fn is_safe(chunk: &str) -> bool {
-    if chunk.starts_with(['-', '_'])
-        || chunk.ends_with(['-', '_'])
-        || chunk.contains("__")
-        || chunk.contains("-_")
-    {
-        return false;
-    }
-
-    chunk
-        .chars()
-        .all(|c| c == '_' || c == '-' || (c.is_alphabetic() && c.is_lowercase()) || c.is_numeric())
-}
-
-fn is_safe_num(chunk: &str) -> bool {
-    chunk.len() == 2 && chunk != "00" && chunk.chars().all(|c| c.is_numeric())
-}
-
 fn has_no_byte_order_markers(tags: &AurTags) -> CheckResult {
     if has_bom_leader(&tags.artist) {
         CheckResult::Bad(LintError::BomInArtist)
@@ -326,77 +306,7 @@ fn has_bom_leader(string: &str) -> bool {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::spec_helper::{fixture, sample_config};
-
-    #[test]
-    fn test_has_valid_name() {
-        let valid_names = [
-            "01.artist.title.flac",
-            "01.artist.title.mp3",
-            "03.123.456.flac",
-            "05.a_band.a_song-with_brackets.flac",
-            "07.some_singer.i-n-i-t-i-a-l-s.flac",
-            "19.my_favourite_band.their_best_song.flac",
-        ];
-
-        valid_names
-            .iter()
-            .for_each(|n| assert_eq!(has_valid_name(n, false), CheckResult::Good));
-
-        let invalid_names = [
-            "00.a_band.a_song-with_brackets.flac",
-            "01.title.mp3",
-            "02.Artist.Title.flac",
-            "03._artist.title.mp3",
-            "03.artist.title_.mp3",
-            "03.artist.title_(with_brackets).flac",
-            "03.someone_&_the_somethings.song.mp3",
-            "04.too__many.underscores.flac",
-            "17.st-_christopher.burnout_23.flac",
-            "07.the_somethings.i-n-i-t-i-a-l-s.flac",
-            "1.artist.title.flac",
-            "19.my_favourite_band.their_best_song!.flac",
-            "artist.title.flac",
-        ];
-
-        invalid_names.iter().for_each(|n| {
-            assert_eq!(
-                has_valid_name(n, false),
-                CheckResult::Bad(LintError::InvalidName(n.to_string()))
-            )
-        });
-    }
-
-    #[test]
-    fn test_is_safe() {
-        assert!(is_safe("artist"));
-        assert!(is_safe("01"));
-        assert!(is_safe("a"));
-        assert!(is_safe("7"));
-        assert!(is_safe("me"));
-        assert!(is_safe("two_words"));
-        assert!(is_safe("and_three_words"));
-        assert!(is_safe("some--bracketed--words"));
-        assert!(is_safe("with-hyphen"));
-        assert!(is_safe("1_two_3"));
-        assert!(is_safe("one_2_3"));
-
-        assert!(!is_safe("_word"));
-        assert!(!is_safe("-word"));
-        assert!(!is_safe("_"));
-        assert!(!is_safe("-"));
-        assert!(!is_safe("word_"));
-        assert!(!is_safe("two__words"));
-        assert!(!is_safe("tres,comma"));
-        assert!(!is_safe("Word"));
-    }
-
-    #[test]
-    fn test_is_safe_num() {
-        assert!(is_safe_num("01"));
-        assert!(is_safe_num("99"));
-        assert!(!is_safe_num("00"));
-    }
+    use crate::utils::spec_helper::{defopts, fixture, sample_config};
 
     #[test]
     fn test_allow_from_config() {
@@ -404,7 +314,7 @@ mod test {
         let validator = TagValidator::new(&words);
         let config = sample_config();
         let file = fixture("commands/lint/09.tester.bad_title_allowed.mp3");
-        let lint_result = lint_file(&file, &validator).unwrap();
+        let lint_result = lint_file(&file, &validator, &defopts()).unwrap();
         let expected_empty: Vec<CheckResult> = Vec::new();
 
         assert_eq!(expected_empty, filter_results(&file, lint_result, &config));
@@ -414,42 +324,49 @@ mod test {
     fn lint_functional_tests() {
         let words = Words::new(&sample_config());
         let validator = TagValidator::new(&words);
+        let opts = &defopts();
 
         assert!(lint_file(
             &fixture("commands/lint/01.tester.lints_fine.flac"),
-            &validator
+            &validator,
+            opts,
         )
         .unwrap()
         .is_empty());
 
         assert!(lint_file(
             &fixture("commands/lint/02.tester.lints_fine.mp3"),
-            &validator
+            &validator,
+            opts,
         )
         .unwrap()
         .is_empty());
 
         assert_eq!(
             vec![
-                CheckResult::Bad(LintError::InvalidName(
-                    "00.tester.missing_genre_track_no_year.flac".into()
-                )),
                 CheckResult::Bad(LintError::InvalidTNum(0)),
                 CheckResult::Bad(LintError::InvalidYear(0)),
                 CheckResult::Bad(LintError::InvalidGenre("".into())),
             ],
             lint_file(
                 &fixture("commands/lint/00.tester.missing_genre_track_no_year.flac"),
-                &validator
+                &validator,
+                opts,
             )
             .unwrap()
         );
 
         assert_eq!(
-            vec![CheckResult::Bad(LintError::BomInTitle)],
+            vec![
+                CheckResult::Bad(LintError::InvalidName(
+                    "03.tester.has_bom_leader.flac".into()
+                )),
+                CheckResult::Bad(LintError::BomInTitle)
+            ],
             lint_file(
                 &fixture("commands/lint/03.tester.has_bom_leader.flac"),
-                &validator
+                &validator,
+                opts,
             )
             .unwrap()
         );
@@ -461,7 +378,8 @@ mod test {
             ]))],
             lint_file(
                 &fixture("commands/lint/05.tester.surplus_tags.mp3"),
-                &validator
+                &validator,
+                opts,
             )
             .unwrap()
         );
@@ -478,21 +396,28 @@ mod test {
             ],
             lint_file(
                 &fixture("commands/lint/06.tester.extra_tags_and_picture.mp3"),
-                &validator
+                &validator,
+                opts
             )
             .unwrap()
         );
 
         assert_eq!(
             vec![CheckResult::Bad(LintError::EmbeddedArtwork)],
-            lint_file(&fixture("commands/lint/07.tester.picture.flac"), &validator).unwrap()
+            lint_file(
+                &fixture("commands/lint/07.tester.picture.flac"),
+                &validator,
+                opts
+            )
+            .unwrap()
         );
 
         assert_eq!(
             vec![CheckResult::Bad(LintError::InDiscDirButNoDiscN)],
             lint_file(
                 &fixture("commands/lint/disc_1/01.tester.no_disc_number.mp3"),
-                &validator
+                &validator,
+                opts
             )
             .unwrap()
         );
@@ -501,7 +426,8 @@ mod test {
             vec![CheckResult::Bad(LintError::NotInDiscDirButDiscN)],
             lint_file(
                 &fixture("commands/lint/08.tester.disc_number.mp3"),
-                &validator
+                &validator,
+                opts
             )
             .unwrap()
         );

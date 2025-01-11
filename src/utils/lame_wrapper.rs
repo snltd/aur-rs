@@ -2,6 +2,7 @@ use crate::utils::external::find_binary;
 use crate::utils::metadata::AurMetadata;
 use crate::utils::types::GlobalOpts;
 use crate::verbose;
+use anyhow::anyhow;
 use std::collections::HashSet;
 use std::fs::{read_dir, remove_file};
 use std::path::{Path, PathBuf};
@@ -76,11 +77,16 @@ pub fn transcode_file(
         &action.mp3_target.display()
     );
 
-    let flac_decode = Command::new(&cmds.flac)
+    let mut flac_decode = Command::new(&cmds.flac)
         .arg("-dsc")
         .arg(&action.flac_src)
         .stdout(Stdio::piped())
         .spawn()?;
+
+    let flac_stdout = flac_decode
+        .stdout
+        .take()
+        .ok_or_else(|| anyhow!("Failed to decode flac stdout"))?;
 
     let mut lame_encode = Command::new(&cmds.lame)
         .arg("-q2")
@@ -102,12 +108,13 @@ pub fn transcode_file(
         .arg(info.tags.t_num.to_string())
         .arg("--tg")
         .arg(info.tags.genre)
-        .stdin(flac_decode.stdout.unwrap())
+        .stdin(Stdio::from(flac_stdout))
         .arg("-")
         .arg(&action.mp3_target)
         .spawn()?;
 
     lame_encode.wait()?;
+    flac_decode.wait()?;
     Ok(true)
 }
 
@@ -248,18 +255,5 @@ mod test {
             )
             .unwrap()
         );
-    }
-
-    fn file_stems(dir: &Path, suffix: &str) -> anyhow::Result<HashSet<String>> {
-        Ok(read_dir(dir)?
-            .filter_map(|entry| {
-                let path = entry.ok()?.path();
-                if path.extension()?.to_string_lossy() == suffix {
-                    path.file_stem()?.to_string_lossy().to_string().into()
-                } else {
-                    None
-                }
-            })
-            .collect())
     }
 }

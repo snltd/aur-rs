@@ -7,7 +7,7 @@ pub fn update_file(info: &AurMetadata, number: u32) -> anyhow::Result<bool> {
 
     match rename::renumber_file(&new_info)? {
         Some(action) => {
-            let ret_rename = rename::rename(action)?;
+            let ret_rename = rename::rename(action, false)?;
             Ok(ret_tag || ret_rename)
         }
         None => Ok(ret_tag),

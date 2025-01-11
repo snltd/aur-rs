@@ -8,6 +8,7 @@ use crate::utils::lame_wrapper::{
 use crate::utils::types::GlobalOpts;
 use crate::verbose;
 use anyhow::anyhow;
+use rayon::prelude::*;
 use std::fs::create_dir_all;
 use std::path::{Path, PathBuf};
 
@@ -76,9 +77,10 @@ fn sync_dir(
         create_dir_all(mp3_dir)?;
     }
 
-    for t in make_transcode_list(flac_dir, mp3_dir)? {
-        transcode_file(&t, cmds, opts)?;
-    }
+    let list = make_transcode_list(flac_dir, mp3_dir)?;
+
+    list.par_iter()
+        .try_for_each(|t| transcode_file(t, cmds, opts).map(|_| ()))?;
 
     if mp3_dir.exists() && mp3_dir.file_name().unwrap() != "tracks" {
         // it might not be there if we just no-oped, and we allow tracks/ to be different
