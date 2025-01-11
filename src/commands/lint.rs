@@ -149,7 +149,7 @@ fn run_checks(
     opts: &GlobalOpts,
 ) -> Vec<CheckResult> {
     vec![
-        has_valid_name(&metadata, in_tracks, opts),
+        has_valid_name(metadata, in_tracks, opts),
         has_no_unwanted_tags(&metadata.filetype, &metadata.rawtags),
         has_no_picture(metadata.has_picture),
         has_no_byte_order_markers(&metadata.tags),

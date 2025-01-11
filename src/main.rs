@@ -70,6 +70,9 @@ enum Commands {
     },
     /// Display a given property for the given file(s)
     Get {
+        /// Don't show the filename
+        #[arg(short, long)]
+        short: bool,
         /// Property, e.g. time, title, or bitrate
         property: String,
         /// One or more media files
@@ -141,6 +144,15 @@ enum Commands {
     Namecheck { root_dir: String },
     /// Prefix the file's name with its zero-padded track number
     Num2name {
+        /// One or more media files
+        #[arg(required = true)]
+        files: Vec<String>,
+    },
+    /// Uses ffmpeg to reencode files
+    Reencode {
+        /// Keep the original files after reencoding
+        #[arg(short, long)]
+        keep_originals: bool,
         /// One or more media files
         #[arg(required = true)]
         files: Vec<String>,
@@ -296,7 +308,11 @@ fn main() {
         ),
         Commands::Dupes { root_dir } => commands::dupes::run(&root_dir),
         Commands::Flac2mp3 { files } => commands::flac2mp3::run(&files, &global_opts),
-        Commands::Get { property, files } => commands::get::run(&property, &files),
+        Commands::Get {
+            property,
+            files,
+            short,
+        } => commands::get::run(&property, &files, short),
         Commands::Info { files } => commands::info::run(&files),
         Commands::Inumber { files } => commands::inumber::run(&files),
         Commands::Itag { files, tag } => commands::itag::run(&files, &tag),
@@ -313,6 +329,10 @@ fn main() {
         Commands::Name2tag { files, force } => commands::name2tag::run(&files, force, &global_opts),
         Commands::Namecheck { root_dir } => commands::namecheck::run(&root_dir, &global_opts),
         Commands::Num2name { files } => commands::num2name::run(&files, &global_opts),
+        Commands::Reencode {
+            files,
+            keep_originals,
+        } => commands::reencode::run(&files, keep_originals),
         Commands::Renumber {
             direction,
             delta,
