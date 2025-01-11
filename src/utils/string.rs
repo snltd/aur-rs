@@ -69,7 +69,7 @@ impl ToSafe for String {
                         if last_pushed == '-' && !double_dash {
                             builder.pop();
                         }
-                        if i < last_index && !double_dash {
+                        if i < last_index && !double_dash && last_pushed != '_' {
                             builder.push('-');
                         }
                     }
@@ -134,23 +134,49 @@ impl ToSafe for String {
                     }
                 }
                 '_' => {
-                    builder.push('_');
+                    if !builder.is_empty() && i < last_index {
+                        builder.push('_');
+                    }
                 }
                 '*' => {
-                    builder.push('-');
+                    if !builder.is_empty() && i < last_index {
+                        builder.push('-');
+                    }
                 }
                 '#' => {
-                    if i == last_index {
-                        builder.extend(['n', 'u', 'm', 'b', 'e', 'r']);
+                    if let Some(&last_pushed) = builder.last() {
+                        if ['a', 'b', 'c', 'd', 'e', 'f'].contains(&last_pushed) {
+                            builder.extend(['_', 's', 'h', 'a', 'r', 'p']);
+                        } else if let Some(&next_char) = input.get(i + 1) {
+                            if next_char.is_numeric() {
+                                builder.extend(['n', 'u', 'm', 'b', 'e', 'r', '_']);
+                            } else {
+                                builder.extend(['h', 'a', 's', 'h']);
+                            }
+                        } else {
+                            builder.extend(['n', 'u', 'm', 'b', 'e', 'r']);
+                        }
                     } else {
-                        builder.extend(['h', 'a', 's', 'h']);
+                        builder.extend(['n', 'u', 'm', 'b', 'e', 'r', '_']);
                     }
                 }
                 '@' => builder.extend(['a', 't']),
                 '&' => builder.extend(['a', 'n', 'd']),
-                '$' => builder.extend(['d', 'o', 'l', 'l', 'a', 'r']),
+                '$' => {
+                    let next_char = input.get(i + 1);
+                    if next_char.is_none() || !&next_char.unwrap().is_numeric() {
+                        builder.extend(['d', 'o', 'l', 'l', 'a', 'r'])
+                    }
+                }
                 '=' => builder.extend(['e', 'q', 'u', 'a', 'l', 's']),
-                '%' => builder.extend(['p', 'e', 'r', 'c', 'e', 'n', 't']),
+                '%' => {
+                    if let Some(&last_pushed) = builder.last() {
+                        if last_pushed != '_' || last_pushed != '-' {
+                            builder.push('_');
+                        }
+                    }
+                    builder.extend(['p', 'e', 'r', 'c', 'e', 'n', 't']);
+                }
                 _ => {}
             }
         }
@@ -291,7 +317,7 @@ mod test {
             ),
             ("Missile ++", "missile_plus_plus"),
             ("Barney (...And Me)", "barney--and_me"),
-            ("1000%", "1000percent"),
+            ("1000%", "1000_percent"),
             ("Who (Will Take My Place)?", "who--will_take_my_place"),
             ("010 +- 4.40", "010_plus-minus_4-40"),
             ("£24.99 from Argos", "24-99_from_argos"),
@@ -299,6 +325,20 @@ mod test {
             ("(...)", "no_title"),
             ("Like 24 (6+1=3)", "like_24--6plus1equals3"),
             ("Juneau/Projects/", "juneau--projects"),
+            (
+                "Arbol and ...Unexplained Transmissions",
+                "arbol_and_unexplained_transmissions",
+            ),
+            (
+                "Carrying the Fire: Prelude in F# Minor and Launch",
+                "carrying_the_fire--prelude_in_f_sharp_minor_and_launch",
+            ),
+            ("$99.99", "99-99"),
+            ("The Train #2", "the_train_number_2"),
+            ("*Break*", "break"),
+            ("180db_", "180db"),
+            ("#302", "number_302"),
+            ("Latin #", "latin_number"),
         ];
 
         for (input, output) in tests {
