@@ -5,7 +5,6 @@ use crate::utils::rename;
 use crate::utils::tag_validator::TagValidator;
 use crate::utils::types::GlobalOpts;
 use crate::utils::words::Words;
-use crate::verbose;
 use colored::Colorize;
 use std::collections::HashSet;
 use std::ffi::OsStr;
@@ -202,12 +201,12 @@ fn has_valid_name(metadata: &AurMetadata, in_tracks: bool, opts: &GlobalOpts) ->
     if metadata.filename == expected_filename {
         CheckResult::Good
     } else {
-        verbose!(
-            opts,
-            "Expected '{}' got '{}'",
-            expected_filename,
-            &metadata.filename
-        );
+        if opts.verbose {
+            println!(
+                "{} || {}\n Expected : {}\n   Actual : {}",
+                tags.artist, tags.title, expected_filename, &metadata.filename
+            );
+        }
         CheckResult::Bad(LintError::InvalidName(metadata.filename.clone()))
     }
 }
@@ -307,46 +306,7 @@ fn has_bom_leader(string: &str) -> bool {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::spec_helper::{fixture, sample_config};
-
-    // #[test]
-    // fn test_has_valid_name() {
-    //     let valid_names = [
-    //         "01.artist.title.flac",
-    //         "01.artist.title.mp3",
-    //         "03.123.456.flac",
-    //         "05.a_band.a_song-with_brackets.flac",
-    //         "07.some_singer.i-n-i-t-i-a-l-s.flac",
-    //         "19.my_favourite_band.their_best_song.flac",
-    //     ];
-
-    //     valid_names
-    //         .iter()
-    //         .for_each(|n| assert_eq!(has_valid_name(n, false), CheckResult::Good));
-
-    //     let invalid_names = [
-    //         "00.a_band.a_song-with_brackets.flac",
-    //         "01.title.mp3",
-    //         "02.Artist.Title.flac",
-    //         "03._artist.title.mp3",
-    //         "03.artist.title_.mp3",
-    //         "03.artist.title_(with_brackets).flac",
-    //         "03.someone_&_the_somethings.song.mp3",
-    //         "04.too__many.underscores.flac",
-    //         "17.st-_christopher.burnout_23.flac",
-    //         "07.the_somethings.i-n-i-t-i-a-l-s.flac",
-    //         "1.artist.title.flac",
-    //         "19.my_favourite_band.their_best_song!.flac",
-    //         "artist.title.flac",
-    //     ];
-
-    //     invalid_names.iter().for_each(|n| {
-    //         assert_eq!(
-    //             has_valid_name(n, false),
-    //             CheckResult::Bad(LintError::InvalidName(n.to_string()))
-    //         )
-    //     });
-    // }
+    use crate::utils::spec_helper::{defopts, fixture, sample_config};
 
     #[test]
     fn test_allow_from_config() {
@@ -354,7 +314,7 @@ mod test {
         let validator = TagValidator::new(&words);
         let config = sample_config();
         let file = fixture("commands/lint/09.tester.bad_title_allowed.mp3");
-        let lint_result = lint_file(&file, &validator).unwrap();
+        let lint_result = lint_file(&file, &validator, &defopts()).unwrap();
         let expected_empty: Vec<CheckResult> = Vec::new();
 
         assert_eq!(expected_empty, filter_results(&file, lint_result, &config));
@@ -364,17 +324,20 @@ mod test {
     fn lint_functional_tests() {
         let words = Words::new(&sample_config());
         let validator = TagValidator::new(&words);
+        let opts = &defopts();
 
         assert!(lint_file(
             &fixture("commands/lint/01.tester.lints_fine.flac"),
-            &validator
+            &validator,
+            opts,
         )
         .unwrap()
         .is_empty());
 
         assert!(lint_file(
             &fixture("commands/lint/02.tester.lints_fine.mp3"),
-            &validator
+            &validator,
+            opts,
         )
         .unwrap()
         .is_empty());
@@ -387,7 +350,8 @@ mod test {
             ],
             lint_file(
                 &fixture("commands/lint/00.tester.missing_genre_track_no_year.flac"),
-                &validator
+                &validator,
+                opts,
             )
             .unwrap()
         );
@@ -401,7 +365,8 @@ mod test {
             ],
             lint_file(
                 &fixture("commands/lint/03.tester.has_bom_leader.flac"),
-                &validator
+                &validator,
+                opts,
             )
             .unwrap()
         );
@@ -413,7 +378,8 @@ mod test {
             ]))],
             lint_file(
                 &fixture("commands/lint/05.tester.surplus_tags.mp3"),
-                &validator
+                &validator,
+                opts,
             )
             .unwrap()
         );
@@ -430,21 +396,28 @@ mod test {
             ],
             lint_file(
                 &fixture("commands/lint/06.tester.extra_tags_and_picture.mp3"),
-                &validator
+                &validator,
+                opts
             )
             .unwrap()
         );
 
         assert_eq!(
             vec![CheckResult::Bad(LintError::EmbeddedArtwork)],
-            lint_file(&fixture("commands/lint/07.tester.picture.flac"), &validator).unwrap()
+            lint_file(
+                &fixture("commands/lint/07.tester.picture.flac"),
+                &validator,
+                opts
+            )
+            .unwrap()
         );
 
         assert_eq!(
             vec![CheckResult::Bad(LintError::InDiscDirButNoDiscN)],
             lint_file(
                 &fixture("commands/lint/disc_1/01.tester.no_disc_number.mp3"),
-                &validator
+                &validator,
+                opts
             )
             .unwrap()
         );
@@ -453,7 +426,8 @@ mod test {
             vec![CheckResult::Bad(LintError::NotInDiscDirButDiscN)],
             lint_file(
                 &fixture("commands/lint/08.tester.disc_number.mp3"),
-                &validator
+                &validator,
+                opts
             )
             .unwrap()
         );

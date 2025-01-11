@@ -312,7 +312,7 @@ fn main() {
         Commands::Name2num { files } => commands::name2num::run(&files, &global_opts),
         Commands::Name2tag { files, force } => commands::name2tag::run(&files, force, &global_opts),
         Commands::Namecheck { root_dir } => commands::namecheck::run(&root_dir, &global_opts),
-        Commands::Num2name { files } => commands::num2name::run(&files),
+        Commands::Num2name { files } => commands::num2name::run(&files, &global_opts),
         Commands::Renumber {
             direction,
             delta,
@@ -330,7 +330,7 @@ fn main() {
             replace,
             files,
         } => commands::tagsub::run(&files, &tag, &find, &replace, &global_opts),
-        Commands::Tag2name { files } => commands::tag2name::run(&files),
+        Commands::Tag2name { files } => commands::tag2name::run(&files, &global_opts),
         Commands::Tags { files } => commands::tags::run(&files),
         Commands::Thes { files } => commands::thes::run(&files),
         Commands::Transcode {
