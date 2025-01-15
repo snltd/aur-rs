@@ -31,7 +31,7 @@ fn tag_file(file: &Path, opts: &GlobalOpts) -> anyhow::Result<bool> {
     }
 
     let tagger = Tagger::new(&info)?;
-    tagger.set_t_num(&suggested_track_number.to_string())
+    tagger.set_t_num(&suggested_track_number.to_string(), opts.quiet)
 }
 
 #[cfg(test)]

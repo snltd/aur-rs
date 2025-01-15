@@ -1,5 +1,6 @@
 use crate::utils::external::find_binary;
 use crate::utils::metadata::AurMetadata;
+use crate::utils::tagger::Tagger;
 use crate::utils::types::GlobalOpts;
 use crate::verbose;
 use anyhow::anyhow;
@@ -54,28 +55,20 @@ pub fn transcode_file(
     opts: &GlobalOpts,
 ) -> anyhow::Result<bool> {
     if action.mp3_target.exists() {
-        verbose!(opts, "target '{}' exists", action.mp3_target.display());
+        verbose!(opts, "  target exists");
         return Ok(false);
     }
 
-    verbose!(
-        opts,
-        "Transcoding {} -> {}",
-        action.flac_src.display(),
-        action.mp3_target.display()
+    println!(
+        "  {}",
+        action.flac_src.file_name().unwrap().to_string_lossy()
     );
 
     if opts.noop {
         return Ok(false);
     }
 
-    let info = AurMetadata::new(&action.flac_src)?;
-
-    println!(
-        "{} -> {}",
-        &action.flac_src.display(),
-        &action.mp3_target.display()
-    );
+    let flac_info = AurMetadata::new(&action.flac_src)?;
 
     let mut flac_decode = Command::new(&cmds.flac)
         .arg("-dsc")
@@ -96,18 +89,6 @@ pub fn transcode_file(
         .arg("--add-id3v2")
         .arg("--id3v2-only")
         .arg("--silent")
-        .arg("--tt")
-        .arg(info.tags.title)
-        .arg("--ta")
-        .arg(info.tags.artist)
-        .arg("--tl")
-        .arg(info.tags.album)
-        .arg("--ty")
-        .arg(info.tags.year.to_string())
-        .arg("--tn")
-        .arg(info.tags.t_num.to_string())
-        .arg("--tg")
-        .arg(info.tags.genre)
         .stdin(Stdio::from(flac_stdout))
         .arg("-")
         .arg(&action.mp3_target)
@@ -115,7 +96,12 @@ pub fn transcode_file(
 
     lame_encode.wait()?;
     flac_decode.wait()?;
-    Ok(true)
+
+    // Turns out slashes are separators in ID3 tags, so LAME will drop them if we pass tag
+    // values which contain them. So now we tag as a separate stage.
+
+    let mp3_info = AurMetadata::new(&action.mp3_target)?;
+    Tagger::new(&mp3_info)?.batch_tag(&flac_info.tags, !opts.verbose)
 }
 
 fn file_stems(dir: &Path, suffix: &str) -> anyhow::Result<HashSet<String>> {

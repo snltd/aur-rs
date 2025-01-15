@@ -8,6 +8,7 @@ use crate::utils::lame_wrapper::{
 use crate::utils::types::GlobalOpts;
 use crate::verbose;
 use anyhow::anyhow;
+use colored::Colorize;
 use rayon::prelude::*;
 use std::fs::create_dir_all;
 use std::path::{Path, PathBuf};
@@ -72,12 +73,19 @@ fn sync_dir(
         ));
     }
 
-    if !mp3_dir.exists() && !opts.noop {
-        verbose!(opts, "Creating directory {}", mp3_dir.display());
-        create_dir_all(mp3_dir)?;
+    let list = make_transcode_list(flac_dir, mp3_dir)?;
+
+    if list.is_empty() {
+        return Ok(false);
     }
 
-    let list = make_transcode_list(flac_dir, mp3_dir)?;
+    println!("source: {}", flac_dir.display().to_string().bold());
+    println!("  dest: {}", mp3_dir.display());
+
+    if !mp3_dir.exists() && !opts.noop {
+        verbose!(opts, "  Creating target");
+        create_dir_all(mp3_dir)?;
+    }
 
     list.par_iter()
         .try_for_each(|t| transcode_file(t, cmds, opts).map(|_| ()))?;

@@ -1,17 +1,18 @@
 use crate::utils::dir::{media_files, pathbuf_set};
 use crate::utils::metadata::AurMetadata;
 use crate::utils::tagger::Tagger;
+use crate::utils::types::GlobalOpts;
 use std::path::Path;
 
-pub fn run(files: &[String]) -> anyhow::Result<()> {
+pub fn run(files: &[String], opts: &GlobalOpts) -> anyhow::Result<()> {
     for f in media_files(&pathbuf_set(files)) {
-        tag_file(&f)?;
+        tag_file(&f, opts)?;
     }
 
     Ok(())
 }
 
-fn tag_file(file: &Path) -> anyhow::Result<bool> {
+fn tag_file(file: &Path, opts: &GlobalOpts) -> anyhow::Result<bool> {
     let info = AurMetadata::new(file)?;
     let current_artist = &info.tags.artist.clone();
 
@@ -20,21 +21,14 @@ fn tag_file(file: &Path) -> anyhow::Result<bool> {
     }
 
     let tagger = Tagger::new(&info)?;
-    tagger.set_artist(&format!("The {}", current_artist))
+    tagger.set_artist(&format!("The {}", current_artist), opts.quiet)
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::spec_helper::fixture;
+    use crate::utils::spec_helper::{defopts, fixture};
     use assert_fs::prelude::*;
-
-    #[test]
-    fn test_run_no_file() {
-        if let Err(e) = run(&["/does/not/exist".to_string()]) {
-            println!("{}", e);
-        }
-    }
 
     #[test]
     fn test_tag_file_flac() {
@@ -46,11 +40,11 @@ mod test {
 
         let original_info = AurMetadata::new(&file_under_test).unwrap();
         assert_eq!("Tester", original_info.tags.artist);
-        assert!(tag_file(&file_under_test).unwrap());
+        assert!(tag_file(&file_under_test, &defopts()).unwrap());
         let new_info = AurMetadata::new(&file_under_test).unwrap();
         assert_eq!("The Tester", new_info.tags.artist);
 
-        assert!(!tag_file(&file_under_test).unwrap());
+        assert!(!tag_file(&file_under_test, &defopts()).unwrap());
         let new_new_info = AurMetadata::new(&file_under_test).unwrap();
         assert_eq!("The Tester", new_new_info.tags.artist);
     }

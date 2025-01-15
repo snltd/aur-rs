@@ -183,7 +183,7 @@ mod tests {
     #[test]
     fn test_expand_dir_list_recurse_mp3() {
         let result = expand_dir_list(
-            &vec![fixture("recurse/mp3/albums"), fixture("recurse/mp3/eps")],
+            &[fixture("recurse/mp3/albums"), fixture("recurse/mp3/eps")],
             true,
         );
 
@@ -200,10 +200,7 @@ mod tests {
 
     #[test]
     fn test_expand_dir_list_no_recurse() {
-        let result = expand_dir_list(
-            &vec![fixture("recurse/albums"), fixture("recurse/eps")],
-            false,
-        );
+        let result = expand_dir_list(&[fixture("recurse/albums"), fixture("recurse/eps")], false);
 
         let expected = BTreeSet::from([fixture("recurse/albums"), fixture("recurse/eps")]);
         assert_eq!(expected, result);
@@ -225,7 +222,7 @@ mod tests {
         ]);
 
         let result = expand_dir_list(
-            &vec![
+            &[
                 fixture("recurse/flac/eps"),
                 fixture("recurse/flac/albums"),
                 fixture("recurse/flac/tracks"),

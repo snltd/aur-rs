@@ -1,6 +1,7 @@
 use crate::utils::config::MAX_ARTWORK_SIZE;
 use crate::utils::dir::expand_dir_list;
 use crate::utils::types::GlobalOpts;
+use crate::verbose;
 use image::imageops::FilterType::Lanczos3;
 use image::GenericImageView;
 use image::ImageReader;
@@ -55,7 +56,9 @@ fn rename(dir: &Path, front: &Path, opts: &GlobalOpts) -> anyhow::Result<bool> {
     // Yes, this will flatten multiple files into one. That's fine.
     for file in jpgs_in(dir)? {
         if file != front {
-            println!("Rename: {} -> front.jpg", file.display());
+            if !opts.quiet {
+                println!("Rename: {} -> front.jpg", file.display());
+            }
             if !opts.noop {
                 fs::rename(file, front)?;
             }
@@ -80,11 +83,13 @@ fn resize_or_link(file: &Path, linkdir: &Path, opts: &GlobalOpts) -> anyhow::Res
         return Ok(false);
     }
 
-    println!(
-        "Resize: {} -> {s}x{s}",
-        file.display(),
-        s = MAX_ARTWORK_SIZE
-    );
+    if !opts.quiet {
+        println!(
+            "Resize: {} -> {s}x{s}",
+            file.display(),
+            s = MAX_ARTWORK_SIZE
+        );
+    }
 
     if !opts.noop {
         let new_img = img.resize_exact(MAX_ARTWORK_SIZE, MAX_ARTWORK_SIZE, Lanczos3);
@@ -103,7 +108,7 @@ fn target_filename(file: &Path) -> String {
 
 fn symlink_art(file: &Path, linkdir: &Path, opts: &GlobalOpts) -> anyhow::Result<bool> {
     if !linkdir.exists() {
-        println!("Creating artfix dir: {}", linkdir.display());
+        verbose!(opts, "Creating artfix dir: {}", linkdir.display());
         if !opts.noop {
             fs::create_dir_all(linkdir)?;
         }
