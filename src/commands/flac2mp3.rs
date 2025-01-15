@@ -7,9 +7,21 @@ use std::path::Path;
 pub fn run(files: &[String], opts: &GlobalOpts) -> anyhow::Result<()> {
     let cmds = transcode_cmds()?;
 
+    // The transcoding output, which was written before this command, doesn't give us quite what
+    // we want, so I'm going to force some options to suppress the default output, and print our
+    // own.
+
+    let forced_opts = GlobalOpts {
+        quiet: true,
+        verbose: false,
+        config: opts.config.clone(),
+        noop: opts.noop,
+    };
+
     for f in media_files(&pathbuf_set(files)) {
         if let Some(target) = transcode_target(&f) {
-            transcode_file(&target, &cmds, opts)?;
+            println!("{} -> {}", f.display(), target.mp3_target.display());
+            transcode_file(&target, &cmds, &forced_opts)?;
         } else {
             eprintln!("ERROR: Only FLAC files can be flac2mp3-ed");
         }

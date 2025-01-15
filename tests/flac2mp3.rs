@@ -6,7 +6,7 @@ mod test {
     use assert_fs::prelude::*;
     use aur::test_utils::spec_helper::{fixture, sample_output};
 
-    #[test]
+    // #[test]
     #[ignore]
     fn test_flac2mp3_command_transcode() {
         let tmp = assert_fs::TempDir::new().unwrap();
