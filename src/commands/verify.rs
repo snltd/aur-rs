@@ -3,6 +3,7 @@ use crate::utils::external::find_binary;
 use crate::utils::types::GlobalOpts;
 use crate::verbose;
 use colored::Colorize;
+use rayon::prelude::*;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -18,17 +19,12 @@ pub fn run(files: &[String], recurse: bool, opts: &GlobalOpts) -> anyhow::Result
         mp3val: find_binary("mp3val")?,
     };
 
-    // let mut ret = true;
-
-    for f in media_files(&expand_file_list(files, recurse)?) {
-        let result = verify_file(&f, &cmds)?;
-
-        display_result(&f, result, opts);
-
-        // if !result {
-        //     ret = false
-        // }
-    }
+    media_files(&expand_file_list(files, recurse)?)
+        .par_iter()
+        .for_each(|f| match verify_file(f, &cmds) {
+            Ok(result) => display_result(f, result, opts),
+            Err(e) => eprintln!("Error processing {}: {}", f.display(), e),
+        });
 
     Ok(())
 }
