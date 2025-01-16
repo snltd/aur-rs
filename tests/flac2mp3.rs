@@ -5,18 +5,16 @@ mod test {
     use super::common;
     use assert_fs::prelude::*;
     use aur::test_utils::spec_helper::{fixture, sample_output};
+    use colored::Colorize;
 
-    // #[test]
+    #[test]
     #[ignore]
-    fn test_flac2mp3_command_transcode() {
+    fn test_flac2mp3_command() {
         let tmp = assert_fs::TempDir::new().unwrap();
-        tmp.copy_from(
-            fixture("commands/flac2mp3"),
-            &["01.tester.test_transcode.flac"],
-        )
-        .unwrap();
-        let file_under_test = tmp.path().join("01.tester.test_transcode.flac");
-        let expected_file = tmp.path().join("01.tester.test_transcode.mp3");
+        tmp.copy_from(fixture("commands/flac2mp3"), &["01.tester.flac2mp3.flac"])
+            .unwrap();
+        let file_under_test = tmp.path().join("01.tester.flac2mp3.flac");
+        let expected_file = tmp.path().join("01.tester.flac2mp3.mp3");
 
         assert!(!expected_file.exists());
 
@@ -25,9 +23,9 @@ mod test {
             .succeeds()
             .stdout()
             .is(format!(
-                "{} -> {}",
-                file_under_test.display(),
-                expected_file.display()
+                "{}\n  {}",
+                file_under_test.display().to_string().bold(),
+                file_under_test.file_name().unwrap().to_string_lossy(),
             )
             .as_str())
             .unwrap();
@@ -45,10 +43,16 @@ mod test {
 
         // Probably should exit 1
         assert_cli::Assert::main_binary()
-            .with_args(&["flac2mp3", "--verbose", &file_under_test.to_string_lossy()])
+            .with_args(&["flac2mp3", &file_under_test.to_string_lossy()])
             .succeeds()
+            .and()
             .stdout()
-            .is(format!("target '{}' exists", expected_file.display()).as_str())
+            .is(format!(
+                "{}\n  target exists ({})",
+                file_under_test.display().to_string().bold(),
+                expected_file.display(),
+            )
+            .as_str())
             .unwrap();
     }
 

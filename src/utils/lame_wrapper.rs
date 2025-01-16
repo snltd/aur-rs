@@ -55,7 +55,7 @@ pub fn transcode_file(
     opts: &GlobalOpts,
 ) -> anyhow::Result<bool> {
     if action.mp3_target.exists() {
-        verbose!(opts, "  target exists");
+        println!("  target exists ({})", action.mp3_target.display());
         return Ok(false);
     }
 
@@ -132,7 +132,7 @@ pub fn make_clean_up_list(flac_dir: &Path, mp3_dir: &Path) -> anyhow::Result<Vec
 }
 
 pub fn clean_up_file(superfluous_mp3: &Path, opts: &GlobalOpts) -> anyhow::Result<bool> {
-    verbose!(opts, "Removing {}", superfluous_mp3.display());
+    verbose!(opts, "  Removing {}", superfluous_mp3.display());
 
     if opts.noop {
         Ok(false)
