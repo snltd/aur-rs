@@ -16,5 +16,6 @@ pub fn defopts() -> GlobalOpts {
         verbose: false,
         noop: false,
         config: fixture("config/test.toml"),
+        quiet: true,
     }
 }

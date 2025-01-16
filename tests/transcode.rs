@@ -18,6 +18,7 @@ mod test {
 
         assert_cli::Assert::main_binary()
             .with_args(&["transcode", "--verbose", "flac", &file_str])
+            .succeeds()
             .stdout()
             .is(format!(
                 "{} -> {}",
@@ -31,6 +32,8 @@ mod test {
 
         assert_cli::Assert::main_binary()
             .with_args(&["transcode", "--verbose", "flac", &file_str])
+            .succeeds()
+            .and()
             .stdout()
             .is(format!(
                 "target '{}' exists. Use -f to overwrite",

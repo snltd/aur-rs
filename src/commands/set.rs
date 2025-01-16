@@ -1,34 +1,28 @@
 use crate::utils::dir::{media_files, pathbuf_set};
 use crate::utils::metadata::AurMetadata;
 use crate::utils::tagger::Tagger;
+use crate::utils::types::GlobalOpts;
 use std::path::Path;
 
-pub fn run(tag: &str, value: &str, files: &[String]) -> anyhow::Result<()> {
+pub fn run(tag: &str, value: &str, files: &[String], opts: &GlobalOpts) -> anyhow::Result<()> {
     for f in media_files(&pathbuf_set(files)) {
-        tag_file(tag, value, &f)?;
+        tag_file(tag, value, &f, opts)?;
     }
 
     Ok(())
 }
 
-fn tag_file(key: &str, value: &str, file: &Path) -> anyhow::Result<bool> {
+fn tag_file(key: &str, value: &str, file: &Path, opts: &GlobalOpts) -> anyhow::Result<bool> {
     let info = AurMetadata::new(file)?;
     let tagger = Tagger::new(&info)?;
-    tagger.set_tag(key, value)
+    tagger.set_tag(key, value, opts.quiet)
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::spec_helper::fixture;
+    use crate::utils::spec_helper::{defopts, fixture};
     use assert_fs::prelude::*;
-
-    #[test]
-    fn test_run_no_file() {
-        if let Err(e) = run("title", "Test Title", &["/does/not/exist".to_string()]) {
-            println!("{}", e);
-        }
-    }
 
     #[test]
     fn test_tag_file_flac() {
@@ -40,11 +34,11 @@ mod test {
 
         let original_info = AurMetadata::new(&file_under_test).unwrap();
         assert_eq!("Tester", original_info.tags.artist);
-        assert!(!tag_file("artist", "Tester", &file_under_test).unwrap());
+        assert!(!tag_file("artist", "Tester", &file_under_test, &defopts()).unwrap());
         let new_info = AurMetadata::new(&file_under_test).unwrap();
         assert_eq!("Tester", new_info.tags.artist);
 
-        assert!(tag_file("artist", "New Artist", &file_under_test).unwrap());
+        assert!(tag_file("artist", "New Artist", &file_under_test, &defopts()).unwrap());
         let new_new_info = AurMetadata::new(&file_under_test).unwrap();
         assert_eq!("New Artist", new_new_info.tags.artist);
     }
@@ -59,11 +53,11 @@ mod test {
 
         let original_info = AurMetadata::new(&file_under_test).unwrap();
         assert_eq!("Test Set", original_info.tags.album);
-        assert!(!tag_file("album", "Test Set", &file_under_test).unwrap());
+        assert!(!tag_file("album", "Test Set", &file_under_test, &defopts()).unwrap());
         let new_info = AurMetadata::new(&file_under_test).unwrap();
         assert_eq!("Test Set", new_info.tags.album);
 
-        assert!(tag_file("album", "New Album", &file_under_test).unwrap());
+        assert!(tag_file("album", "New Album", &file_under_test, &defopts()).unwrap());
         let new_new_info = AurMetadata::new(&file_under_test).unwrap();
         assert_eq!("New Album", new_new_info.tags.album);
     }

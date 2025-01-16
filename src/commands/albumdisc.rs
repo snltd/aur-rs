@@ -32,7 +32,10 @@ fn tag_file(file: &Path, rx: &Regex, opts: &GlobalOpts) -> anyhow::Result<bool> 
     }
 
     let tagger = Tagger::new(&info)?;
-    tagger.set_album(format!("{}{}", current_album_name, end_pattern).as_str())
+    tagger.set_album(
+        format!("{}{}", current_album_name, end_pattern).as_str(),
+        opts.quiet,
+    )
 }
 
 fn disc_number(file: &Path, rx: &Regex) -> anyhow::Result<Option<String>> {

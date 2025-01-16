@@ -1,14 +1,15 @@
 use crate::utils::dir::{media_files, pathbuf_set};
 use crate::utils::metadata::AurMetadata;
 use crate::utils::tagger::Tagger;
+use crate::utils::types::GlobalOpts;
 use anyhow::anyhow;
 use std::io::{self, Write};
 use std::path::Path;
 
-pub fn run(files: &[String], tag: &str) -> anyhow::Result<()> {
+pub fn run(files: &[String], tag: &str, opts: &GlobalOpts) -> anyhow::Result<()> {
     for f in media_files(&pathbuf_set(files)) {
         let value = read_value(&f)?;
-        tag_file(&f, tag, &value)?;
+        tag_file(&f, tag, &value, opts)?;
     }
 
     Ok(())
@@ -29,9 +30,9 @@ fn read_value(file: &Path) -> anyhow::Result<String> {
     Ok(input)
 }
 
-fn tag_file(file: &Path, tag: &str, value: &str) -> anyhow::Result<bool> {
+fn tag_file(file: &Path, tag: &str, value: &str, opts: &GlobalOpts) -> anyhow::Result<bool> {
     let info = AurMetadata::new(file)?;
     let tagger = Tagger::new(&info)?;
 
-    tagger.set_tag(tag, value)
+    tagger.set_tag(tag, value, opts.quiet)
 }

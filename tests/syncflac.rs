@@ -23,13 +23,18 @@ mod test {
             .succeeds()
             .and()
             .stdout()
-            .contains("Creating directory")
+            .contains("Creating target")
             .and()
             .stdout()
-            .contains("Transcoding")
-            .and()
-            .stdout()
-            .contains("Removing")
+            .contains(
+                format!(
+                    "Removing {}",
+                    tmp.path()
+                        .join("syncflac/mp3/eps/band.flac_and_mp3_unequal/03.band.song_3.mp3")
+                        .display()
+                )
+                .as_str(),
+            )
             .unwrap();
 
         assert_cli::Assert::command(&["ls", "-R"])

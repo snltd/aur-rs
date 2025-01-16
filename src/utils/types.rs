@@ -19,9 +19,10 @@ pub struct TranscodeOptions {
 }
 
 pub struct GlobalOpts {
-    pub verbose: bool,
-    pub noop: bool,
     pub config: PathBuf,
+    pub noop: bool,
+    pub quiet: bool,
+    pub verbose: bool,
 }
 
 pub type WantsList = BTreeSet<String>;

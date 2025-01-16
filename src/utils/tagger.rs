@@ -21,33 +21,32 @@ impl<'a> Tagger<'a> {
         })
     }
 
-    pub fn set_artist(&self, value: &str) -> anyhow::Result<bool> {
-        self.set_tag("artist", value)
+    pub fn set_artist(&self, value: &str, silent: bool) -> anyhow::Result<bool> {
+        self.set_tag("artist", value, silent)
     }
 
-    pub fn set_title(&self, value: &str) -> anyhow::Result<bool> {
-        self.set_tag("title", value)
+    pub fn set_title(&self, value: &str, silent: bool) -> anyhow::Result<bool> {
+        self.set_tag("title", value, silent)
     }
 
-    pub fn set_album(&self, value: &str) -> anyhow::Result<bool> {
-        self.set_tag("album", value)
+    pub fn set_album(&self, value: &str, silent: bool) -> anyhow::Result<bool> {
+        self.set_tag("album", value, silent)
     }
 
-    pub fn set_t_num(&self, value: &str) -> anyhow::Result<bool> {
-        self.set_tag("t_num", value)
+    pub fn set_t_num(&self, value: &str, silent: bool) -> anyhow::Result<bool> {
+        self.set_tag("t_num", value, silent)
     }
 
-    // Watch out for this one! Some call it "year", others call it "date".
-    pub fn set_year(&self, value: &str) -> anyhow::Result<bool> {
-        self.set_tag("year", value)
+    pub fn set_year(&self, value: &str, silent: bool) -> anyhow::Result<bool> {
+        self.set_tag("year", value, silent)
     }
 
-    pub fn set_genre(&self, value: &str) -> anyhow::Result<bool> {
-        self.set_tag("genre", value)
+    pub fn set_genre(&self, value: &str, silent: bool) -> anyhow::Result<bool> {
+        self.set_tag("genre", value, silent)
     }
 
     // The bool return is for testing. True if it tried to retag, false if it didn't.
-    pub fn set_tag(&self, tag_name: &str, value: &str) -> anyhow::Result<bool> {
+    pub fn set_tag(&self, tag_name: &str, value: &str, silent: bool) -> anyhow::Result<bool> {
         let current_value = match tag_name {
             "artist" => &self.current_tags.artist,
             "title" => &self.current_tags.title,
@@ -62,7 +61,9 @@ impl<'a> Tagger<'a> {
             return Ok(false);
         }
 
-        println!("{:>16} -> {}", tag_name, value);
+        if !silent {
+            println!("{:>16} -> {}", tag_name, value);
+        }
 
         match self.filetype.as_str() {
             "flac" => self.set_flac_tag(tag_name, value),
@@ -183,6 +184,20 @@ impl<'a> Tagger<'a> {
         tag.write_to_path(self.path, id3::Version::Id3v24)?;
         Ok(true)
     }
+
+    pub fn batch_tag(&self, src_tags: &AurTags, silent: bool) -> Result<bool, anyhow::Error> {
+        let changes = [
+            self.set_artist(&src_tags.artist, silent)?,
+            self.set_title(&src_tags.title, silent)?,
+            self.set_album(&src_tags.album, silent)?,
+            self.set_genre(&src_tags.genre, silent)?,
+            self.set_t_num(&src_tags.t_num.to_string(), silent)?,
+            self.set_year(&src_tags.year.to_string(), silent)?,
+        ]
+        .iter()
+        .any(|&changed| changed);
+        Ok(changes)
+    }
 }
 
 #[cfg(test)]
@@ -201,8 +216,8 @@ mod test {
         let original_info = AurMetadata::new(&flac).unwrap();
         let tagger = Tagger::new(&original_info).unwrap();
         assert_eq!(tagger.current_tags.artist, "Test Artist".to_string());
-        assert!(!tagger.set_artist("Test Artist").unwrap());
-        assert!(tagger.set_artist("New Artist").unwrap());
+        assert!(!tagger.set_artist("Test Artist", false).unwrap());
+        assert!(tagger.set_artist("New Artist", false).unwrap());
         let new_info = AurMetadata::new(&flac).unwrap();
         assert_eq!("New Artist".to_string(), new_info.tags.artist);
     }
@@ -216,8 +231,8 @@ mod test {
         let original_info = AurMetadata::new(&flac).unwrap();
         let tagger = Tagger::new(&original_info).unwrap();
         assert_eq!(tagger.current_tags.album, "Test Album".to_string());
-        assert!(!tagger.set_album("Test Album").unwrap());
-        assert!(tagger.set_album("New Album").unwrap());
+        assert!(!tagger.set_album("Test Album", false).unwrap());
+        assert!(tagger.set_album("New Album", false).unwrap());
         let new_info = AurMetadata::new(&flac).unwrap();
         assert_eq!("New Album".to_string(), new_info.tags.album);
     }
@@ -231,8 +246,8 @@ mod test {
         let original_info = AurMetadata::new(&flac).unwrap();
         let tagger = Tagger::new(&original_info).unwrap();
         assert_eq!(tagger.current_tags.title, "Test Title".to_string());
-        assert!(!tagger.set_title("Test Title").unwrap());
-        assert!(tagger.set_title("New Title").unwrap());
+        assert!(!tagger.set_title("Test Title", false).unwrap());
+        assert!(tagger.set_title("New Title", false).unwrap());
         let new_info = AurMetadata::new(&flac).unwrap();
         assert_eq!("New Title".to_string(), new_info.tags.title);
     }
@@ -246,8 +261,8 @@ mod test {
         let original_info = AurMetadata::new(&flac).unwrap();
         let tagger = Tagger::new(&original_info).unwrap();
         assert_eq!(tagger.current_tags.genre, "Test Genre".to_string());
-        assert!(!tagger.set_genre("Test Genre").unwrap());
-        assert!(tagger.set_genre("New Genre").unwrap());
+        assert!(!tagger.set_genre("Test Genre", false).unwrap());
+        assert!(tagger.set_genre("New Genre", false).unwrap());
         let new_info = AurMetadata::new(&flac).unwrap();
         assert_eq!("New Genre".to_string(), new_info.tags.genre);
     }
@@ -261,8 +276,8 @@ mod test {
         let original_info = AurMetadata::new(&flac).unwrap();
         let tagger = Tagger::new(&original_info).unwrap();
         assert_eq!(tagger.current_tags.year, 2021);
-        assert!(!tagger.set_year("2021").unwrap());
-        assert!(tagger.set_year("2001").unwrap());
+        assert!(!tagger.set_year("2021", false).unwrap());
+        assert!(tagger.set_year("2001", false).unwrap());
         let new_info = AurMetadata::new(&flac).unwrap();
         assert_eq!(2001, new_info.tags.year);
     }

@@ -9,6 +9,9 @@ struct Cli {
     /// Be verbose
     #[arg(short, long, global = true)]
     pub verbose: bool,
+    /// Be silent
+    #[arg(short, long, global = true)]
+    pub quiet: bool,
     /// Say what would happen, without actually doing it (currently not implemented)
     #[arg(short, long, global = true)]
     pub noop: bool,
@@ -287,6 +290,7 @@ fn main() {
     let global_opts = crate::utils::types::GlobalOpts {
         verbose: cli.verbose,
         noop: cli.noop,
+        quiet: cli.quiet,
         config: PathBuf::from(cli.config),
     };
     let result = match cli.command {
@@ -314,8 +318,8 @@ fn main() {
             short,
         } => commands::get::run(&property, &files, short),
         Commands::Info { files } => commands::info::run(&files),
-        Commands::Inumber { files } => commands::inumber::run(&files),
-        Commands::Itag { files, tag } => commands::itag::run(&files, &tag),
+        Commands::Inumber { files } => commands::inumber::run(&files, &global_opts),
+        Commands::Itag { files, tag } => commands::itag::run(&files, &tag, &global_opts),
         Commands::Lint { recurse, files } => commands::lint::run(&files, recurse, &global_opts),
         Commands::Lintdir {
             recurse,
@@ -337,9 +341,11 @@ fn main() {
             direction,
             delta,
             files,
-        } => commands::renumber::run(&direction, delta, &files),
+        } => commands::renumber::run(&direction, delta, &files, &global_opts),
         Commands::Retitle { files } => commands::retitle::run(&files, &global_opts),
-        Commands::Set { tag, value, files } => commands::set::run(&tag, &value, &files),
+        Commands::Set { tag, value, files } => {
+            commands::set::run(&tag, &value, &files, &global_opts)
+        }
         Commands::Sort { files } => commands::sort::run(&files, &global_opts),
         Commands::Split { files } => commands::split::run(&files),
         Commands::Strip { files } => commands::strip::run(&files),
@@ -352,7 +358,7 @@ fn main() {
         } => commands::tagsub::run(&files, &tag, &find, &replace, &global_opts),
         Commands::Tag2name { files } => commands::tag2name::run(&files, &global_opts),
         Commands::Tags { files } => commands::tags::run(&files),
-        Commands::Thes { files } => commands::thes::run(&files),
+        Commands::Thes { files } => commands::thes::run(&files, &global_opts),
         Commands::Transcode {
             format,
             force,

@@ -1,8 +1,10 @@
 use crate::utils::tagger::Tagger;
 use crate::utils::{metadata::AurMetadata, rename};
 
-pub fn update_file(info: &AurMetadata, number: u32) -> anyhow::Result<bool> {
-    let ret_tag = tag_file(info, number)?;
+use super::types::GlobalOpts;
+
+pub fn update_file(info: &AurMetadata, number: u32, opts: &GlobalOpts) -> anyhow::Result<bool> {
+    let ret_tag = tag_file(info, number, opts)?;
     let new_info = AurMetadata::new(&info.path)?;
 
     match rename::renumber_file(&new_info)? {
@@ -14,19 +16,19 @@ pub fn update_file(info: &AurMetadata, number: u32) -> anyhow::Result<bool> {
     }
 }
 
-fn tag_file(info: &AurMetadata, number: u32) -> anyhow::Result<bool> {
+fn tag_file(info: &AurMetadata, number: u32, opts: &GlobalOpts) -> anyhow::Result<bool> {
     if info.tags.t_num == number {
         return Ok(false);
     }
 
     let tagger = Tagger::new(info)?;
-    tagger.set_t_num(&number.to_string())
+    tagger.set_t_num(&number.to_string(), opts.quiet)
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::spec_helper::fixture;
+    use crate::utils::spec_helper::{defopts, fixture};
     use assert_fs::prelude::*;
 
     #[test]
@@ -38,7 +40,7 @@ mod test {
             .unwrap();
         let start_info = AurMetadata::new(&start_file).unwrap();
 
-        assert!(update_file(&start_info, 9).unwrap());
+        assert!(update_file(&start_info, 9, &defopts()).unwrap());
 
         let final_file_name = "09.change_both.mp3";
         let final_file = tmp.path().join(final_file_name);
@@ -48,7 +50,7 @@ mod test {
 
         // Nothing should happen this time
 
-        assert!(!update_file(&final_info, 9).unwrap());
+        assert!(!update_file(&final_info, 9, &defopts()).unwrap());
     }
 
     #[test]
@@ -61,7 +63,7 @@ mod test {
             .unwrap();
         let start_info = AurMetadata::new(&start_file).unwrap();
 
-        assert!(update_file(&start_info, 6).unwrap());
+        assert!(update_file(&start_info, 6, &defopts()).unwrap());
 
         let final_file = tmp.path().join(final_file_name);
         assert!(final_file.exists());
@@ -70,7 +72,7 @@ mod test {
 
         // Nothing should happen this time
 
-        assert!(!update_file(&final_info, 6).unwrap());
+        assert!(!update_file(&final_info, 6, &defopts()).unwrap());
     }
 
     #[test]
@@ -83,7 +85,7 @@ mod test {
             .unwrap();
         let start_info = AurMetadata::new(&start_file).unwrap();
 
-        assert!(update_file(&start_info, 1).unwrap());
+        assert!(update_file(&start_info, 1, &defopts()).unwrap());
 
         let final_file = tmp.path().join(final_file_name);
         assert!(final_file.exists());
@@ -92,7 +94,7 @@ mod test {
 
         // Nothing should happen this time
 
-        assert!(!update_file(&final_info, 1).unwrap());
+        assert!(!update_file(&final_info, 1, &defopts()).unwrap());
     }
 
     #[test]
@@ -103,7 +105,7 @@ mod test {
         tmp.copy_from(fixture("commands/inumber"), &[start_file_name])
             .unwrap();
         let start_info = AurMetadata::new(&start_file).unwrap();
-        assert!(!update_file(&start_info, 2).unwrap());
+        assert!(!update_file(&start_info, 2, &defopts()).unwrap());
         assert!(start_file.exists());
     }
 }

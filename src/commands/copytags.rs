@@ -30,10 +30,6 @@ fn tag_file(file: &Path, ct_opts: &CopytagsOptions, opts: &GlobalOpts) -> anyhow
         }
         None => {
             return Ok(false);
-            // return Err(anyhow!(
-            //     "{} has no partner from which to copy tags",
-            //     file.display()
-            // ))
         }
     };
 
@@ -47,18 +43,12 @@ fn tag_file(file: &Path, ct_opts: &CopytagsOptions, opts: &GlobalOpts) -> anyhow
     }
 
     let tagger = Tagger::new(&info)?;
-    println!("{}", file.display().to_string().bold());
 
-    let changes = [
-        tagger.set_artist(&partner_tags.artist)?,
-        tagger.set_title(&partner_tags.title)?,
-        tagger.set_album(&partner_tags.album)?,
-        tagger.set_genre(&partner_tags.genre)?,
-        tagger.set_t_num(&partner_tags.t_num.to_string())?,
-        tagger.set_year(&partner_tags.year.to_string())?,
-    ]
-    .iter()
-    .any(|&changed| changed);
+    if !opts.quiet {
+        println!("{}", file.display().to_string().bold());
+    }
+
+    let changes = tagger.batch_tag(partner_tags, opts.quiet)?;
 
     Ok(changes)
 }

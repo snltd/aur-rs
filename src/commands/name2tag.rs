@@ -11,22 +11,22 @@ pub fn run(files: &[String], force: bool, opts: &GlobalOpts) -> anyhow::Result<(
     let config = load_config(&opts.config)?;
 
     for f in media_files(&pathbuf_set(files)) {
-        tag_file(&f, force, &config)?
+        tag_file(&f, force, &config, opts)?
     }
 
     Ok(())
 }
 
-fn tag_file(file: &Path, force: bool, config: &Config) -> anyhow::Result<()> {
+fn tag_file(file: &Path, force: bool, config: &Config, opts: &GlobalOpts) -> anyhow::Result<()> {
     let info = AurMetadata::new(file)?;
     let tagger = Tagger::new(&info)?;
     let words = Words::new(config);
     let tag_maker = TagMaker::new(&words, force);
     let new_tags = tag_maker.all_tags_from(&info)?;
 
-    tagger.set_artist(&new_tags.artist)?;
-    tagger.set_album(&new_tags.album)?;
-    tagger.set_title(&new_tags.title)?;
-    tagger.set_t_num(&new_tags.t_num.to_string())?;
+    tagger.set_artist(&new_tags.artist, opts.quiet)?;
+    tagger.set_album(&new_tags.album, opts.quiet)?;
+    tagger.set_title(&new_tags.title, opts.quiet)?;
+    tagger.set_t_num(&new_tags.t_num.to_string(), opts.quiet)?;
     Ok(())
 }

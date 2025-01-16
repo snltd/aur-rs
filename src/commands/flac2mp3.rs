@@ -1,6 +1,7 @@
 use crate::utils::dir::{media_files, pathbuf_set};
 use crate::utils::lame_wrapper::{transcode_cmds, transcode_file, TranscodeAction};
 use crate::utils::types::GlobalOpts;
+use colored::Colorize;
 use std::ffi::OsStr;
 use std::path::Path;
 
@@ -8,8 +9,9 @@ pub fn run(files: &[String], opts: &GlobalOpts) -> anyhow::Result<()> {
     let cmds = transcode_cmds()?;
 
     for f in media_files(&pathbuf_set(files)) {
-        if let Some(target) = transcode_target(&f) {
-            transcode_file(&target, &cmds, opts)?;
+        if let Some(action) = transcode_action(&f) {
+            println!("{}", f.display().to_string().bold());
+            transcode_file(&action, &cmds, opts)?;
         } else {
             eprintln!("ERROR: Only FLAC files can be flac2mp3-ed");
         }
@@ -18,7 +20,7 @@ pub fn run(files: &[String], opts: &GlobalOpts) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn transcode_target(file: &Path) -> Option<TranscodeAction> {
+fn transcode_action(file: &Path) -> Option<TranscodeAction> {
     match file.extension() {
         Some(ext) => {
             if ext == OsStr::new("flac") {
@@ -45,7 +47,7 @@ mod test {
 
     #[test]
     fn test_transcode_mp3() {
-        assert!(transcode_target(&fixture("commands/flac2mp3/01.tester.test_no-op.mp3")).is_none());
+        assert!(transcode_action(&fixture("commands/flac2mp3/01.tester.test_no-op.mp3")).is_none());
     }
 
     #[test]
@@ -58,7 +60,7 @@ mod test {
                 flac_src: flac.clone(),
                 mp3_target: mp3,
             },
-            transcode_target(&flac).unwrap()
+            transcode_action(&flac).unwrap()
         );
     }
 }

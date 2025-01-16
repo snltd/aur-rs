@@ -38,7 +38,7 @@ fn process_file(
                 println!("{}: {} -> {}", file.display(), old_value, new_value);
                 Ok(true)
             } else {
-                retag_file(&info, tag, &new_value)
+                retag_file(&info, tag, &new_value, opts)
             }
         }
         None => {
@@ -58,9 +58,9 @@ fn new_tag(old_value: &str, rx: &Regex, to: &str) -> anyhow::Result<Option<Strin
     }
 }
 
-fn retag_file(info: &AurMetadata, tag: &str, new: &str) -> anyhow::Result<bool> {
+fn retag_file(info: &AurMetadata, tag: &str, new: &str, opts: &GlobalOpts) -> anyhow::Result<bool> {
     let tagger = Tagger::new(info)?;
-    tagger.set_tag(tag, new)
+    tagger.set_tag(tag, new, opts.quiet)
 }
 
 #[cfg(test)]

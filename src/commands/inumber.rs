@@ -1,11 +1,12 @@
 use crate::utils::dir::{media_files, pathbuf_set};
 use crate::utils::metadata::AurMetadata;
 use crate::utils::renumber_file;
+use crate::utils::types::GlobalOpts;
 use anyhow::anyhow;
 use std::io::{self, Write};
 use std::path::Path;
 
-pub fn run(files: &[String]) -> anyhow::Result<()> {
+pub fn run(files: &[String], opts: &GlobalOpts) -> anyhow::Result<()> {
     for f in media_files(&pathbuf_set(files)) {
         let number = read_number(&f)?;
         let info = AurMetadata::new(&f)?;
@@ -14,7 +15,7 @@ pub fn run(files: &[String]) -> anyhow::Result<()> {
             return Err(anyhow!("Tag number must be from 1 to 99 inclusive"));
         }
 
-        renumber_file::update_file(&info, number)?;
+        renumber_file::update_file(&info, number, opts)?;
     }
 
     Ok(())

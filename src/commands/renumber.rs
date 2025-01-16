@@ -1,10 +1,15 @@
 use crate::utils::dir::{media_files, pathbuf_set};
 use crate::utils::metadata::AurMetadata;
 use crate::utils::renumber_file;
-use crate::utils::types::RenumberDirection;
+use crate::utils::types::{GlobalOpts, RenumberDirection};
 use anyhow::anyhow;
 
-pub fn run(direction: &RenumberDirection, delta: u32, files: &[String]) -> anyhow::Result<()> {
+pub fn run(
+    direction: &RenumberDirection,
+    delta: u32,
+    files: &[String],
+    opts: &GlobalOpts,
+) -> anyhow::Result<()> {
     if !(1..=99).contains(&delta) {
         return Err(anyhow!("Delta must be from 1 to 99 inclusive"));
     }
@@ -23,7 +28,7 @@ pub fn run(direction: &RenumberDirection, delta: u32, files: &[String]) -> anyho
             return Err(anyhow!("Tag number must be from 1 to 99 inclusive"));
         }
 
-        renumber_file::update_file(&info, number as u32)?;
+        renumber_file::update_file(&info, number as u32, opts)?;
     }
 
     Ok(())
