@@ -11,6 +11,7 @@ pub mod itag;
 pub mod lint;
 pub mod lintdir;
 pub mod ls;
+pub mod mp3dir;
 pub mod name2num;
 pub mod name2tag;
 pub mod namecheck;

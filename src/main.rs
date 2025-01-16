@@ -128,6 +128,24 @@ enum Commands {
         /// Directories to list
         directories: Vec<String>,
     },
+    /// Transcode a FLAC directory an equivalent point in the MP3 hierarchy
+    Mp3dir {
+        /// MP3 bitrate
+        #[arg(short, long, default_value = "128")]
+        bitrate: String,
+        /// Suffix on the new directory name with the bitrate
+        #[arg(short = 'x', long)]
+        suffix: bool,
+        /// Overwrite existing files
+        #[arg(short, long)]
+        force: bool,
+        /// Recurse
+        #[arg(short, long)]
+        recurse: bool,
+        /// One or more directories
+        #[arg(required = true)]
+        files: Vec<String>,
+    },
     /// If the file name begins with a number, set its track number tag to that number
     Name2num {
         /// One or more media files
@@ -329,6 +347,22 @@ fn main() {
             recurse,
             directories,
         } => commands::ls::run(&directories, recurse),
+        Commands::Mp3dir {
+            bitrate,
+            suffix,
+            recurse,
+            force,
+            files,
+        } => commands::mp3dir::run(
+            &files,
+            &types::Mp3dirOpts {
+                bitrate,
+                force,
+                recurse,
+                suffix,
+            },
+            &global_opts,
+        ),
         Commands::Name2num { files } => commands::name2num::run(&files, &global_opts),
         Commands::Name2tag { files, force } => commands::name2tag::run(&files, force, &global_opts),
         Commands::Namecheck { root_dir } => commands::namecheck::run(&root_dir, &global_opts),

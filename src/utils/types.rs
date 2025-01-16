@@ -25,6 +25,13 @@ pub struct GlobalOpts {
     pub verbose: bool,
 }
 
+pub struct Mp3dirOpts {
+    pub bitrate: String,
+    pub force: bool,
+    pub recurse: bool,
+    pub suffix: bool,
+}
+
 pub type WantsList = BTreeSet<String>;
 pub type RenameAction = (PathBuf, PathBuf);
 pub type RenameOption = Option<RenameAction>;
