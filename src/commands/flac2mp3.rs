@@ -1,17 +1,29 @@
 use crate::utils::dir::{media_files, pathbuf_set};
-use crate::utils::lame_wrapper::{transcode_cmds, transcode_file, TranscodeAction};
-use crate::utils::types::GlobalOpts;
+use crate::utils::mp3_encoder::{transcode_cmds, transcode_file, TranscodeAction};
+use crate::utils::types::{GlobalOpts, Mp3dirOpts};
 use colored::Colorize;
 use std::ffi::OsStr;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
-pub fn run(files: &[String], opts: &GlobalOpts) -> anyhow::Result<()> {
+pub fn run(
+    files: &[String],
+    bitrate: String,
+    force: bool,
+    opts: &GlobalOpts,
+) -> anyhow::Result<()> {
     let cmds = transcode_cmds()?;
+    let transcode_opts = Mp3dirOpts {
+        bitrate,
+        force,
+        recurse: false,
+        root: PathBuf::from("/"),
+        suffix: false,
+    };
 
     for f in media_files(&pathbuf_set(files)) {
         if let Some(action) = transcode_action(&f) {
             println!("{}", f.display().to_string().bold());
-            transcode_file(&action, &cmds, opts)?;
+            transcode_file(&action, &cmds, &transcode_opts, opts)?;
         } else {
             eprintln!("ERROR: Only FLAC files can be flac2mp3-ed");
         }

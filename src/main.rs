@@ -67,6 +67,12 @@ enum Commands {
     Dupes { root_dir: String },
     /// Convert one or more FLACs to MP3s
     Flac2mp3 {
+        /// MP3 bitrate
+        #[arg(short, long, default_value = "128")]
+        bitrate: String,
+        /// Overwrite existing files
+        #[arg(short, long)]
+        force: bool,
         /// One or more FLAC files
         #[arg(required = true)]
         files: Vec<String>,
@@ -142,6 +148,9 @@ enum Commands {
         /// Recurse
         #[arg(short, long)]
         recurse: bool,
+        /// Root directory for media files, containing flac/ and mp3/
+        #[arg(short = 'R', long, default_value = "/storage")]
+        root: String,
         /// One or more directories
         #[arg(required = true)]
         files: Vec<String>,
@@ -329,7 +338,11 @@ fn main() {
             &global_opts,
         ),
         Commands::Dupes { root_dir } => commands::dupes::run(&root_dir),
-        Commands::Flac2mp3 { files } => commands::flac2mp3::run(&files, &global_opts),
+        Commands::Flac2mp3 {
+            bitrate,
+            files,
+            force,
+        } => commands::flac2mp3::run(&files, bitrate, force, &global_opts),
         Commands::Get {
             property,
             files,
@@ -349,16 +362,18 @@ fn main() {
         } => commands::ls::run(&directories, recurse),
         Commands::Mp3dir {
             bitrate,
-            suffix,
-            recurse,
-            force,
             files,
+            force,
+            recurse,
+            root,
+            suffix,
         } => commands::mp3dir::run(
             &files,
-            &types::Mp3dirOpts {
+            &utils::types::Mp3dirOpts {
                 bitrate,
                 force,
                 recurse,
+                root: PathBuf::from(root),
                 suffix,
             },
             &global_opts,

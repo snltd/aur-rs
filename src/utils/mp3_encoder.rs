@@ -4,10 +4,14 @@ use crate::utils::tagger::Tagger;
 use crate::utils::types::GlobalOpts;
 use crate::verbose;
 use anyhow::anyhow;
+use colored::Colorize;
+use rayon::prelude::*;
 use std::collections::HashSet;
-use std::fs::{read_dir, remove_file};
+use std::fs::{create_dir_all, read_dir, remove_file};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
+
+use super::types::Mp3dirOpts;
 
 #[cfg_attr(test, derive(Debug, PartialEq, Eq))]
 pub struct TranscodeAction {
@@ -32,13 +36,14 @@ pub fn transcode_cmds() -> anyhow::Result<TranscodeCmds> {
 pub fn make_transcode_list(
     flac_dir: &Path,
     mp3_dir: &Path,
+    overwrite: bool,
 ) -> anyhow::Result<Vec<TranscodeAction>> {
     let mut ret = Vec::new();
 
     for stem in file_stems(flac_dir, "flac")? {
         let mp3_target = mp3_dir.join(format!("{}.mp3", stem));
 
-        if !mp3_target.exists() {
+        if overwrite || !mp3_target.exists() {
             ret.push(TranscodeAction {
                 flac_src: flac_dir.join(format!("{}.flac", stem)),
                 mp3_target,
@@ -52,9 +57,10 @@ pub fn make_transcode_list(
 pub fn transcode_file(
     action: &TranscodeAction,
     cmds: &TranscodeCmds,
+    cmd_opts: &Mp3dirOpts,
     opts: &GlobalOpts,
 ) -> anyhow::Result<bool> {
-    if action.mp3_target.exists() {
+    if action.mp3_target.exists() && !cmd_opts.force {
         println!("  target exists ({})", action.mp3_target.display());
         return Ok(false);
     }
@@ -85,7 +91,7 @@ pub fn transcode_file(
         .arg("-q2")
         .arg("--vbr-new")
         .arg("--preset")
-        .arg("128")
+        .arg(&cmd_opts.bitrate)
         .arg("--add-id3v2")
         .arg("--id3v2-only")
         .arg("--silent")
@@ -131,6 +137,53 @@ pub fn make_clean_up_list(flac_dir: &Path, mp3_dir: &Path) -> anyhow::Result<Vec
     Ok(ret)
 }
 
+pub fn sync_dir(
+    flac_dir: &Path,
+    mp3_dir: &Path,
+    cmds: &TranscodeCmds,
+    cmd_opts: &Mp3dirOpts,
+    opts: &GlobalOpts,
+) -> anyhow::Result<bool> {
+    if flac_dir == mp3_dir {
+        return Err(anyhow!(
+            "FLAC and MP3 directories have the same path: {}",
+            flac_dir.display()
+        ));
+    }
+
+    let list = make_transcode_list(flac_dir, mp3_dir, cmd_opts.force)?;
+
+    if !list.is_empty() {
+        println!(
+            "{} -> {}",
+            flac_dir.display().to_string().bold(),
+            mp3_dir.display()
+        );
+        if !mp3_dir.exists() && !opts.noop {
+            verbose!(opts, "  Creating target");
+            create_dir_all(mp3_dir)?;
+        }
+
+        list.par_iter()
+            .try_for_each(|t| transcode_file(t, cmds, cmd_opts, opts).map(|_| ()))?;
+    }
+
+    if mp3_dir.exists() && mp3_dir.file_name().unwrap() != "tracks" {
+        // it might not be there if we just no-oped, and we allow tracks/ to be different
+        let clean_up_list = make_clean_up_list(flac_dir, mp3_dir)?;
+
+        if !clean_up_list.is_empty() {
+            println!("{}", mp3_dir.display().to_string().bold());
+        }
+
+        for f in clean_up_list {
+            clean_up_file(&f, opts)?;
+        }
+    }
+
+    Ok(true)
+}
+
 pub fn clean_up_file(superfluous_mp3: &Path, opts: &GlobalOpts) -> anyhow::Result<bool> {
     verbose!(opts, "  Removing {}", superfluous_mp3.display());
 
@@ -140,6 +193,19 @@ pub fn clean_up_file(superfluous_mp3: &Path, opts: &GlobalOpts) -> anyhow::Resul
         remove_file(superfluous_mp3)?;
         Ok(true)
     }
+}
+
+pub fn mp3_dir_from(flac_dir: &Path, cmd_opts: &Mp3dirOpts) -> PathBuf {
+    let mut path = flac_dir
+        .to_string_lossy()
+        .to_string()
+        .replace("/flac", "/mp3");
+
+    if cmd_opts.suffix {
+        path.push_str(&format!("-{}", cmd_opts.bitrate));
+    }
+
+    PathBuf::from(path)
 }
 
 #[cfg(test)]
@@ -171,8 +237,16 @@ mod test {
             mp3_target: mp3_file.clone(),
         };
 
+        let cmd_opts = Mp3dirOpts {
+            bitrate: "128".to_string(),
+            force: false,
+            recurse: false,
+            root: PathBuf::from("/storage"),
+            suffix: false,
+        };
+
         assert!(!mp3_file.exists());
-        assert!(transcode_file(&action, &cmds, &defopts()).unwrap());
+        assert!(transcode_file(&action, &cmds, &cmd_opts, &defopts()).unwrap());
         assert!(mp3_file.exists());
         let flac_info = AurMetadata::new(&file_under_test).unwrap();
         let mp3_info = AurMetadata::new(&mp3_file).unwrap();
@@ -212,6 +286,7 @@ mod test {
             make_transcode_list(
                 &fixture("commands/syncflac/flac/albums/abc/already.synced"),
                 &fixture("commands/syncflac/mp3/albums/abc/already.synced"),
+                false,
             )
             .unwrap()
         );
@@ -238,8 +313,39 @@ mod test {
             make_transcode_list(
                 &fixture("commands/syncflac/flac/albums/tuv/tester.flac_album"),
                 &fixture("commands/syncflac/mp3/albums/tuv/tester.flac_album"),
+                false,
             )
             .unwrap()
+        );
+    }
+    #[test]
+    fn test_mp3_dir_from() {
+        assert_eq!(
+            PathBuf::from("/storage/mp3/tracks"),
+            mp3_dir_from(
+                &PathBuf::from("/storage/flac/tracks"),
+                &Mp3dirOpts {
+                    bitrate: "128".into(),
+                    force: false,
+                    recurse: false,
+                    root: "/storage".into(),
+                    suffix: false
+                }
+            ),
+        );
+
+        assert_eq!(
+            PathBuf::from("/storage/mp3/eps/band.ep-128"),
+            mp3_dir_from(
+                &PathBuf::from("/storage/flac/eps/band.ep"),
+                &Mp3dirOpts {
+                    bitrate: "128".into(),
+                    force: false,
+                    recurse: false,
+                    root: "/storage".into(),
+                    suffix: true
+                }
+            ),
         );
     }
 }

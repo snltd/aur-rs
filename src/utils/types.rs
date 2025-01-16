@@ -29,6 +29,7 @@ pub struct Mp3dirOpts {
     pub bitrate: String,
     pub force: bool,
     pub recurse: bool,
+    pub root: PathBuf,
     pub suffix: bool,
 }
 
