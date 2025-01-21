@@ -8,19 +8,18 @@ use anyhow::anyhow;
 use colored::Colorize;
 use image::GenericImageView;
 use image::ImageReader;
-use lazy_static::lazy_static;
 use regex::Regex;
 use std::collections::HashSet;
 use std::ffi::OsStr;
 use std::fs::{self, canonicalize};
 use std::path::{Path, PathBuf};
+use std::sync::LazyLock;
 
 const ARTIST_SEPS: [&str; 6] = ["feat", "feat.", "featuring", "and", "with", "/"];
 
-lazy_static! {
-    static ref DIRNAME_REGEX: Regex =
-        Regex::new(r"^[a-z0-9][a-z\-_0-9]+\.[a-z0-9][a-z\-_[0-9]]*[a-z0-9]?$").unwrap();
-}
+static DIRNAME_REGEX: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"^[a-z0-9][a-z\-_0-9]+\.[a-z0-9][a-z\-_[0-9]]*[a-z0-9]?$").unwrap()
+});
 
 #[derive(Debug)]
 #[cfg_attr(test, derive(PartialEq, Eq))]

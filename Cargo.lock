@@ -159,7 +159,7 @@ dependencies = [
 
 [[package]]
 name = "aur"
-version = "2.1.0"
+version = "2.2.0"
 dependencies = [
  "anyhow",
  "assert_cli",
@@ -170,7 +170,6 @@ dependencies = [
  "id3",
  "image",
  "indicatif",
- "lazy_static",
  "metaflac",
  "mp3-metadata",
  "rayon",

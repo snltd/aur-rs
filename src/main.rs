@@ -67,6 +67,12 @@ enum Commands {
     Dupes { root_dir: String },
     /// Convert one or more FLACs to MP3s
     Flac2mp3 {
+        /// Minimum MP3 bitrate
+        #[arg(short, long, default_value = "128")]
+        bitrate: String,
+        /// Overwrite existing files
+        #[arg(short, long)]
+        force: bool,
         /// One or more FLAC files
         #[arg(required = true)]
         files: Vec<String>,
@@ -127,6 +133,27 @@ enum Commands {
         recurse: bool,
         /// Directories to list
         directories: Vec<String>,
+    },
+    /// Transcode a FLAC directory an equivalent point in the MP3 hierarchy
+    Mp3dir {
+        /// Minimum MP3 bitrate
+        #[arg(short, long, default_value = "128")]
+        bitrate: String,
+        /// Suffix on the new directory name with the bitrate
+        #[arg(short = 'x', long)]
+        suffix: bool,
+        /// Overwrite existing files
+        #[arg(short, long)]
+        force: bool,
+        /// Recurse
+        #[arg(short, long)]
+        recurse: bool,
+        /// Root directory for media files, containing flac/ and mp3/
+        #[arg(short = 'R', long, default_value = "/storage")]
+        root: String,
+        /// One or more directories
+        #[arg(required = true)]
+        files: Vec<String>,
     },
     /// If the file name begins with a number, set its track number tag to that number
     Name2num {
@@ -207,6 +234,9 @@ enum Commands {
     },
     /// Ensure we have an MP3 for every FLAC. Assumes parallel flac/ and mp3/ trees
     Syncflac {
+        /// Minimum MP3 bitrate
+        #[arg(short, long, default_value = "128")]
+        bitrate: String,
         /// Root directory for media files, containing flac/ and mp3/
         #[arg(short = 'R', long, default_value = "/storage")]
         root: String,
@@ -311,7 +341,11 @@ fn main() {
             &global_opts,
         ),
         Commands::Dupes { root_dir } => commands::dupes::run(&root_dir),
-        Commands::Flac2mp3 { files } => commands::flac2mp3::run(&files, &global_opts),
+        Commands::Flac2mp3 {
+            bitrate,
+            files,
+            force,
+        } => commands::flac2mp3::run(&files, bitrate, force, &global_opts),
         Commands::Get {
             property,
             files,
@@ -329,6 +363,24 @@ fn main() {
             recurse,
             directories,
         } => commands::ls::run(&directories, recurse),
+        Commands::Mp3dir {
+            bitrate,
+            files,
+            force,
+            recurse,
+            root,
+            suffix,
+        } => commands::mp3dir::run(
+            &files,
+            &utils::types::Mp3dirOpts {
+                bitrate,
+                force,
+                recurse,
+                root: PathBuf::from(root),
+                suffix,
+            },
+            &global_opts,
+        ),
         Commands::Name2num { files } => commands::name2num::run(&files, &global_opts),
         Commands::Name2tag { files, force } => commands::name2tag::run(&files, force, &global_opts),
         Commands::Namecheck { root_dir } => commands::namecheck::run(&root_dir, &global_opts),
@@ -349,7 +401,9 @@ fn main() {
         Commands::Sort { files } => commands::sort::run(&files, &global_opts),
         Commands::Split { files } => commands::split::run(&files),
         Commands::Strip { files } => commands::strip::run(&files),
-        Commands::Syncflac { root } => commands::syncflac::run(&root, &global_opts),
+        Commands::Syncflac { bitrate, root } => {
+            commands::syncflac::run(&root, &bitrate, &global_opts)
+        }
         Commands::Tagsub {
             tag,
             find,

@@ -1,15 +1,13 @@
 use crate::utils::dir::{expand_file_list, media_files};
 use anyhow::anyhow;
-use lazy_static::lazy_static;
 use regex::Regex;
 use std::collections::{BTreeSet, HashMap};
 use std::path::{Path, PathBuf};
+use std::sync::LazyLock;
 
 type Dupes = Vec<Vec<PathBuf>>;
 
-lazy_static! {
-    static ref NO_LEADING_NUMBER: Regex = Regex::new(r"^\d\d\.(.*)$").unwrap();
-}
+static NO_LEADING_NUMBER: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\d\d\.(.*)$").unwrap());
 
 pub fn run(root_dir: &str) -> anyhow::Result<()> {
     let dupes = dupes_under(&PathBuf::from(root_dir))?;

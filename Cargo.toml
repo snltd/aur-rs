@@ -1,6 +1,6 @@
 [package]
 name = "aur"
-version = "2.1.0"
+version = "2.2.0"
 edition = "2021"
 
 [dependencies]
@@ -10,7 +10,6 @@ colored = "3.0"
 id3 = "1.14"
 image = "0.25"
 indicatif = "0.17"
-lazy_static = "1.5"
 metaflac = "0.2"
 mp3-metadata = "0.3"
 rayon = "1.10"
