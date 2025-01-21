@@ -5,18 +5,19 @@ use crate::utils::mp3_encoder::{mp3_dir_from, sync_dir, transcode_cmds, Transcod
 use crate::utils::types::{GlobalOpts, Mp3dirOpts};
 use std::path::PathBuf;
 
-pub fn run(root_dir: &str, opts: &GlobalOpts) -> anyhow::Result<()> {
+pub fn run(root_dir: &str, bitrate: &str, opts: &GlobalOpts) -> anyhow::Result<()> {
     let cmds = transcode_cmds()?;
     let root = PathBuf::from(root_dir).canonicalize()?;
     let conf = load_config(&opts.config)?;
 
     check_hierarchy(&root)?;
-    syncflac(root.join("flac"), &conf, &cmds, opts)?;
+    syncflac(root.join("flac"), bitrate, &conf, &cmds, opts)?;
     Ok(())
 }
 
 fn syncflac(
     flac_root: PathBuf,
+    bitrate: &str,
     conf: &Config,
     cmds: &TranscodeCmds,
     opts: &GlobalOpts,
@@ -34,7 +35,7 @@ fn syncflac(
     let mut synced = 0;
 
     let cmd_opts = Mp3dirOpts {
-        bitrate: "128".into(),
+        bitrate: bitrate.into(),
         force: false,
         recurse: true,
         root: flac_root,

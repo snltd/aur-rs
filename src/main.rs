@@ -67,7 +67,7 @@ enum Commands {
     Dupes { root_dir: String },
     /// Convert one or more FLACs to MP3s
     Flac2mp3 {
-        /// MP3 bitrate
+        /// Minimum MP3 bitrate
         #[arg(short, long, default_value = "128")]
         bitrate: String,
         /// Overwrite existing files
@@ -136,7 +136,7 @@ enum Commands {
     },
     /// Transcode a FLAC directory an equivalent point in the MP3 hierarchy
     Mp3dir {
-        /// MP3 bitrate
+        /// Minimum MP3 bitrate
         #[arg(short, long, default_value = "128")]
         bitrate: String,
         /// Suffix on the new directory name with the bitrate
@@ -234,6 +234,9 @@ enum Commands {
     },
     /// Ensure we have an MP3 for every FLAC. Assumes parallel flac/ and mp3/ trees
     Syncflac {
+        /// Minimum MP3 bitrate
+        #[arg(short, long, default_value = "128")]
+        bitrate: String,
         /// Root directory for media files, containing flac/ and mp3/
         #[arg(short = 'R', long, default_value = "/storage")]
         root: String,
@@ -398,7 +401,9 @@ fn main() {
         Commands::Sort { files } => commands::sort::run(&files, &global_opts),
         Commands::Split { files } => commands::split::run(&files),
         Commands::Strip { files } => commands::strip::run(&files),
-        Commands::Syncflac { root } => commands::syncflac::run(&root, &global_opts),
+        Commands::Syncflac { bitrate, root } => {
+            commands::syncflac::run(&root, &bitrate, &global_opts)
+        }
         Commands::Tagsub {
             tag,
             find,

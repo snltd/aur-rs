@@ -88,9 +88,10 @@ pub fn transcode_file(
         .ok_or_else(|| anyhow!("Failed to decode flac stdout"))?;
 
     let mut lame_encode = Command::new(&cmds.lame)
-        .arg("-q2")
+        .arg("-q1")
         .arg("--vbr-new")
-        .arg("--preset")
+        .arg("-V2")
+        .arg("-b")
         .arg(&cmd_opts.bitrate)
         .arg("--add-id3v2")
         .arg("--id3v2-only")
@@ -238,7 +239,7 @@ mod test {
         };
 
         let cmd_opts = Mp3dirOpts {
-            bitrate: "128".to_string(),
+            bitrate: "320".to_string(),
             force: false,
             recurse: false,
             root: PathBuf::from("/storage"),
@@ -253,7 +254,7 @@ mod test {
 
         assert_eq!(&flac_info.tags, &mp3_info.tags);
         assert_eq!(&flac_info.time.raw, &mp3_info.time.raw);
-        assert!(128 >= mp3_info.quality.bit_depth);
+        assert!(mp3_info.quality.bit_depth >= 128);
     }
 
     #[test]
