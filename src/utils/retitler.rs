@@ -43,6 +43,7 @@ impl<'a> Retitler<'a> {
         if word.is_empty() {
             return word.to_string();
         }
+
         let chars: Vec<_> = word.chars().collect();
 
         if !chars[0].is_alphanumeric() {
@@ -62,8 +63,9 @@ impl<'a> Retitler<'a> {
         }
 
         let stripped_word = self.downcase_string(word);
+        let follows_dot = previous_word == ".";
 
-        if self.is_upcase(word, &stripped_word) {
+        if (!run_together || follows_dot) && self.is_upcase(word, &stripped_word, follows_dot) {
             return word.to_uppercase();
         }
 
@@ -136,9 +138,9 @@ impl<'a> Retitler<'a> {
             && !previous_word.ends_with(['[', ':', '=', '/', '+', '?', '!'])
     }
 
-    fn is_upcase(&self, word: &str, stripped_word: &str) -> bool {
+    fn is_upcase(&self, word: &str, stripped_word: &str, follows_dot: bool) -> bool {
         self.words.all_caps.contains(stripped_word)
-            || (word.len() == 1 && !self.words.no_caps.contains(stripped_word))
+            || (word.len() == 1 && (!self.words.no_caps.contains(stripped_word)) || follows_dot)
     }
 
     fn downcase_string(&self, word: &str) -> String {
@@ -186,7 +188,11 @@ mod test {
             "The Song of the Nightingale / The Firebird Suite / The Rite of Spring",
             rt.retitle("The Song Of The Nightingale / The Firebird Suite / The Rite of Spring")
         );
-        // assert_eq!("Merp (Merp) Merp", rt.retitle("Merp (Merp) Merp"));
+        assert_eq!("Merp (Merp) Merp", rt.retitle("Merp (Merp) Merp"));
+        assert_eq!(
+            "The Light at the End of the Tunnel (Is the Light of an Oncoming Train)",
+            rt.retitle("The Light At The End Of The Tunnel (Is The Light Of An Oncoming Train)")
+        );
         assert_eq!("P.R.O.D.U.C.T.", rt.retitle("p.r.o.d.u.c.t."));
         assert_eq!("Aikea-Guinea", rt.retitle("aikea-guinea"));
         assert_eq!("Kill-a-Man", rt.retitle("kill-a-man"));
@@ -197,5 +203,6 @@ mod test {
             "Todmorden Bells (Reprise)",
             rt.retitle("Todmorden Bells (REprise)")
         );
+        assert_eq!("C.A.M.R.A. Man", rt.retitle("C.a.m.r.a. man"));
     }
 }

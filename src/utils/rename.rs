@@ -6,7 +6,7 @@ use anyhow::anyhow;
 // Code shared by inumber and renumber.
 
 pub fn number_from_filename(fname: &str) -> Option<(String, u32)> {
-    let bits = fname.split('.').collect::<Vec<&str>>();
+    let bits = fname.split(['.', ' ', '_', '-']).collect::<Vec<&str>>();
 
     match bits.first() {
         Some(bit) => match bit.parse::<u32>() {

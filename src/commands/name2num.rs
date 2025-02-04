@@ -20,7 +20,7 @@ fn tag_file(file: &Path, opts: &GlobalOpts) -> anyhow::Result<bool> {
     let suggested_track_number = match number_from_filename(&info.filename) {
         Some((_path, num)) => num,
         None => {
-            verbose!(opts, "Filename has correct track number");
+            println!("Could not get number from {}", &info.filename);
             return Ok(false);
         }
     };
