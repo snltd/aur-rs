@@ -63,8 +63,9 @@ impl<'a> Retitler<'a> {
         }
 
         let stripped_word = self.downcase_string(word);
+        let follows_dot = previous_word == ".";
 
-        if (!run_together || previous_word == ".") && self.is_upcase(word, &stripped_word) {
+        if (!run_together || follows_dot) && self.is_upcase(word, &stripped_word, follows_dot) {
             return word.to_uppercase();
         }
 
@@ -137,9 +138,9 @@ impl<'a> Retitler<'a> {
             && !previous_word.ends_with(['[', ':', '=', '/', '+', '?', '!'])
     }
 
-    fn is_upcase(&self, word: &str, stripped_word: &str) -> bool {
+    fn is_upcase(&self, word: &str, stripped_word: &str, follows_dot: bool) -> bool {
         self.words.all_caps.contains(stripped_word)
-            || (word.len() == 1 && !self.words.no_caps.contains(stripped_word))
+            || (word.len() == 1 && (!self.words.no_caps.contains(stripped_word)) || follows_dot)
     }
 
     fn downcase_string(&self, word: &str) -> String {
@@ -202,5 +203,6 @@ mod test {
             "Todmorden Bells (Reprise)",
             rt.retitle("Todmorden Bells (REprise)")
         );
+        assert_eq!("C.A.M.R.A. Man", rt.retitle("C.a.m.r.a. man"));
     }
 }
