@@ -40,9 +40,14 @@ impl<'a> Retitler<'a> {
     }
 
     fn titlecase(&self, word: &str, previous_word: &str, run_together: bool) -> String {
+        println!(
+            "titlecase called with {} | {} | {:?}",
+            word, previous_word, run_together
+        );
         if word.is_empty() {
             return word.to_string();
         }
+
         let chars: Vec<_> = word.chars().collect();
 
         if !chars[0].is_alphanumeric() {
@@ -63,7 +68,7 @@ impl<'a> Retitler<'a> {
 
         let stripped_word = self.downcase_string(word);
 
-        if self.is_upcase(word, &stripped_word) {
+        if (!run_together || previous_word == ".") && self.is_upcase(word, &stripped_word) {
             return word.to_uppercase();
         }
 
@@ -186,7 +191,11 @@ mod test {
             "The Song of the Nightingale / The Firebird Suite / The Rite of Spring",
             rt.retitle("The Song Of The Nightingale / The Firebird Suite / The Rite of Spring")
         );
-        // assert_eq!("Merp (Merp) Merp", rt.retitle("Merp (Merp) Merp"));
+        assert_eq!("Merp (Merp) Merp", rt.retitle("Merp (Merp) Merp"));
+        assert_eq!(
+            "The Light at the End of the Tunnel (Is the Light of an Oncoming Train)",
+            rt.retitle("The Light At The End Of The Tunnel (Is The Light Of An Oncoming Train)")
+        );
         assert_eq!("P.R.O.D.U.C.T.", rt.retitle("p.r.o.d.u.c.t."));
         assert_eq!("Aikea-Guinea", rt.retitle("aikea-guinea"));
         assert_eq!("Kill-a-Man", rt.retitle("kill-a-man"));
