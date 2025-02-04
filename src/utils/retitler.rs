@@ -40,10 +40,6 @@ impl<'a> Retitler<'a> {
     }
 
     fn titlecase(&self, word: &str, previous_word: &str, run_together: bool) -> String {
-        println!(
-            "titlecase called with {} | {} | {:?}",
-            word, previous_word, run_together
-        );
         if word.is_empty() {
             return word.to_string();
         }
