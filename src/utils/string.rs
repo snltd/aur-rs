@@ -31,7 +31,6 @@ impl ToFilenameChunk for String {
             return String::new();
         }
 
-        println!("{:?}", self.chars());
         if !self.chars().any(|c| c.is_ascii_alphanumeric()) {
             return self.all_symbols();
         }
