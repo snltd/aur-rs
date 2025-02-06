@@ -4,6 +4,7 @@ use id3::TagLike;
 use metaflac::Tag as FlacTag;
 use mp3_metadata::{self, MP3Metadata};
 use std::collections::HashSet;
+use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 
 const UNDEFINED: &str = "unknown";
@@ -20,6 +21,7 @@ pub struct AurMetadata {
     pub quality: AurQuality,
     pub rawtags: RawTags,
     pub has_picture: bool,
+    pub in_tracks: bool,
 }
 
 type AurTNum = u32;
@@ -57,6 +59,7 @@ impl AurMetadata {
         let time: AurTime;
         let rawtags: RawTags;
         let has_picture: bool;
+        let in_tracks = in_tracks(&file);
 
         match file.extension().and_then(|ext| ext.to_str()) {
             Some("flac") => {
@@ -103,6 +106,7 @@ impl AurMetadata {
             quality,
             rawtags,
             has_picture,
+            in_tracks,
         })
     }
 
@@ -316,6 +320,15 @@ pub fn irrelevant_tags(filetype: &str) -> anyhow::Result<HashSet<String>> {
     }
 }
 
+pub fn in_tracks(file: &Path) -> bool {
+    match file.parent() {
+        Some(parent) => match parent.file_name() {
+            Some(basename) => basename == OsStr::new("tracks"),
+            None => false,
+        },
+        None => false,
+    }
+}
 #[cfg(test)]
 mod test {
     use super::*;

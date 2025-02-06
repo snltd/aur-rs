@@ -21,26 +21,41 @@ pub fn padded_num(num: u32) -> String {
     format!("{:02}", num)
 }
 
-pub fn safe_filename(num: u32, artist: &str, title: &str, filetype: &str) -> String {
+pub fn safe_filename(
+    num: u32,
+    artist: &str,
+    title: &str,
+    filetype: &str,
+    in_tracks: bool,
+) -> String {
     let mut artist = artist.to_filename_chunk();
 
     if artist.starts_with("the_") {
         artist = artist.replacen("the_", "", 1);
     }
 
-    format!(
-        "{}.{}.{}.{}",
-        padded_num(num),
-        artist,
-        title.to_filename_chunk(),
-        filetype.to_lowercase()
-    )
+    if in_tracks {
+        format!(
+            "{}.{}.{}",
+            artist,
+            title.to_filename_chunk(),
+            filetype.to_lowercase()
+        )
+    } else {
+        format!(
+            "{}.{}.{}.{}",
+            padded_num(num),
+            artist,
+            title.to_filename_chunk(),
+            filetype.to_lowercase()
+        )
+    }
 }
 
 pub fn rename((src, dest): RenameAction, noop: bool) -> anyhow::Result<bool> {
     if src == dest {
         Ok(false)
-    } else if dest.exists() {
+    } else if dest.exists() && !noop {
         Err(anyhow!(format!("destination exists: {}", dest.display())))
     } else {
         if let Some(parent_dir) = dest.parent() {
@@ -143,17 +158,28 @@ mod test {
     fn test_safe_filename() {
         assert_eq!(
             "04.merpers.ive_got_something--very_loud.flac",
-            safe_filename(4, "The Merpers", "I've Got Something (Very Loud)", "FLAC")
+            safe_filename(
+                4,
+                "The Merpers",
+                "I've Got Something (Very Loud)",
+                "FLAC",
+                false
+            )
         );
 
         assert_eq!(
             "03.big_merp_and_the_merpers.merping.mp3",
-            safe_filename(3, "Big Merp and The Merpers", "Merping!", "mp3")
+            safe_filename(3, "Big Merp and The Merpers", "Merping!", "mp3", false)
         );
 
         assert_eq!(
             "23.singer.song.mp3",
-            safe_filename(23, "Singer", "SONG", "mp3")
+            safe_filename(23, "Singer", "SONG", "mp3", false)
+        );
+
+        assert_eq!(
+            "singer.song.mp3",
+            safe_filename(23, "Singer", "SONG", "mp3", true)
         );
     }
 }

@@ -17,8 +17,13 @@ pub fn run(files: &[String], opts: &GlobalOpts) -> anyhow::Result<()> {
 fn rename_action(file: &Path) -> anyhow::Result<RenameOption> {
     let info = AurMetadata::new(file)?;
     let tags = &info.tags;
-    let correct_filename =
-        rename::safe_filename(tags.t_num, &tags.artist, &tags.title, &info.filetype);
+    let correct_filename = rename::safe_filename(
+        tags.t_num,
+        &tags.artist,
+        &tags.title,
+        &info.filetype,
+        info.in_tracks,
+    );
 
     if info.filename == correct_filename {
         Ok(None)

@@ -7,7 +7,6 @@ use crate::utils::types::GlobalOpts;
 use crate::utils::words::Words;
 use colored::Colorize;
 use std::collections::HashSet;
-use std::ffi::OsStr;
 use std::path::Path;
 
 #[derive(Debug)]
@@ -29,7 +28,7 @@ enum LintError {
     InvalidAlbum(String),
     InvalidArtist(String),
     InvalidGenre(String),
-    InvalidName(String),
+    InvalidFilename(String),
     InvalidTitle(String),
     InvalidTNum(u32),
     InvalidYear(i32),
@@ -51,7 +50,7 @@ impl LintError {
             LintError::InvalidAlbum(album) => format!("Invalid album tag: {}", album),
             LintError::InvalidArtist(artist) => format!("Invalid artist tag: {}", artist),
             LintError::InvalidGenre(genre) => format!("Invalid genre tag: {}", genre),
-            LintError::InvalidName(filename) => format!("Invalid filename: {}", filename),
+            LintError::InvalidFilename(filename) => format!("Invalid filename: {}", filename),
             LintError::InvalidTitle(title) => format!("Invalid title tag: {}", title),
             LintError::InvalidTNum(tnum) => format!("Invalid track number tag: {}", tnum),
             LintError::InvalidYear(year) => format!("Invalid year tag: {}", year),
@@ -101,6 +100,9 @@ fn filter_results(file: &Path, results: Vec<CheckResult>, config: &Config) -> Ve
             CheckResult::Bad(LintError::InvalidTitle(_)) => {
                 !is_file_excluded(file, config.get_ignore_lint_invalid_title())
             }
+            CheckResult::Bad(LintError::InvalidYear(_)) => {
+                !is_file_excluded(file, config.get_ignore_lint_invalid_year())
+            }
             _ => true,
         })
         .collect()
@@ -117,25 +119,14 @@ fn display_problems(file: &Path, problems: &Vec<&CheckResult>) {
     println!();
 }
 
-fn in_tracks(file: &Path) -> bool {
-    match file.parent() {
-        Some(parent) => match parent.file_name() {
-            Some(basename) => basename == OsStr::new("tracks"),
-            None => false,
-        },
-        None => false,
-    }
-}
-
 fn lint_file(
     file: &Path,
     validator: &TagValidator,
     opts: &GlobalOpts,
 ) -> anyhow::Result<Vec<CheckResult>> {
     let info = AurMetadata::new(file)?;
-    let in_tracks = in_tracks(file);
 
-    let results: Vec<_> = run_checks(&info, in_tracks, validator, opts)
+    let results: Vec<_> = run_checks(&info, validator, opts)
         .into_iter()
         .filter(|r| matches!(r, CheckResult::Bad(_)))
         .collect();
@@ -144,19 +135,18 @@ fn lint_file(
 
 fn run_checks(
     metadata: &AurMetadata,
-    in_tracks: bool,
     validator: &TagValidator,
     opts: &GlobalOpts,
 ) -> Vec<CheckResult> {
     vec![
-        has_valid_name(metadata, in_tracks, opts),
+        has_correct_filename(metadata, opts),
         has_no_unwanted_tags(&metadata.filetype, &metadata.rawtags),
         has_no_picture(metadata.has_picture),
         has_no_byte_order_markers(&metadata.tags),
         has_disc_number_or_not(&metadata.path, &metadata.tags.album),
     ]
     .into_iter()
-    .chain(has_no_invalid_tags(&metadata.tags, in_tracks, validator))
+    .chain(has_no_invalid_tags(metadata, validator))
     .collect()
 }
 
@@ -187,16 +177,15 @@ fn has_no_picture(has_picture: bool) -> CheckResult {
     }
 }
 
-fn has_valid_name(metadata: &AurMetadata, in_tracks: bool, opts: &GlobalOpts) -> CheckResult {
+fn has_correct_filename(metadata: &AurMetadata, opts: &GlobalOpts) -> CheckResult {
     let tags = &metadata.tags;
-    let mut filename =
-        rename::safe_filename(tags.t_num, &tags.artist, &tags.title, &metadata.filetype);
-
-    let expected_filename = if in_tracks {
-        filename.split_off(3)
-    } else {
-        filename
-    };
+    let expected_filename = rename::safe_filename(
+        tags.t_num,
+        &tags.artist,
+        &tags.title,
+        &metadata.filetype,
+        metadata.in_tracks,
+    );
 
     if metadata.filename == expected_filename {
         CheckResult::Good
@@ -207,7 +196,7 @@ fn has_valid_name(metadata: &AurMetadata, in_tracks: bool, opts: &GlobalOpts) ->
                 tags.artist, tags.title, expected_filename, &metadata.filename
             );
         }
-        CheckResult::Bad(LintError::InvalidName(metadata.filename.clone()))
+        CheckResult::Bad(LintError::InvalidFilename(metadata.filename.clone()))
     }
 }
 
@@ -228,12 +217,9 @@ fn has_no_unwanted_tags(filetype: &str, rawtags: &RawTags) -> CheckResult {
     }
 }
 
-fn has_no_invalid_tags(
-    tags: &AurTags,
-    in_tracks: bool,
-    validator: &TagValidator,
-) -> Vec<CheckResult> {
+fn has_no_invalid_tags(metadata: &AurMetadata, validator: &TagValidator) -> Vec<CheckResult> {
     let mut problems: Vec<CheckResult> = Vec::new();
+    let tags = &metadata.tags;
 
     if !validator.validate_title(&tags.title) {
         problems.push(CheckResult::Bad(LintError::InvalidTitle(
@@ -247,7 +233,7 @@ fn has_no_invalid_tags(
         )));
     }
 
-    if in_tracks {
+    if metadata.in_tracks {
         if !tags.album.is_empty() {
             problems.push(CheckResult::Bad(LintError::InvalidAlbum(
                 tags.album.clone(),
@@ -358,7 +344,7 @@ mod test {
 
         assert_eq!(
             vec![
-                CheckResult::Bad(LintError::InvalidName(
+                CheckResult::Bad(LintError::InvalidFilename(
                     "03.tester.has_bom_leader.flac".into()
                 )),
                 CheckResult::Bad(LintError::BomInTitle)
