@@ -4,8 +4,9 @@ pub trait Compacted {
     fn compacted(&self) -> String;
 }
 
-pub trait ToSafe {
-    fn to_safe(&self) -> String;
+pub trait ToFilenameChunk {
+    fn to_filename_chunk(&self) -> String;
+    fn all_symbols(&self) -> String;
 }
 
 pub trait ReplaceLast {
@@ -16,7 +17,7 @@ pub trait Capitalize {
     fn capitalize(&self) -> String;
 }
 
-impl ToSafe for String {
+impl ToFilenameChunk for String {
     // The rules for making a filename-safe string are to:
     //   - replace accented characters with basic Latin
     //   - make lowercase
@@ -25,9 +26,13 @@ impl ToSafe for String {
     //   - turn all whitespace to a single underscore
     //   - turn '_-_' into a single hyphen
     //   - turn a hyphenated word into word-word, removing spaces
-    fn to_safe(&self) -> String {
+    fn to_filename_chunk(&self) -> String {
         if self.is_empty() {
             return String::new();
+        }
+
+        if !self.chars().any(|c| c.is_ascii_alphanumeric()) {
+            return self.all_symbols();
         }
 
         let mut double_dash = false;
@@ -182,7 +187,8 @@ impl ToSafe for String {
         }
 
         if builder.is_empty() {
-            "no_title".into()
+            self.all_symbols()
+            // "no_title".into()
         } else {
             builder
                 .iter()
@@ -192,11 +198,62 @@ impl ToSafe for String {
                 .to_string()
         }
     }
+
+    fn all_symbols(&self) -> String {
+        let words: Vec<&str> = self.split_whitespace().collect();
+
+        words
+            .iter()
+            .map(|w| {
+                if w.len() == 1 {
+                    sym_to_word(w)
+                } else {
+                    w.chars()
+                        .map(|c| sym_to_word(&c.to_string()))
+                        .collect::<Vec<String>>()
+                        .join("-")
+                }
+            })
+            .collect::<Vec<String>>()
+            .join("_")
+    }
 }
 
-impl ToSafe for &str {
-    fn to_safe(&self) -> String {
-        self.to_string().to_safe()
+fn sym_to_word(symbol: &str) -> String {
+    let ret = match symbol {
+        "!" => "bang",
+        "#" => "hash",
+        "$" => "dollar",
+        "£" => "pound",
+        "%" => "percent",
+        "'" => "tick",
+        "*" => "star",
+        "-" => "dash",
+        "." => "dot",
+        "/" => "slash",
+        ":" => "colon",
+        ";" => "semicolon",
+        "@" => "at",
+        "[" | "(" | ")" | "]" => "bracket",
+        "\\" => "backslash",
+        "\"" => "quote",
+        "_" => "underscore",
+        "`" => "backtick",
+        "?" => "question_mark",
+        "|" => "pipe",
+        _ => "",
+    };
+
+    ret.to_string()
+}
+
+impl ToFilenameChunk for &str {
+    fn to_filename_chunk(&self) -> String {
+        self.to_string().to_filename_chunk()
+    }
+
+    fn all_symbols(&self) -> String {
+        self.to_string().all_symbols()
     }
 }
 
@@ -260,7 +317,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_to_safe() {
+    fn test_to_filename_chunk() {
         let tests = [
             ("", ""),
             ("basic", "basic"),
@@ -322,7 +379,6 @@ mod test {
             ("010 +- 4.40", "010_plus-minus_4-40"),
             ("£24.99 from Argos", "24-99_from_argos"),
             ("We Failed (...To Break Up!)", "we_failed--to_break_up"),
-            ("(...)", "no_title"),
             ("Like 24 (6+1=3)", "like_24--6plus1equals3"),
             ("Juneau/Projects/", "juneau--projects"),
             (
@@ -339,10 +395,19 @@ mod test {
             ("180db_", "180db"),
             ("#302", "number_302"),
             ("Latin #", "latin_number"),
+            ("(...)", "bracket-dot-dot-dot-bracket"),
+            ("# * ! @ !", "hash_star_bang_at_bang"),
+            ("1", "1"),
+            ("x", "x"),
+            (".", "dot"),
+            (
+                "_______",
+                "underscore-underscore-underscore-underscore-underscore-underscore-underscore",
+            ),
         ];
 
         for (input, output) in tests {
-            assert_eq!(output.to_string(), input.to_safe());
+            assert_eq!(output.to_string(), input.to_filename_chunk());
         }
     }
 

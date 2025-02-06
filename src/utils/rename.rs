@@ -1,5 +1,5 @@
 use crate::utils::metadata::AurMetadata;
-use crate::utils::string::ToSafe;
+use crate::utils::string::ToFilenameChunk;
 use crate::utils::types::{RenameAction, RenameOption};
 use anyhow::anyhow;
 
@@ -22,7 +22,7 @@ pub fn padded_num(num: u32) -> String {
 }
 
 pub fn safe_filename(num: u32, artist: &str, title: &str, filetype: &str) -> String {
-    let mut artist = artist.to_safe();
+    let mut artist = artist.to_filename_chunk();
 
     if artist.starts_with("the_") {
         artist = artist.replacen("the_", "", 1);
@@ -32,7 +32,7 @@ pub fn safe_filename(num: u32, artist: &str, title: &str, filetype: &str) -> Str
         "{}.{}.{}.{}",
         padded_num(num),
         artist,
-        title.to_safe(),
+        title.to_filename_chunk(),
         filetype.to_lowercase()
     )
 }

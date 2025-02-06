@@ -1,7 +1,7 @@
 use crate::utils::dir::{media_files, pathbuf_set};
 use crate::utils::metadata::AurMetadata;
 use crate::utils::rename::rename;
-use crate::utils::string::ToSafe;
+use crate::utils::string::ToFilenameChunk;
 use crate::utils::types::GlobalOpts;
 use std::path::{Path, PathBuf};
 
@@ -35,8 +35,8 @@ fn rename_action(file: &Path) -> anyhow::Result<Option<PathBuf>> {
 
     let target_dir = cwd.join(format!(
         "{}.{}",
-        info.tags.artist.to_safe(),
-        info.tags.album.to_safe()
+        info.tags.artist.to_filename_chunk(),
+        info.tags.album.to_filename_chunk()
     ));
 
     Ok(Some(target_dir.join(file_name)))
