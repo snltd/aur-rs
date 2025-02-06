@@ -47,6 +47,7 @@ pub struct LintErrs {
     pub invalid_album_tag: Option<HashSet<String>>,
     pub invalid_artist_tag: Option<HashSet<String>>,
     pub invalid_title_tag: Option<HashSet<String>>,
+    pub invalid_year_tag: Option<HashSet<String>>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -147,11 +148,19 @@ impl Config {
             .and_then(|ignore| ignore.lint.as_ref())
             .and_then(|lint| lint.invalid_title_tag.as_ref())
     }
+
     pub fn get_ignore_lint_invalid_artist(&self) -> Option<&HashSet<String>> {
         self.ignore
             .as_ref()
             .and_then(|ignore| ignore.lint.as_ref())
             .and_then(|lint| lint.invalid_artist_tag.as_ref())
+    }
+
+    pub fn get_ignore_lint_invalid_year(&self) -> Option<&HashSet<String>> {
+        self.ignore
+            .as_ref()
+            .and_then(|ignore| ignore.lint.as_ref())
+            .and_then(|lint| lint.invalid_year_tag.as_ref())
     }
 
     pub fn get_ignore_lintdir_bad_file_count(&self) -> Option<&HashSet<String>> {
