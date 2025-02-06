@@ -236,8 +236,10 @@ fn sym_to_word(symbol: &str) -> String {
         "@" => "at",
         "[" | "(" | ")" | "]" => "bracket",
         "\\" => "backslash",
+        "\"" => "quote",
         "_" => "underscore",
         "`" => "backtick",
+        "?" => "question_mark",
         "|" => "pipe",
         _ => "",
     };
