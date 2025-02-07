@@ -1,15 +1,27 @@
+use crate::utils::config::load_config;
 use crate::utils::dir::{media_files, pathbuf_set};
 use crate::utils::metadata::AurMetadata;
 use crate::utils::rename;
+use crate::utils::tag_validator::TagValidator;
 use crate::utils::tagger::Tagger;
 use crate::utils::types::{GlobalOpts, RenameOption};
+use crate::utils::words::Words;
 use anyhow::anyhow;
 use std::io::{self, Write};
 use std::path::Path;
 
 pub fn run(files: &[String], tag: &str, opts: &GlobalOpts) -> anyhow::Result<()> {
+    let config = load_config(&opts.config)?;
+    let words = Words::new(&config);
+    let validator = TagValidator::new(&words);
+
     for f in media_files(&pathbuf_set(files)) {
         let value = read_value(&f, tag)?;
+
+        if !validator.validate_tag(tag, value.as_str())? {
+            eprintln!("ERROR: '{}' is not a valid {} value", value, tag);
+            continue;
+        }
 
         if let Some(action) = tag_and_rename_action(&f, tag, &value)? {
             rename::rename(action, opts.noop)?;

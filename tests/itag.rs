@@ -146,16 +146,13 @@ mod test {
         assert_cli::Assert::main_binary()
             .with_args(&["itag", "t_num", &file_under_test])
             .stdin("merp")
-            .fails()
+            .succeeds()
+            .and()
+            .stdout()
+            .is("01.original_artist.original_title.flac [t_num]> ")
             .and()
             .stderr()
-            .is("ERROR: (Parsing): invalid digit found in string")
+            .is("ERROR: 'merp' is not a valid t_num value")
             .unwrap();
     }
-
-    // #[test]
-    // #[ignore]
-    // fn test_itag_incorrect_usage() {
-    //     common::missing_file_args_test("itag");
-    // }
 }
