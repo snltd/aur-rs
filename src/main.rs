@@ -94,12 +94,6 @@ enum Commands {
         #[arg(required = true)]
         files: Vec<String>,
     },
-    /// For each given file, interactively supply a track number. Changes file name and tag
-    Inumber {
-        /// One or more media files
-        #[arg(required = true)]
-        files: Vec<String>,
-    },
     /// For each given file, interactively a value for the given tag. Changes tag only
     Itag {
         /// The tag to modify
@@ -352,7 +346,6 @@ fn main() {
             short,
         } => commands::get::run(&property, &files, short),
         Commands::Info { files } => commands::info::run(&files),
-        Commands::Inumber { files } => commands::inumber::run(&files, &global_opts),
         Commands::Itag { files, tag } => commands::itag::run(&files, &tag, &global_opts),
         Commands::Lint { recurse, files } => commands::lint::run(&files, recurse, &global_opts),
         Commands::Lintdir {

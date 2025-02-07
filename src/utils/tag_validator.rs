@@ -1,5 +1,6 @@
 use crate::utils::tag_maker::TagMaker;
 use crate::utils::words::Words;
+use anyhow::anyhow;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 pub struct TagValidator<'a> {
@@ -12,6 +13,18 @@ impl<'a> TagValidator<'a> {
         TagValidator {
             tag_maker: TagMaker::new(words, false),
             current_year: this_year(),
+        }
+    }
+
+    pub fn validate_tag(&self, tag_name: &str, value: &str) -> anyhow::Result<bool> {
+        match tag_name {
+            "artist" => Ok(self.validate_artist(value)),
+            "title" => Ok(self.validate_title(value)),
+            "album" => Ok(self.validate_album(value)),
+            "t_num" => Ok(self.validate_t_num(value)),
+            "year" => Ok(self.validate_year(value)),
+            "genre" => Ok(self.validate_genre(value)),
+            _ => Err(anyhow!("'{}' is not a recognised tag", tag_name)),
         }
     }
 
@@ -182,5 +195,14 @@ mod test {
         assert!(!tv.validate_genre("Folk/Rock"));
         assert!(!tv.validate_genre("noise"));
         assert!(!tv.validate_genre(""));
+    }
+
+    #[test]
+    fn test_validate_tags() {
+        let words = Words::new(&sample_config());
+        let tv = TagValidator::new(&words);
+        assert!(tv.validate_tag("genre", "Alternative").unwrap());
+        assert!(!tv.validate_tag("genre", "Folk/Rock").unwrap());
+        assert!(tv.validate_tag("style", "Folk/Rock").is_err());
     }
 }
