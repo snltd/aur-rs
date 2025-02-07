@@ -45,7 +45,7 @@ impl<'a> Tagger<'a> {
         self.set_tag("genre", value, silent)
     }
 
-    // The bool return is for testing. True if it tried to retag, false if it didn't.
+    // True if it changed the tag, false if it didn't.
     pub fn set_tag(&self, tag_name: &str, value: &str, silent: bool) -> anyhow::Result<bool> {
         let current_value = match tag_name {
             "artist" => &self.current_tags.artist,

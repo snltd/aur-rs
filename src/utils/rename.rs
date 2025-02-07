@@ -2,8 +2,35 @@ use crate::utils::metadata::AurMetadata;
 use crate::utils::string::ToFilenameChunk;
 use crate::utils::types::{RenameAction, RenameOption};
 use anyhow::anyhow;
+use std::path::Path;
 
-// Code shared by inumber and renumber.
+pub fn rename_action_from_file(file: &Path) -> anyhow::Result<RenameOption> {
+    let info = AurMetadata::new(file)?;
+    rename_action_from_metadata(&info)
+}
+
+pub fn rename_action_from_metadata(info: &AurMetadata) -> anyhow::Result<RenameOption> {
+    let tags = &info.tags;
+    let correct_filename = safe_filename(
+        tags.t_num,
+        &tags.artist,
+        &tags.title,
+        &info.filetype,
+        info.in_tracks,
+    );
+
+    if info.filename == correct_filename {
+        Ok(None)
+    } else {
+        let dest = info
+            .path
+            .parent()
+            .ok_or_else(|| anyhow::anyhow!("Failed to get directory of {:?}", info.filename))?
+            .join(correct_filename);
+
+        Ok(Some((info.path.clone(), dest.to_path_buf())))
+    }
+}
 
 pub fn number_from_filename(fname: &str) -> Option<(String, u32)> {
     let bits = fname.split(['.', ' ', '_', '-']).collect::<Vec<&str>>();
@@ -180,6 +207,19 @@ mod test {
         assert_eq!(
             "singer.song.mp3",
             safe_filename(23, "Singer", "SONG", "mp3", true)
+        );
+    }
+
+    #[test]
+    fn test_rename_action_from_file() {
+        assert_eq!(
+            (
+                fixture("commands/tag2name/badly_named_file.mp3"),
+                fixture("commands/tag2name/01.tester.some_song--or_other.mp3")
+            ),
+            rename_action_from_file(&fixture("commands/tag2name/badly_named_file.mp3"))
+                .unwrap()
+                .unwrap()
         );
     }
 }

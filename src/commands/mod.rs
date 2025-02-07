@@ -6,7 +6,6 @@ pub mod dupes;
 pub mod flac2mp3;
 pub mod get;
 pub mod info;
-pub mod inumber;
 pub mod itag;
 pub mod lint;
 pub mod lintdir;
