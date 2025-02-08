@@ -65,7 +65,7 @@ impl LintError {
 pub fn run(files: &[String], recurse: bool, opts: &GlobalOpts) -> anyhow::Result<()> {
     let config = load_config(&opts.config)?;
     let words = Words::new(&config);
-    let validator = TagValidator::new(&words);
+    let validator = TagValidator::new(&words, config.get_genres());
 
     for f in media_files(&expand_file_list(files, recurse)?) {
         let results = filter_results(&f, lint_file(&f, &validator, opts)?, &config);
@@ -297,7 +297,7 @@ mod test {
     #[test]
     fn test_allow_from_config() {
         let words = Words::new(&sample_config());
-        let validator = TagValidator::new(&words);
+        let validator = TagValidator::new(&words, None);
         let config = sample_config();
         let file = fixture("commands/lint/09.tester.bad_title_allowed.mp3");
         let lint_result = lint_file(&file, &validator, &defopts()).unwrap();
@@ -309,7 +309,7 @@ mod test {
     #[test]
     fn lint_functional_tests() {
         let words = Words::new(&sample_config());
-        let validator = TagValidator::new(&words);
+        let validator = TagValidator::new(&words, None);
         let opts = &defopts();
 
         assert!(lint_file(

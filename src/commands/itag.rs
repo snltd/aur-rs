@@ -13,7 +13,7 @@ use std::path::Path;
 pub fn run(files: &[String], tag: &str, opts: &GlobalOpts) -> anyhow::Result<()> {
     let config = load_config(&opts.config)?;
     let words = Words::new(&config);
-    let validator = TagValidator::new(&words);
+    let validator = TagValidator::new(&words, config.get_genres());
 
     for f in media_files(&pathbuf_set(files)) {
         let value = read_value(&f, tag)?;

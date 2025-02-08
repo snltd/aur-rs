@@ -1,4 +1,4 @@
-use crate::utils::types::WantsList;
+use crate::utils::types::{Genres, WantsList};
 use anyhow::anyhow;
 use serde::Deserialize;
 use std::collections::{HashMap, HashSet};
@@ -13,6 +13,7 @@ pub const MIN_ARTWORK_SIZE: u32 = 350;
 pub struct Config {
     ignore: Option<Ignore>,
     words: Option<Words>,
+    genres: Option<Genres>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -176,6 +177,10 @@ impl Config {
             .and_then(|ignore| ignore.lintdir.as_ref())
             .and_then(|lintdir| lintdir.inconsistent_tags.as_ref())
     }
+
+    pub fn get_genres(&self) -> Option<&Genres> {
+        self.genres.as_ref()
+    }
 }
 
 #[cfg(test)]
@@ -236,5 +241,19 @@ mod test {
         );
 
         assert_eq!(None, config.get_ignore_lint_invalid_artist());
+    }
+
+    #[test]
+    fn test_get_genres() {
+        let config = sample_config();
+        assert_eq!(
+            &HashSet::from([
+                "Alternative".to_string(),
+                "Indie".to_string(),
+                "Noise".to_string(),
+                "Test".to_string()
+            ]),
+            config.get_genres().unwrap()
+        );
     }
 }
