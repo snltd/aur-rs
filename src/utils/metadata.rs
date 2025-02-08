@@ -5,6 +5,7 @@ use metaflac::Tag as FlacTag;
 use mp3_metadata::{self, MP3Metadata};
 use std::collections::HashSet;
 use std::ffi::OsStr;
+use std::fs;
 use std::path::{Path, PathBuf};
 
 const UNDEFINED: &str = "unknown";
@@ -37,14 +38,14 @@ pub struct AurTags {
     pub genre: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct AurQuality {
-    pub bit_depth: u16,
+    pub bit_depth: u8,
     pub sample_rate: u32,
     pub formatted: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct AurTime {
     pub raw: u64,
     pub formatted: String,
@@ -71,24 +72,22 @@ impl AurMetadata {
                 rawtags = Self::rawtags_from_flac(&raw_info)?;
                 has_picture = Self::has_picture_flac(&raw_info)?;
             }
-            Some("mp3") => match mp3_metadata::read_from_file(&file) {
-                Ok(metadata) => {
-                    let id3tags = Id3Tag::read_from_path(&file)?;
-                    filetype = "mp3".to_string();
-                    tags = AurTags::from_mp3(&id3tags)?;
-                    quality = AurQuality::from_mp3(&metadata)?;
-                    time = AurTime::from_mp3(&metadata)?;
-                    rawtags = Self::rawtags_from_mp3(&id3tags)?;
-                    has_picture = Self::has_picture_mp3(&id3tags)?;
-                }
-                Err(e) => {
-                    return Err(anyhow!(
-                        "Failed to read MP3 metadata in {}: {}",
-                        file.display(),
-                        e
-                    ))
-                }
-            },
+            Some("mp3") => {
+                let id3tags = Id3Tag::read_from_path(&file)?;
+                filetype = "mp3".to_string();
+                tags = AurTags::from_mp3(&id3tags)?;
+                quality = AurQuality {
+                    bit_depth: 0,
+                    sample_rate: 0,
+                    formatted: String::new(),
+                };
+                time = AurTime {
+                    raw: 0,
+                    formatted: String::new(),
+                };
+                rawtags = Self::rawtags_from_mp3(&id3tags)?;
+                has_picture = Self::has_picture_mp3(&id3tags)?;
+            }
             _ => return Err(anyhow!("Unsupported filetype: {}", file.display())),
         }
 
@@ -108,6 +107,36 @@ impl AurMetadata {
             has_picture,
             in_tracks,
         })
+    }
+
+    pub fn time(&self) -> AurTime {
+        match self.filetype.as_str() {
+            "flac" => self.time.clone(),
+            "mp3" => match mp3_metadata::read_from_file(&self.path) {
+                Ok(metadata) => AurTime::from_mp3(&metadata),
+                Err(e) => panic!(
+                    "Failed to read MP3 metadata in {}: {}",
+                    self.path.display(),
+                    e
+                ),
+            },
+            _ => panic!("Cannot get time of unknown filetype"),
+        }
+    }
+
+    pub fn quality(&self) -> AurQuality {
+        match self.filetype.as_str() {
+            "flac" => self.quality.clone(),
+            "mp3" => match mp3_metadata::read_from_file(&self.path) {
+                Ok(metadata) => AurQuality::from_mp3(&self.path, &metadata),
+                Err(e) => panic!(
+                    "Failed to read MP3 metadata in {}: {}",
+                    self.path.display(),
+                    e
+                ),
+            },
+            _ => panic!("Cannot get time of unknown filetype"),
+        }
     }
 
     pub fn get_tag(&self, tag: &str) -> anyhow::Result<String> {
@@ -205,7 +234,7 @@ impl AurQuality {
     fn from_flac(raw_info: &FlacTag) -> anyhow::Result<Self> {
         let ret = match raw_info.get_streaminfo() {
             Some(info) => Self {
-                bit_depth: info.bits_per_sample as u16,
+                bit_depth: info.bits_per_sample,
                 sample_rate: info.sample_rate,
                 formatted: format!("{}-bit/{}Hz", info.bits_per_sample, info.sample_rate),
             },
@@ -219,21 +248,21 @@ impl AurQuality {
         Ok(ret)
     }
 
-    fn from_mp3(metadata: &MP3Metadata) -> anyhow::Result<Self> {
-        let ret = match metadata.frames.first() {
-            Some(frame) => Self {
-                bit_depth: frame.bitrate, // Not really bit depth, but hey. Also mp3-metadata isn't very good at VBR.
-                sample_rate: frame.sampling_freq as u32,
-                formatted: format!("{}kbps", frame.bitrate),
-            },
-            None => Self {
-                bit_depth: 0,
-                sample_rate: 0,
-                formatted: "unknown".to_string(),
-            },
+    fn from_mp3(path: &PathBuf, metadata: &MP3Metadata) -> Self {
+        let file_size = fs::metadata(path).unwrap().len();
+        let duration_sec = metadata.duration.as_secs();
+
+        let bitrate = if duration_sec > 0 {
+            file_size * 8 / duration_sec / 1000
+        } else {
+            0
         };
 
-        Ok(ret)
+        Self {
+            bit_depth: 16,
+            sample_rate: bitrate as u32,
+            formatted: format!("{}kbps", bitrate),
+        }
     }
 }
 
@@ -261,12 +290,12 @@ impl AurTime {
         Ok(ret)
     }
 
-    fn from_mp3(metadata: &MP3Metadata) -> anyhow::Result<Self> {
+    fn from_mp3(metadata: &MP3Metadata) -> Self {
         let duration = metadata.duration.as_secs();
-        Ok(Self {
+        Self {
             raw: duration,
             formatted: Self::format_duration(&duration),
-        })
+        }
     }
 
     fn format_duration(seconds: &u64) -> String {
@@ -355,12 +384,12 @@ mod test {
         assert!(flac_result.get_tag("whatever").is_err());
 
         assert_eq!(expected_tags, flac_result.tags);
-        assert_eq!("16-bit/44100Hz", flac_result.quality.formatted);
-        assert_eq!("00:00:00", flac_result.time.formatted);
+        assert_eq!("16-bit/44100Hz", flac_result.quality().formatted);
+        assert_eq!("00:00:00", flac_result.time().formatted);
 
         assert_eq!(expected_tags, mp3_result.tags);
-        assert_eq!("64kbps", mp3_result.quality.formatted);
-        assert_eq!("00:00:00", mp3_result.time.formatted);
+        assert_eq!("64kbps", mp3_result.quality().formatted);
+        assert_eq!("00:00:00", mp3_result.time().formatted);
     }
 
     #[test]
