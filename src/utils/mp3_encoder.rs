@@ -254,7 +254,7 @@ mod test {
 
         assert_eq!(&flac_info.tags, &mp3_info.tags);
         assert_eq!(&flac_info.time().raw, &mp3_info.time().raw);
-        assert!(mp3_info.quality().bit_depth >= 128);
+        assert!(mp3_info.quality().sample_rate >= 128);
     }
 
     #[test]

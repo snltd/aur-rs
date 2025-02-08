@@ -250,12 +250,15 @@ impl AurQuality {
 
     fn from_mp3(path: &PathBuf, metadata: &MP3Metadata) -> Self {
         let file_size = fs::metadata(path).unwrap().len();
-        let duration_sec = metadata.duration.as_secs();
+        let duration = metadata.duration.as_secs();
 
-        let bitrate = if duration_sec > 0 {
-            file_size * 8 / duration_sec / 1000
+        let bitrate = if duration > 0 {
+            file_size * 8 / duration / 1000
         } else {
-            0
+            match metadata.frames.first().map(|f| f.bitrate) {
+                Some(bitrate) => bitrate as u64,
+                None => 0,
+            }
         };
 
         Self {
