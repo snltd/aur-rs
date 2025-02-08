@@ -17,10 +17,10 @@ pub fn run(files: &[String]) -> anyhow::Result<()> {
 fn info_for_file(file: &Path) -> anyhow::Result<Vec<String>> {
     let data = AurMetadata::new(file)?;
     let fields: Vec<(&str, String)> = vec![
-        ("Filename", data.filename),
+        ("Filename", data.filename.clone()),
         ("Type", data.filetype.to_uppercase()),
-        ("Bitrate", data.quality.formatted),
-        ("Time", data.time.formatted),
+        ("Bitrate", data.quality().formatted),
+        ("Time", data.time().formatted),
         ("Artist", data.tags.artist),
         ("Album", data.tags.album),
         ("Title", data.tags.title),

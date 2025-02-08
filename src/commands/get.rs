@@ -24,13 +24,15 @@ pub fn run(property: &str, files: &[String], short: bool) -> anyhow::Result<()> 
 
 fn info_for_file(property: &str, file: &Path) -> anyhow::Result<String> {
     let data = AurMetadata::new(file)?;
+    let quality = data.quality();
+    let time = data.time();
 
     let ret = match property {
-        "bit_depth" => data.quality.bit_depth.to_string(),
-        "sample_rate" => data.quality.sample_rate.to_string(),
-        "bitrate" => data.quality.formatted,
-        "time" => data.time.formatted,
-        "time_raw" => data.time.raw.to_string(),
+        "bit_depth" => quality.bit_depth.to_string(),
+        "sample_rate" => quality.sample_rate.to_string(),
+        "bitrate" => quality.formatted,
+        "time" => time.formatted,
+        "time_raw" => time.raw.to_string(),
         _ => data.get_tag(property)?,
     };
 
@@ -51,7 +53,7 @@ mod test {
     use crate::utils::spec_helper::fixture;
 
     #[test]
-    fn test_info_for_file() {
+    fn test_get_bitrate() {
         assert_eq!(
             "16-bit/44100Hz",
             info_for_file("bitrate", &fixture("info/test.flac")).unwrap()
