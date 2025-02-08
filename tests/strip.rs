@@ -4,7 +4,7 @@ mod common;
 mod test {
     use super::common;
     use assert_fs::prelude::*;
-    use aur::test_utils::spec_helper::fixture;
+    use aur::test_utils::spec_helper::{fixture, fixture_as_string};
 
     #[test]
     #[ignore]
@@ -17,7 +17,12 @@ mod test {
         let file_str = file_under_test.to_string_lossy();
 
         assert_cli::Assert::main_binary()
-            .with_args(&["lint", &file_str])
+            .with_args(&[
+                "lint",
+                "--config",
+                &fixture_as_string("config/test.toml"),
+                &file_str,
+            ])
             .stdout()
             .contains("Unexpected tags: composer, tempo")
             .and()

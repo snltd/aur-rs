@@ -1,5 +1,5 @@
 use clap::ValueEnum;
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashSet};
 use std::path::PathBuf;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
@@ -36,3 +36,4 @@ pub struct Mp3dirOpts {
 pub type WantsList = BTreeSet<String>;
 pub type RenameAction = (PathBuf, PathBuf);
 pub type RenameOption = Option<RenameAction>;
+pub type Genres = HashSet<String>;

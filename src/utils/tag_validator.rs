@@ -1,4 +1,5 @@
 use crate::utils::tag_maker::TagMaker;
+use crate::utils::types::Genres;
 use crate::utils::words::Words;
 use anyhow::anyhow;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -6,13 +7,15 @@ use std::time::{SystemTime, UNIX_EPOCH};
 pub struct TagValidator<'a> {
     current_year: i32,
     tag_maker: TagMaker<'a>,
+    genres: Option<&'a Genres>,
 }
 
 impl<'a> TagValidator<'a> {
-    pub fn new(words: &'a Words) -> Self {
+    pub fn new(words: &'a Words, genres: Option<&'a Genres>) -> Self {
         TagValidator {
             tag_maker: TagMaker::new(words, false),
             current_year: this_year(),
+            genres,
         }
     }
 
@@ -61,7 +64,10 @@ impl<'a> TagValidator<'a> {
     }
 
     pub fn validate_genre(&self, tag: &str) -> bool {
-        tag == self.tag_maker.genre_from(tag) && !tag.is_empty()
+        match self.genres {
+            Some(allowed) => allowed.contains(tag),
+            None => tag == self.tag_maker.genre_from(tag) && !tag.is_empty(),
+        }
     }
 }
 
@@ -122,11 +128,12 @@ fn this_year() -> i32 {
 mod test {
     use super::*;
     use crate::utils::spec_helper::sample_config;
+    use std::collections::HashSet;
 
     #[test]
     fn test_validate_artist_album_and_title() {
         let words = Words::new(&sample_config());
-        let tv = TagValidator::new(&words);
+        let tv = TagValidator::new(&words, None);
         assert!(tv.validate_artist("!!!"));
         assert!(tv.validate_artist("Broadcast"));
         assert!(tv.validate_artist("Simon and Garfunkel"));
@@ -145,7 +152,7 @@ mod test {
     #[test]
     fn test_validate_year() {
         let words = Words::new(&sample_config());
-        let tv = TagValidator::new(&words);
+        let tv = TagValidator::new(&words, None);
         assert!(tv.validate_year("1994"));
         assert!(!tv.validate_year(&(this_year() + 2).to_string()));
         assert!(!tv.validate_year("1930"));
@@ -154,14 +161,10 @@ mod test {
         assert!(!tv.validate_year("1989 02 03"));
     }
 
-    //   def test_artist_strict
-    //     refute @strict.artist('Singer and the Band')
-    //   end
-
     #[test]
     fn test_validate_title() {
         let words = Words::new(&sample_config());
-        let tv = TagValidator::new(&words);
+        let tv = TagValidator::new(&words, None);
         assert!(tv.validate_title("File for Test"));
         assert!(!tv.validate_title("File,with Bad Title"));
     }
@@ -169,7 +172,7 @@ mod test {
     #[test]
     fn test_validate_t_num() {
         let words = Words::new(&sample_config());
-        let tv = TagValidator::new(&words);
+        let tv = TagValidator::new(&words, None);
         assert!(tv.validate_t_num("1"));
         assert!(tv.validate_t_num("10"));
         assert!(!tv.validate_t_num("01"));
@@ -184,7 +187,7 @@ mod test {
     #[test]
     fn test_validate_genre() {
         let words = Words::new(&sample_config());
-        let tv = TagValidator::new(&words);
+        let tv = TagValidator::new(&words, None);
         assert!(tv.validate_genre("Alternative"));
         assert!(tv.validate_genre("Noise"));
         assert!(tv.validate_genre("Hip-Hop"));
@@ -195,12 +198,26 @@ mod test {
         assert!(!tv.validate_genre("Folk/Rock"));
         assert!(!tv.validate_genre("noise"));
         assert!(!tv.validate_genre(""));
+
+        let allowed_genres = HashSet::from(["Alternative".to_string(), "Indie".to_string()]);
+
+        let tv = TagValidator::new(&words, Some(&allowed_genres));
+        assert!(tv.validate_genre("Alternative"));
+        assert!(tv.validate_genre("Indie"));
+        assert!(!tv.validate_genre("Hip-Hop"));
+        assert!(!tv.validate_genre("Folk Rock"));
+        assert!(!tv.validate_genre("Rock and Roll"));
+        assert!(!tv.validate_genre("Folk rock"));
+        assert!(!tv.validate_genre("Hip-hop"));
+        assert!(!tv.validate_genre("Folk/Rock"));
+        assert!(!tv.validate_genre("noise"));
+        assert!(!tv.validate_genre(""));
     }
 
     #[test]
     fn test_validate_tags() {
         let words = Words::new(&sample_config());
-        let tv = TagValidator::new(&words);
+        let tv = TagValidator::new(&words, None);
         assert!(tv.validate_tag("genre", "Alternative").unwrap());
         assert!(!tv.validate_tag("genre", "Folk/Rock").unwrap());
         assert!(tv.validate_tag("style", "Folk/Rock").is_err());

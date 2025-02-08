@@ -1,3 +1,5 @@
+genres = ["Alternative", "Test", "Noise", "Indie"]
+
 [ignore.lint]
 invalid_album_tag = [
   "The R&B of Membership",
@@ -29,5 +31,4 @@ ignore_case = ["mxbx"]
 all_caps = ["4ad", "abba"]
 [words.expand]
 "add_n_to_x" = "Add N to (X)"
-
 
