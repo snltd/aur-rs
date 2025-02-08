@@ -247,7 +247,12 @@ mod test {
     fn test_get_genres() {
         let config = sample_config();
         assert_eq!(
-            &HashSet::from(["Alternative".to_string(), "Indie".to_string()]),
+            &HashSet::from([
+                "Alternative".to_string(),
+                "Indie".to_string(),
+                "Noise".to_string(),
+                "Test".to_string()
+            ]),
             config.get_genres().unwrap()
         );
     }
