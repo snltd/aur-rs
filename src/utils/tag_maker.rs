@@ -1,4 +1,5 @@
 use super::metadata::AurMetadata;
+use super::string::ToLowerAlnums;
 use crate::utils::string::Capitalize;
 use crate::utils::words::Words;
 use anyhow::anyhow;
@@ -207,12 +208,12 @@ impl<'a> TagMaker<'a> {
 
     fn smart_capitalize(&self, word: &str, index: usize, count: usize) -> String {
         let chars: Vec<_> = word.chars().collect();
-        let lowercase_word = word.to_lowercase();
+        let lowercase_word = word.to_lower_alnums();
 
         if chars.len() > 2 && chars[0].is_alphabetic() && chars[1] == '.' {
             word.to_string()
         } else if self.words.no_caps.contains(&lowercase_word) && index >= 1 && index <= count - 2 {
-            lowercase_word.to_string()
+            word.to_lowercase().to_string()
         } else if self.words.all_caps.contains(&lowercase_word) {
             word.to_uppercase().to_string()
         } else if chars.iter().all(|c| c.is_uppercase() || c.is_numeric()) {
@@ -239,7 +240,7 @@ mod test {
     use crate::utils::spec_helper::sample_config;
 
     #[test]
-    fn test_title_plain() {
+    fn test_title_from() {
         let words = Words::new(&sample_config());
         let tm = TagMaker::new(&words, false);
 
@@ -310,7 +311,7 @@ mod test {
             tm.artist_from("jeffrey_lewis_and_the_bolts")
         );
         assert_eq!(
-            "Someone featuring Someone Else",
+            "Someone feat. Someone Else",
             tm.artist_from("someone_ft_someone_else")
         );
         assert_eq!("R.E.M.", tm.artist_from("r-e-m"));

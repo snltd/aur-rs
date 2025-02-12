@@ -1,4 +1,4 @@
-use crate::utils::string::Capitalize;
+use crate::utils::string::{Capitalize, ToLowerAlnums};
 use crate::utils::words::Words;
 
 /// Retitler takes an existing tag and tries to bring it more in line with our tagging rules.
@@ -62,7 +62,7 @@ impl<'a> Retitler<'a> {
             return word.to_string();
         }
 
-        let stripped_word = self.downcase_string(word);
+        let stripped_word = word.to_lower_alnums();
         let follows_dot = previous_word == ".";
 
         if (!run_together || follows_dot) && self.is_upcase(word, &stripped_word, follows_dot) {
@@ -132,22 +132,20 @@ impl<'a> Retitler<'a> {
         self.words.ignore_case.contains(&word.to_lowercase())
     }
 
-    fn is_downcase(&self, word: &str, previous_word: &str, run_together: bool) -> bool {
-        ((run_together && previous_word != "-")
-            || self.words.no_caps.contains(&word.to_lowercase()))
+    fn is_downcase(&self, stripped_word: &str, previous_word: &str, run_together: bool) -> bool {
+        ((run_together && previous_word != "-") || self.words.no_caps.contains(stripped_word))
             && !previous_word.ends_with(['[', ':', '=', '/', '+', '?', '!'])
     }
 
     fn is_upcase(&self, word: &str, stripped_word: &str, follows_dot: bool) -> bool {
+        if word.len() > 1
+            && (self.words.no_caps.contains(stripped_word)
+                || self.words.ignore_case.contains(stripped_word))
+        {
+            return false;
+        }
         self.words.all_caps.contains(stripped_word)
             || (word.len() == 1 && (!self.words.no_caps.contains(stripped_word)) || follows_dot)
-    }
-
-    fn downcase_string(&self, word: &str) -> String {
-        word.chars()
-            .filter(|c| c.is_alphanumeric())
-            .collect::<String>()
-            .to_lowercase()
     }
 }
 
@@ -204,5 +202,9 @@ mod test {
             rt.retitle("Todmorden Bells (REprise)")
         );
         assert_eq!("C.A.M.R.A. Man", rt.retitle("C.a.m.r.a. man"));
+        assert_eq!(
+            "Amiri Baraka feat. DJ Spooky",
+            rt.retitle("Amiri bARAKA FEAT. DJ Spooky")
+        );
     }
 }
