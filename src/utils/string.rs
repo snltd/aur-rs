@@ -17,6 +17,19 @@ pub trait Capitalize {
     fn capitalize(&self) -> String;
 }
 
+pub trait ToLowerAlnums {
+    fn to_lower_alnums(&self) -> String;
+}
+
+impl ToLowerAlnums for String {
+    fn to_lower_alnums(&self) -> String {
+        self.chars()
+            .filter(|c| c.is_alphanumeric())
+            .collect::<String>()
+            .to_lowercase()
+    }
+}
+
 impl ToFilenameChunk for String {
     // The rules for making a filename-safe string are to:
     //   - replace accented characters with basic Latin
@@ -309,6 +322,12 @@ impl Capitalize for String {
 impl Capitalize for &str {
     fn capitalize(&self) -> String {
         self.to_string().capitalize()
+    }
+}
+
+impl ToLowerAlnums for &str {
+    fn to_lower_alnums(&self) -> String {
+        self.to_string().to_lower_alnums()
     }
 }
 
