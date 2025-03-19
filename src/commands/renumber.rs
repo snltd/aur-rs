@@ -2,17 +2,19 @@ use crate::utils::dir::{media_files, pathbuf_set};
 use crate::utils::metadata::AurMetadata;
 use crate::utils::renumber_file;
 use crate::utils::types::{GlobalOpts, RenumberDirection};
-use anyhow::anyhow;
+use anyhow::ensure;
+use camino::Utf8PathBuf;
 
 pub fn run(
     direction: &RenumberDirection,
     delta: u32,
-    files: &[String],
+    files: &[Utf8PathBuf],
     opts: &GlobalOpts,
 ) -> anyhow::Result<()> {
-    if !(1..=99).contains(&delta) {
-        return Err(anyhow!("Delta must be from 1 to 99 inclusive"));
-    }
+    ensure!(
+        (1..=99).contains(&delta),
+        "Delta must be from 1 to 99 inclusive"
+    );
 
     let i_delta: i32 = match direction {
         RenumberDirection::Up => delta as i32,
@@ -24,9 +26,10 @@ pub fn run(
         let info = AurMetadata::new(&f)?;
         let number = info.tags.t_num as i32 + i_delta;
 
-        if !(1..=99).contains(&number) {
-            return Err(anyhow!("Tag number must be from 1 to 99 inclusive"));
-        }
+        ensure!(
+            (1..=99).contains(&number),
+            "Tag number must be from 1 to 99 inclusive"
+        );
 
         renumber_file::update_file(&info, number as u32, opts)?;
     }

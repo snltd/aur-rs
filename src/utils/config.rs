@@ -1,15 +1,17 @@
 use crate::utils::types::{Genres, WantsList};
 use anyhow::anyhow;
+use camino::{Utf8Path, Utf8PathBuf};
 use serde::Deserialize;
 use std::collections::{HashMap, HashSet};
 use std::fs::read_to_string;
-use std::path::{Path, PathBuf};
 
 pub const MAX_ARTWORK_SIZE: u32 = 750;
 pub const MIN_ARTWORK_SIZE: u32 = 350;
 
+type TagList = HashSet<String>;
+type WordList = HashSet<String>;
+
 #[derive(Deserialize, Debug)]
-#[allow(dead_code)]
 pub struct Config {
     ignore: Option<Ignore>,
     words: Option<Words>,
@@ -17,7 +19,6 @@ pub struct Config {
 }
 
 #[derive(Deserialize, Debug)]
-#[allow(dead_code)]
 pub struct Ignore {
     lint: Option<LintErrs>,
     lintdir: Option<LintDirErrs>,
@@ -26,7 +27,6 @@ pub struct Ignore {
 }
 
 #[derive(Deserialize, Debug)]
-#[allow(dead_code)]
 pub struct WantFlac {
     albums: Option<WantsList>,
     top_level: Option<WantsList>,
@@ -34,54 +34,47 @@ pub struct WantFlac {
 }
 
 #[derive(Deserialize, Debug)]
-#[allow(dead_code)]
 pub struct Words {
-    pub all_caps: Option<HashSet<String>>,
+    pub all_caps: Option<WordList>,
     pub expand: Option<HashMap<String, String>>,
-    pub ignore_case: Option<HashSet<String>>,
-    pub no_caps: Option<HashSet<String>>,
+    pub ignore_case: Option<WordList>,
+    pub no_caps: Option<WordList>,
 }
 
 #[derive(Deserialize, Debug)]
-#[allow(dead_code)]
 pub struct LintErrs {
-    pub invalid_album_tag: Option<HashSet<String>>,
-    pub invalid_artist_tag: Option<HashSet<String>>,
-    pub invalid_title_tag: Option<HashSet<String>>,
-    pub invalid_year_tag: Option<HashSet<String>>,
+    pub invalid_album_tag: Option<TagList>,
+    pub invalid_artist_tag: Option<TagList>,
+    pub invalid_title_tag: Option<TagList>,
+    pub invalid_year_tag: Option<TagList>,
 }
 
 #[derive(Deserialize, Debug)]
-#[allow(dead_code)]
 pub struct LintDirErrs {
     pub bad_file_count: Option<HashSet<String>>,
     pub inconsistent_tags: Option<HashSet<String>>,
 }
 
-pub fn default_location() -> String {
-    let home = std::env::var("HOME").expect("cannot find home directory");
-    let home_dir = PathBuf::from(home);
-    home_dir.join(".aur.toml").to_string_lossy().to_string()
+fn home_dir() -> Utf8PathBuf {
+    Utf8PathBuf::from(std::env::var("HOME").expect("cannot find home directory"))
 }
 
-pub fn default_linkdir() -> String {
-    let home = std::env::var("HOME").expect("cannot find home directory");
-    let home_dir = PathBuf::from(home);
-    home_dir
-        .join("work")
-        .join("artfix")
-        .to_string_lossy()
-        .to_string()
+pub fn default_location() -> Utf8PathBuf {
+    home_dir().join(".aur.toml")
+}
+
+pub fn default_linkdir() -> Utf8PathBuf {
+    home_dir().join("work").join("artfix")
 }
 
 // If the user specifies a file and it doesn't exist, that's an error. If they don't, and the
 // default file doesn't exist, that's fine, and we return an empty config.
 //
-pub fn load_config(file: &Path) -> anyhow::Result<Config> {
-    if !file.exists() && file == PathBuf::from(default_location()) {
+pub fn load_config(file: &Utf8Path) -> anyhow::Result<Config> {
+    if !file.exists() && file == default_location() {
         toml::from_str("").map_err(|e| anyhow::anyhow!(e))
     } else if !file.exists() {
-        Err(anyhow!(format!("Cannot find config at {}", file.display())))
+        Err(anyhow!(format!("Cannot find config at {}", file)))
     } else {
         let raw = read_to_string(file)?;
         toml::from_str(&raw).map_err(|e| anyhow::anyhow!(e))
@@ -116,7 +109,7 @@ impl Config {
             .and_then(|words| words.all_caps.as_ref())
     }
 
-    pub fn get_words_no_caps(&self) -> Option<&HashSet<String>> {
+    pub fn get_words_no_caps(&self) -> Option<&WordList> {
         self.words.as_ref().and_then(|words| words.no_caps.as_ref())
     }
 
@@ -186,7 +179,7 @@ impl Config {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::spec_helper::{fixture, sample_config};
+    use crate::test_utils::spec_helper::{fixture, sample_config};
     use std::collections::BTreeSet;
 
     #[test]

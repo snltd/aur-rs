@@ -62,7 +62,7 @@ mod test {
         let file_under_test = fixture("commands/flac2mp3/01.tester.test_no-op.mp3");
 
         assert_cli::Assert::main_binary()
-            .with_args(&["flac2mp3", &file_under_test.to_string_lossy()])
+            .with_args(&["flac2mp3", &file_under_test.into_string()])
             .succeeds() //FIXME
             .and()
             .stderr()

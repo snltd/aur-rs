@@ -1,6 +1,7 @@
+use camino::Utf8PathBuf;
 use clap::{Parser, Subcommand};
 mod commands;
-use std::path::PathBuf;
+mod test_utils;
 mod utils;
 
 #[derive(Parser)]
@@ -17,7 +18,7 @@ struct Cli {
     pub noop: bool,
     /// Path to config file
     #[arg(short, long, global = true, default_value_t = utils::config::default_location())]
-    pub config: String,
+    pub config: Utf8PathBuf,
     #[command(subcommand)]
     command: Commands,
 }
@@ -28,7 +29,7 @@ enum Commands {
     Albumdisc {
         /// One or more media files
         #[arg(required = true)]
-        files: Vec<String>,
+        files: Vec<Utf8PathBuf>,
     },
     /// Renames and resizes artwork in the given directories
     Artfix {
@@ -37,10 +38,10 @@ enum Commands {
         recurse: bool,
         /// Link non-square files to this directory for further processing.
         #[arg(short = 'd', long, global = true, default_value_t = utils::config::default_linkdir())]
-        linkdir: String,
+        linkdir: Utf8PathBuf,
         /// Directories to proces
         #[arg(required = true)]
-        directories: Vec<String>,
+        directories: Vec<Utf8PathBuf>,
     },
     /// Re-encodes "hi-res" FLACs at CD quality
     Cdq {
@@ -49,7 +50,7 @@ enum Commands {
         leave: bool,
         /// One or more media files
         #[arg(required = true)]
-        files: Vec<String>,
+        files: Vec<Utf8PathBuf>,
     },
     /// Assuming parallel flac/ and mp3/ directories, copies tags from FLACs to MP3s
     Copytags {
@@ -61,10 +62,10 @@ enum Commands {
         force: bool,
         /// Files and/or directories to retag
         #[arg(required = true)]
-        files: Vec<String>,
+        files: Vec<Utf8PathBuf>,
     },
     /// Finds files in tracks/ which could be duplicates of tracks in albums/ or eps/
-    Dupes { root_dir: String },
+    Dupes { root_dir: Utf8PathBuf },
     /// Convert one or more FLACs to MP3s
     Flac2mp3 {
         /// Minimum MP3 bitrate
@@ -75,7 +76,7 @@ enum Commands {
         force: bool,
         /// One or more FLAC files
         #[arg(required = true)]
-        files: Vec<String>,
+        files: Vec<Utf8PathBuf>,
     },
     /// Display a given property for the given file(s)
     Get {
@@ -86,13 +87,13 @@ enum Commands {
         property: String,
         /// One or more media files
         #[arg(required = true)]
-        files: Vec<String>,
+        files: Vec<Utf8PathBuf>,
     },
     /// Shows tag, time, and bitrate information about the given file(s)
     Info {
         /// One or more media files
         #[arg(required = true)]
-        files: Vec<String>,
+        files: Vec<Utf8PathBuf>,
     },
     /// For each given file, interactively a value for the given tag. Changes tag only
     Itag {
@@ -100,7 +101,7 @@ enum Commands {
         tag: String,
         /// One or more media files
         #[arg(required = true)]
-        files: Vec<String>,
+        files: Vec<Utf8PathBuf>,
     },
     /// Compares the given file(s) with our standards
     Lint {
@@ -109,7 +110,7 @@ enum Commands {
         recurse: bool,
         /// Files and/or directories to check
         #[arg(required = true)]
-        files: Vec<String>,
+        files: Vec<Utf8PathBuf>,
     },
     /// Compares the given file(s) with our standards
     Lintdir {
@@ -118,7 +119,7 @@ enum Commands {
         recurse: bool,
         /// Directories to check
         #[arg(required = true)]
-        directories: Vec<String>,
+        directories: Vec<Utf8PathBuf>,
     },
     /// Shows tag information about files in the given directory, one file per line
     Ls {
@@ -126,7 +127,7 @@ enum Commands {
         #[arg(short, long)]
         recurse: bool,
         /// Directories to list
-        directories: Vec<String>,
+        directories: Vec<Utf8PathBuf>,
     },
     /// Transcode a FLAC directory an equivalent point in the MP3 hierarchy
     Mp3dir {
@@ -144,16 +145,16 @@ enum Commands {
         recurse: bool,
         /// Root directory for media files, containing flac/ and mp3/
         #[arg(short = 'R', long, default_value = "/storage")]
-        root: String,
+        root: Utf8PathBuf,
         /// One or more directories
         #[arg(required = true)]
-        files: Vec<String>,
+        files: Vec<Utf8PathBuf>,
     },
     /// If the file name begins with a number, set its track number tag to that number
     Name2num {
         /// One or more media files
         #[arg(required = true)]
-        files: Vec<String>,
+        files: Vec<Utf8PathBuf>,
     },
     /// Tags a file based on its name
     Name2tag {
@@ -162,15 +163,15 @@ enum Commands {
         force: bool,
         /// One or more media files
         #[arg(required = true)]
-        files: Vec<String>,
+        files: Vec<Utf8PathBuf>,
     },
     /// Look for artists with similar, but not identical, names
-    Namecheck { root_dir: String },
+    Namecheck { root_dir: Utf8PathBuf },
     /// Prefix the file's name with its zero-padded track number
     Num2name {
         /// One or more media files
         #[arg(required = true)]
-        files: Vec<String>,
+        files: Vec<Utf8PathBuf>,
     },
     /// Uses ffmpeg to reencode files
     Reencode {
@@ -179,7 +180,7 @@ enum Commands {
         keep_originals: bool,
         /// One or more media files
         #[arg(required = true)]
-        files: Vec<String>,
+        files: Vec<Utf8PathBuf>,
     },
     /// Increments or decrements tag and filename numbers
     Renumber {
@@ -190,13 +191,13 @@ enum Commands {
         delta: u32,
         /// One or more media files
         #[arg(required = true)]
-        files: Vec<String>,
+        files: Vec<Utf8PathBuf>,
     },
     /// Correct capitalization across all tags
     Retitle {
         /// One or more media files
         #[arg(required = true)]
-        files: Vec<String>,
+        files: Vec<Utf8PathBuf>,
     },
     /// Set a tag in one or more files
     Set {
@@ -206,25 +207,25 @@ enum Commands {
         value: String,
         /// One or more media files
         #[arg(required = true)]
-        files: Vec<String>,
+        files: Vec<Utf8PathBuf>,
     },
     /// Put files into directories derived from their tags
     Sort {
         /// One or more media files
         #[arg(required = true)]
-        files: Vec<String>,
+        files: Vec<Utf8PathBuf>,
     },
     /// Split a FLAC according to a .cue file with the same filename stem
     Split {
         /// One or more FLAC files
         #[arg(required = true)]
-        files: Vec<String>,
+        files: Vec<Utf8PathBuf>,
     },
     /// Remove embedded images and unwanted tags from the given file(s)
     Strip {
         /// One or more media files
         #[arg(required = true)]
-        files: Vec<String>,
+        files: Vec<Utf8PathBuf>,
     },
     /// Ensure we have an MP3 for every FLAC. Assumes parallel flac/ and mp3/ trees
     Syncflac {
@@ -233,19 +234,19 @@ enum Commands {
         bitrate: String,
         /// Root directory for media files, containing flac/ and mp3/
         #[arg(short = 'R', long, default_value = "/storage")]
-        root: String,
+        root: Utf8PathBuf,
     },
     /// Rename the file(s) according to its tags
     Tag2name {
         /// One or more media files
         #[arg(required = true)]
-        files: Vec<String>,
+        files: Vec<Utf8PathBuf>,
     },
     /// Display the raw tags for the given file(s)
     Tags {
         /// One or more media files
         #[arg(required = true)]
-        files: Vec<String>,
+        files: Vec<Utf8PathBuf>,
     },
     /// Globally find and replace in the given tag. Accepts any Rust regex
     Tagsub {
@@ -257,13 +258,13 @@ enum Commands {
         replace: String,
         /// One or more media files
         #[arg(required = true)]
-        files: Vec<String>,
+        files: Vec<Utf8PathBuf>,
     },
     /// Prefixes the artist name with "The" for all given file(s)
     Thes {
         /// One or more media files
         #[arg(required = true)]
-        files: Vec<String>,
+        files: Vec<Utf8PathBuf>,
     },
     /// Transcode one or more files with ffmpeg
     Transcode {
@@ -277,7 +278,7 @@ enum Commands {
         format: String,
         /// One or more media files
         #[arg(required = true)]
-        files: Vec<String>,
+        files: Vec<Utf8PathBuf>,
     },
     /// Checks media files are valid and uncorrupted
     Verify {
@@ -286,13 +287,13 @@ enum Commands {
         recurse: bool,
         /// Files and/or directories to check
         #[arg(required = true)]
-        files: Vec<String>,
+        files: Vec<Utf8PathBuf>,
     },
     /// Lists albums and EPs, or tracks, which exists as MP3 but not as FLAC
     Wantflac {
         /// Root directory for media files, containing flac/ and mp3/
         #[arg(short = 'R', long, default_value = "/storage")]
-        root: String,
+        root: Utf8PathBuf,
         /// Find tracks rather than albums/eps
         #[arg(short = 'T', long)]
         tracks: bool,
@@ -315,7 +316,7 @@ fn main() {
         verbose: cli.verbose,
         noop: cli.noop,
         quiet: cli.quiet,
-        config: PathBuf::from(cli.config),
+        config: cli.config,
     };
     let result = match cli.command {
         Commands::Albumdisc { files } => commands::albumdisc::run(&files, &global_opts),
@@ -369,7 +370,7 @@ fn main() {
                 bitrate,
                 force,
                 recurse,
-                root: PathBuf::from(root),
+                root,
                 suffix,
             },
             &global_opts,

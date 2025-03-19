@@ -4,10 +4,10 @@ use crate::utils::tagger::Tagger;
 use crate::utils::types::GlobalOpts;
 use crate::verbose;
 use anyhow::anyhow;
+use camino::{Utf8Path, Utf8PathBuf};
 use regex::Regex;
-use std::path::Path;
 
-pub fn run(files: &[String], global_opts: &GlobalOpts) -> anyhow::Result<()> {
+pub fn run(files: &[Utf8PathBuf], global_opts: &GlobalOpts) -> anyhow::Result<()> {
     let rx = Regex::new(r"^disc_(\d+)$")?;
 
     for file in media_files(&pathbuf_set(files)) {
@@ -17,10 +17,10 @@ pub fn run(files: &[String], global_opts: &GlobalOpts) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn tag_file(file: &Path, rx: &Regex, opts: &GlobalOpts) -> anyhow::Result<bool> {
+fn tag_file(file: &Utf8Path, rx: &Regex, opts: &GlobalOpts) -> anyhow::Result<bool> {
     let end_pattern = match disc_number(file, rx)? {
         Some(number) => format!(" (Disc {})", number),
-        None => return Err(anyhow!("{} is not in a disc_n directory", file.display())),
+        None => return Err(anyhow!("{} is not in a disc_n directory", file)),
     };
 
     let info = AurMetadata::new(file)?;
@@ -38,15 +38,15 @@ fn tag_file(file: &Path, rx: &Regex, opts: &GlobalOpts) -> anyhow::Result<bool> 
     )
 }
 
-fn disc_number(file: &Path, rx: &Regex) -> anyhow::Result<Option<String>> {
-    let path = file.canonicalize()?;
+fn disc_number(file: &Utf8Path, rx: &Regex) -> anyhow::Result<Option<String>> {
+    let path = file.canonicalize_utf8()?;
     let parent = match path.parent() {
         Some(dir) => dir,
         None => return Ok(None),
     };
 
     let holding_dir = match parent.file_name() {
-        Some(dir) => dir.to_string_lossy().to_string(),
+        Some(dir) => dir.to_string(),
         None => return Ok(None),
     };
 
@@ -62,7 +62,7 @@ fn disc_number(file: &Path, rx: &Regex) -> anyhow::Result<Option<String>> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::spec_helper::{defopts, fixture};
+    use crate::test_utils::spec_helper::{defopts, fixture};
     use assert_fs::prelude::*;
 
     fn regex() -> Regex {
@@ -99,7 +99,9 @@ mod test {
             )
             .unwrap();
 
-        let file_under_test = target.path().join("01.artist.song.mp3");
+        let file_under_test = Utf8Path::from_path(target.path())
+            .unwrap()
+            .join("01.artist.song.mp3");
         let original_info = AurMetadata::new(&file_under_test).unwrap();
         assert_eq!("Test Album", original_info.tags.album);
         assert!(tag_file(&file_under_test, &rx, &defopts()).unwrap());

@@ -3,24 +3,24 @@ use crate::utils::metadata::AurMetadata;
 use crate::utils::string::Compacted;
 use crate::utils::types::GlobalOpts;
 use anyhow::anyhow;
+use camino::Utf8PathBuf;
 use indicatif::ProgressBar;
 use std::collections::{BTreeSet, HashMap};
-use std::path::PathBuf;
 
-type ArtistDirs = HashMap<String, BTreeSet<PathBuf>>;
+type ArtistDirs = HashMap<String, BTreeSet<Utf8PathBuf>>;
 type Dupes = Vec<DupeCluster>;
-type DupeCluster = HashMap<String, BTreeSet<PathBuf>>;
+type DupeCluster = HashMap<String, BTreeSet<Utf8PathBuf>>;
 
-pub fn run(root_dir: &str, opts: &GlobalOpts) -> anyhow::Result<()> {
-    for cluster in find_dupes(root_dir.to_string(), opts)? {
+pub fn run(root_dir: &Utf8PathBuf, opts: &GlobalOpts) -> anyhow::Result<()> {
+    for cluster in find_dupes(root_dir, opts)? {
         println!("{}", format_dupes(&cluster));
     }
 
     Ok(())
 }
 
-fn find_dupes(root_dir: String, opts: &GlobalOpts) -> anyhow::Result<Dupes> {
-    let all_files = media_files(&expand_file_list(&[root_dir], true)?);
+fn find_dupes(root_dir: &Utf8PathBuf, opts: &GlobalOpts) -> anyhow::Result<Dupes> {
+    let all_files = media_files(&expand_file_list(&[root_dir.clone()], true)?);
 
     if all_files.is_empty() {
         return Err(anyhow!("No files found"));
@@ -33,7 +33,7 @@ fn find_dupes(root_dir: String, opts: &GlobalOpts) -> anyhow::Result<Dupes> {
     Ok(ret)
 }
 
-fn artist_dirs(file_hash: BTreeSet<PathBuf>, opts: &GlobalOpts) -> anyhow::Result<ArtistDirs> {
+fn artist_dirs(file_hash: BTreeSet<Utf8PathBuf>, opts: &GlobalOpts) -> anyhow::Result<ArtistDirs> {
     let mut ret: ArtistDirs = HashMap::new();
 
     let bar = if opts.verbose {
@@ -108,7 +108,7 @@ fn format_dupes(dupe_cluster: &DupeCluster) -> String {
     for (name, paths) in dupe_cluster {
         ret.push_str(name);
         for path in paths {
-            ret.push_str(&format!("\n    {}", path.display()));
+            ret.push_str(&format!("\n    {}", path));
         }
         ret.push('\n');
     }
@@ -119,14 +119,12 @@ fn format_dupes(dupe_cluster: &DupeCluster) -> String {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::spec_helper::defopts;
+    use crate::test_utils::spec_helper::{defopts, fixture};
     use assert_unordered::assert_eq_unordered;
-    use aur::test_utils::spec_helper::{fixture, fixture_as_string};
 
     #[test]
     fn test_artist_list_flac() {
-        let fixture_dir = fixture_as_string("commands/namecheck/flac");
-        let all_files = expand_file_list(&[fixture_dir], true).unwrap();
+        let all_files = expand_file_list(&[fixture("commands/namecheck/flac")], true).unwrap();
 
         assert_eq_unordered!(
             flac_artist_list(),
@@ -136,8 +134,7 @@ mod test {
 
     #[test]
     fn test_artist_list_mp3() {
-        let fixture_dir = fixture_as_string("commands/namecheck/mp3");
-        let all_files = expand_file_list(&[fixture_dir], true).unwrap();
+        let all_files = expand_file_list(&[fixture("commands/namecheck/mp3")], true).unwrap();
 
         assert_eq_unordered!(
             mp3_artist_list(),

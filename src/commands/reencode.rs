@@ -1,17 +1,17 @@
 use crate::utils::dir::{media_files, pathbuf_set};
 use crate::utils::external::find_binary;
-use anyhow::anyhow;
+use anyhow::{anyhow, ensure, Context};
+use camino::{Utf8Path, Utf8PathBuf};
 use rayon::prelude::*;
 use std::fs;
-use std::path::{Path, PathBuf};
 use std::process::Command;
 
 struct ReencodeCmds {
-    ffmpeg: PathBuf,
-    lame: PathBuf,
+    ffmpeg: Utf8PathBuf,
+    lame: Utf8PathBuf,
 }
 
-pub fn run(files: &[String], keep_originals: bool) -> anyhow::Result<()> {
+pub fn run(files: &[Utf8PathBuf], keep_originals: bool) -> anyhow::Result<()> {
     let cmds = ReencodeCmds {
         lame: find_binary("lame")?,
         ffmpeg: find_binary("ffmpeg")?,
@@ -24,35 +24,30 @@ pub fn run(files: &[String], keep_originals: bool) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn reencode_file(file: &Path, keep_originals: bool, cmds: &ReencodeCmds) -> anyhow::Result<()> {
-    println!("{}", file.display());
+fn reencode_file(file: &Utf8Path, keep_originals: bool, cmds: &ReencodeCmds) -> anyhow::Result<()> {
+    println!("{}", file);
 
-    let ext = match file.extension() {
-        Some(osstr) => osstr.to_string_lossy().to_string(),
-        None => return Err(anyhow!("cannot extract extension from {}", file.display())),
-    };
+    let ext = file
+        .extension()
+        .context(format!("cannot extract extension for {}", file))?;
 
-    let stem = match file.file_stem() {
-        Some(osstr) => osstr.to_string_lossy(),
-        None => return Err(anyhow!("cannot extract stem from {}", file.display())),
-    };
+    let stem = file
+        .file_stem()
+        .context(format!("cannot extract file stem for {}", file))?;
 
-    let dir = match file.parent() {
-        Some(dir) => dir,
-        None => return Err(anyhow!("cannot get directory of {}", file.display())),
-    };
+    let dir = file
+        .parent()
+        .context(format!("cannot get directory for {}", file))?;
 
     let target_file = dir.join(format!("{}.reencoded.{}", stem, ext));
 
-    let success = match ext.as_str() {
+    let success = match ext {
         "flac" => reencode_flac(file, &target_file, &cmds.ffmpeg)?,
         "mp3" => reencode_mp3(file, &target_file, &cmds.lame)?,
         _ => return Err(anyhow!("unexpected filetype: {}", ext)),
     };
 
-    if !success {
-        return Err(anyhow!("reencode failed"));
-    }
+    ensure!(success, "REENCODE FAILED");
 
     if keep_originals {
         Ok(())
@@ -61,7 +56,11 @@ fn reencode_file(file: &Path, keep_originals: bool, cmds: &ReencodeCmds) -> anyh
     }
 }
 
-fn reencode_flac(src_file: &Path, target_file: &Path, ffmpeg: &Path) -> anyhow::Result<bool> {
+fn reencode_flac(
+    src_file: &Utf8Path,
+    target_file: &Utf8Path,
+    ffmpeg: &Utf8Path,
+) -> anyhow::Result<bool> {
     let result = Command::new(ffmpeg)
         .arg("-hide_banner")
         .arg("-loglevel")
@@ -77,7 +76,11 @@ fn reencode_flac(src_file: &Path, target_file: &Path, ffmpeg: &Path) -> anyhow::
     Ok(result.success())
 }
 
-fn reencode_mp3(src_file: &Path, target_file: &Path, lame: &Path) -> anyhow::Result<bool> {
+fn reencode_mp3(
+    src_file: &Utf8Path,
+    target_file: &Utf8Path,
+    lame: &Utf8Path,
+) -> anyhow::Result<bool> {
     let result = Command::new(lame)
         .arg("-q2")
         .arg("--vbr-new")

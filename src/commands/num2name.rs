@@ -2,9 +2,9 @@ use crate::utils::dir::{media_files, pathbuf_set};
 use crate::utils::metadata::AurMetadata;
 use crate::utils::rename;
 use crate::utils::types::{GlobalOpts, RenameOption};
-use std::path::Path;
+use camino::{Utf8Path, Utf8PathBuf};
 
-pub fn run(files: &[String], opts: &GlobalOpts) -> anyhow::Result<()> {
+pub fn run(files: &[Utf8PathBuf], opts: &GlobalOpts) -> anyhow::Result<()> {
     for f in media_files(&pathbuf_set(files)) {
         if let Some(action) = rename_action(&f)? {
             rename::rename(action, opts.noop)?;
@@ -14,7 +14,7 @@ pub fn run(files: &[String], opts: &GlobalOpts) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn rename_action(file: &Path) -> anyhow::Result<RenameOption> {
+pub fn rename_action(file: &Utf8Path) -> anyhow::Result<RenameOption> {
     let info = AurMetadata::new(file)?;
     rename::renumber_file(&info)
 }
@@ -22,7 +22,7 @@ pub fn rename_action(file: &Path) -> anyhow::Result<RenameOption> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::spec_helper::fixture;
+    use crate::test_utils::spec_helper::fixture;
 
     #[test]
     fn test_rename_action() {

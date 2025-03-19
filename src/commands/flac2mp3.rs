@@ -1,12 +1,11 @@
 use crate::utils::dir::{media_files, pathbuf_set};
 use crate::utils::mp3_encoder::{transcode_cmds, transcode_file, TranscodeAction};
 use crate::utils::types::{GlobalOpts, Mp3dirOpts};
+use camino::{Utf8Path, Utf8PathBuf};
 use colored::Colorize;
-use std::ffi::OsStr;
-use std::path::{Path, PathBuf};
 
 pub fn run(
-    files: &[String],
+    files: &[Utf8PathBuf],
     bitrate: String,
     force: bool,
     opts: &GlobalOpts,
@@ -16,13 +15,13 @@ pub fn run(
         bitrate,
         force,
         recurse: false,
-        root: PathBuf::from("/"),
+        root: Utf8PathBuf::from("/"),
         suffix: false,
     };
 
     for f in media_files(&pathbuf_set(files)) {
         if let Some(action) = transcode_action(&f) {
-            println!("{}", f.display().to_string().bold());
+            println!("{}", f.to_string().bold());
             transcode_file(&action, &cmds, &transcode_opts, opts)?;
         } else {
             eprintln!("ERROR: Only FLAC files can be flac2mp3-ed");
@@ -32,10 +31,10 @@ pub fn run(
     Ok(())
 }
 
-fn transcode_action(file: &Path) -> Option<TranscodeAction> {
+fn transcode_action(file: &Utf8Path) -> Option<TranscodeAction> {
     match file.extension() {
         Some(ext) => {
-            if ext == OsStr::new("flac") {
+            if ext == "flac" {
                 let mp3_target = file.with_extension("mp3");
 
                 let action: TranscodeAction = TranscodeAction {
@@ -55,7 +54,7 @@ fn transcode_action(file: &Path) -> Option<TranscodeAction> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::spec_helper::fixture;
+    use crate::test_utils::spec_helper::fixture;
 
     #[test]
     fn test_transcode_mp3() {

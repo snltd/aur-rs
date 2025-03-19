@@ -1,26 +1,24 @@
 use crate::utils::dir::pathbuf_set;
 use crate::utils::external::find_binary;
-use anyhow::anyhow;
-use std::path::Path;
+use anyhow::ensure;
+use camino::{Utf8Path, Utf8PathBuf};
 use std::process::Command;
 
-pub fn run(files: &[String]) -> anyhow::Result<()> {
+pub fn run(files: &[Utf8PathBuf]) -> anyhow::Result<()> {
     let shnsplit = find_binary("shnsplit")?;
 
     for f in &pathbuf_set(files) {
-        println!("Splitting {}", f.display());
+        println!("Splitting {}", f);
         split_file(f, &shnsplit)?;
     }
 
     Ok(())
 }
 
-fn split_file(file: &Path, shnsplit: &Path) -> anyhow::Result<bool> {
+fn split_file(file: &Utf8Path, shnsplit: &Utf8Path) -> anyhow::Result<bool> {
     let cue_file = file.with_extension("cue");
 
-    if !cue_file.exists() {
-        return Err(anyhow!("No cue file at '{}'", cue_file.display()));
-    }
+    ensure!(cue_file.exists(), "No cue file at '{}'", cue_file);
 
     let result = Command::new(shnsplit)
         .arg("-f")

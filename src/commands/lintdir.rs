@@ -5,14 +5,12 @@ use crate::utils::rename::number_from_filename;
 use crate::utils::types::GlobalOpts;
 use crate::verbose;
 use anyhow::anyhow;
+use camino::{Utf8Path, Utf8PathBuf};
 use colored::Colorize;
 use image::GenericImageView;
 use image::ImageReader;
 use regex::Regex;
 use std::collections::HashSet;
-use std::ffi::OsStr;
-use std::fs::{self, canonicalize};
-use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
 
 const ARTIST_SEPS: [&str; 6] = ["feat", "feat.", "featuring", "and", "with", "/"];
@@ -74,13 +72,13 @@ impl LintDirError {
     }
 }
 
-pub fn run(dirlist: &[String], recurse: bool, opts: &GlobalOpts) -> anyhow::Result<()> {
+pub fn run(dirlist: &[Utf8PathBuf], recurse: bool, opts: &GlobalOpts) -> anyhow::Result<()> {
     let config = load_config(&opts.config)?;
-    let dirs_to_list: Vec<PathBuf> = dirlist.iter().map(PathBuf::from).collect();
+    let dirs_to_list: Vec<Utf8PathBuf> = dirlist.iter().map(Utf8PathBuf::from).collect();
     // let mut found_problems = false;
 
     for dir in expand_dir_list(&dirs_to_list, recurse) {
-        let dir = canonicalize(dir)?;
+        let dir = dir.canonicalize_utf8()?;
         if let Some(res) = lint_dir(&dir, opts)? {
             let results = filter_results(&dir, res, &config);
             let problems: Vec<_> = results.iter().filter_map(Some).collect();
@@ -96,8 +94,9 @@ pub fn run(dirlist: &[String], recurse: bool, opts: &GlobalOpts) -> anyhow::Resu
     Ok(())
 }
 
-fn display_problems(dir: &Path, problems: &Vec<&CheckResult>) {
-    println!("{}", dir.display().to_string().bold());
+fn display_problems(dir: &Utf8Path, problems: &Vec<&CheckResult>) {
+    println!("{}", dir.to_string().bold());
+
     for p in problems {
         match p {
             CheckResult::Good => (),
@@ -107,17 +106,17 @@ fn display_problems(dir: &Path, problems: &Vec<&CheckResult>) {
     println!();
 }
 
-fn is_dir_excluded(file: &Path, list: Option<&HashSet<String>>) -> bool {
+fn is_dir_excluded(file: &Utf8Path, list: Option<&HashSet<String>>) -> bool {
     match list {
         Some(rules) => {
-            let file_str = file.to_string_lossy().to_string();
+            let file_str = file.to_string();
             rules.iter().any(|rule| file_str.contains(rule))
         }
         None => false,
     }
 }
 
-fn filter_results(dir: &Path, results: Vec<CheckResult>, config: &Config) -> Vec<CheckResult> {
+fn filter_results(dir: &Utf8Path, results: Vec<CheckResult>, config: &Config) -> Vec<CheckResult> {
     results
         .into_iter()
         .filter(|r| match r {
@@ -132,7 +131,7 @@ fn filter_results(dir: &Path, results: Vec<CheckResult>, config: &Config) -> Vec
         .collect()
 }
 
-fn lint_dir(dir: &Path, opts: &GlobalOpts) -> anyhow::Result<Option<Vec<CheckResult>>> {
+fn lint_dir(dir: &Utf8Path, opts: &GlobalOpts) -> anyhow::Result<Option<Vec<CheckResult>>> {
     let all_files = files_in_dir(dir)?;
     let all_metadata = metadata_for(&all_files)?;
 
@@ -140,24 +139,20 @@ fn lint_dir(dir: &Path, opts: &GlobalOpts) -> anyhow::Result<Option<Vec<CheckRes
         return Ok(None);
     }
 
-    if dir.file_name().unwrap().to_string_lossy() == "tracks" {
+    if matches!(dir.file_name(), Some("tracks")) {
         return Ok(None);
     }
 
-    verbose!(opts, "Linting {}", dir.display());
+    verbose!(opts, "Linting {}", dir);
 
-    let hierarchy = if dir
-        .components()
-        .any(|c| c.as_os_str() == OsStr::new("flac"))
-    {
+    let components: Vec<_> = dir.components().map(|c| c.as_str()).collect();
+
+    let hierarchy = if components.contains(&"flac") {
         Hierarchy::Flac
-    } else if dir.components().any(|c| c.as_os_str() == OsStr::new("mp3")) {
+    } else if components.contains(&"mp3") {
         Hierarchy::Mp3
     } else {
-        return Err(anyhow!(
-            "unable to determine media hierarchy from {}",
-            dir.display()
-        ));
+        return Err(anyhow!("unable to determine media hierarchy from {}", dir));
     };
 
     let results: Vec<_> = run_checks(dir, &all_files, &all_metadata, hierarchy)
@@ -169,8 +164,8 @@ fn lint_dir(dir: &Path, opts: &GlobalOpts) -> anyhow::Result<Option<Vec<CheckRes
 }
 
 fn run_checks(
-    dir: &Path,
-    all_files: &HashSet<PathBuf>,
+    dir: &Utf8Path,
+    all_files: &HashSet<Utf8PathBuf>,
     all_metadata: &[AurMetadata],
     hierarchy: Hierarchy,
 ) -> Vec<CheckResult> {
@@ -191,14 +186,14 @@ fn run_checks(
 
 // An album directory should be of the form 'artist_name.album_name', but can have sub-directories.
 // So, if we find content in an incorrectly named directory, we examine the parent,
-fn is_correctly_named(dir: &Path, on_retry: bool) -> CheckResult {
-    let name = dir.file_name().unwrap().to_string_lossy();
+fn is_correctly_named(dir: &Utf8Path, on_retry: bool) -> CheckResult {
+    let name = dir.file_name().unwrap();
 
     if name == "tracks" {
         return CheckResult::Good;
     }
 
-    if DIRNAME_REGEX.is_match(&name) && !name.starts_with("the_") {
+    if DIRNAME_REGEX.is_match(name) && !name.starts_with("the_") {
         return CheckResult::Good;
     }
 
@@ -210,12 +205,12 @@ fn is_correctly_named(dir: &Path, on_retry: bool) -> CheckResult {
 }
 
 fn has_no_bad_files(
-    dir: &Path,
-    file_list: &HashSet<PathBuf>,
+    dir: &Utf8Path,
+    file_list: &HashSet<Utf8PathBuf>,
     hierarchy: &Hierarchy,
 ) -> CheckResult {
     let media = media_files(file_list);
-    let mut non_media: HashSet<PathBuf> = file_list
+    let mut non_media: HashSet<Utf8PathBuf> = file_list
         .difference(&media)
         .map(|f| f.to_path_buf())
         .collect();
@@ -229,21 +224,16 @@ fn has_no_bad_files(
         CheckResult::Good
     } else {
         CheckResult::Bad(LintDirError::BadFile(
-            non_media
-                .iter()
-                .map(|f| f.to_string_lossy().to_string())
-                .collect(),
+            non_media.iter().map(|f| f.to_string()).collect(),
         ))
     }
 }
 
-fn has_right_file_count(file_list: &HashSet<PathBuf>) -> CheckResult {
+fn has_right_file_count(file_list: &HashSet<Utf8PathBuf>) -> CheckResult {
     let media = media_files(file_list);
     let file_nums: Vec<u32> = media
         .iter()
-        .filter_map(|f| {
-            number_from_filename(&f.file_name().unwrap().to_string_lossy()).map(|(_, num)| num)
-        })
+        .filter_map(|f| number_from_filename(f.file_name().unwrap()).map(|(_, num)| num))
         .collect();
 
     if file_nums.iter().max() != Some(&(media.len() as u32)) {
@@ -259,11 +249,10 @@ fn has_right_file_count(file_list: &HashSet<PathBuf>) -> CheckResult {
     CheckResult::Good
 }
 
-fn looks_like_compilation(dir: &Path, on_retry: bool) -> bool {
+fn looks_like_compilation(dir: &Utf8Path, on_retry: bool) -> bool {
     let dirname = dir
         .file_name()
         .expect("looks_like_compilation couldn't parse dir")
-        .to_string_lossy()
         .to_string();
 
     let bits: Vec<&str> = dirname.split('.').collect();
@@ -299,7 +288,7 @@ fn inconsistencies_are_featuring(metadata: &[AurMetadata]) -> bool {
     primaries.iter().all(|m| m == ref_artist)
 }
 
-fn has_consistent_tags(dir: &Path, metadata: &[AurMetadata]) -> CheckResult {
+fn has_consistent_tags(dir: &Utf8Path, metadata: &[AurMetadata]) -> CheckResult {
     let mut inconsistent_tags: HashSet<String> = HashSet::new();
 
     if !metadata
@@ -339,7 +328,7 @@ fn has_consistent_tags(dir: &Path, metadata: &[AurMetadata]) -> CheckResult {
     }
 }
 
-fn has_suitable_cover_art(dir: &Path) -> CheckResult {
+fn has_suitable_cover_art(dir: &Utf8Path) -> CheckResult {
     let artwork = dir.join("front.jpg");
 
     let img = match ImageReader::open(artwork) {
@@ -372,16 +361,15 @@ fn all_files_are_same_type(metadata: &[AurMetadata]) -> CheckResult {
     }
 }
 
-fn files_in_dir(dir: &Path) -> anyhow::Result<HashSet<PathBuf>> {
-    let entries = fs::read_dir(dir)?;
-    Ok(entries
-        .filter_map(|e| e.ok())
-        .map(|e| e.path())
-        .filter(|p| p.is_file())
+fn files_in_dir(dir: &Utf8Path) -> anyhow::Result<HashSet<Utf8PathBuf>> {
+    Ok(dir
+        .read_dir_utf8()?
+        .filter_map(|e| e.ok().map(|e| e.into_path()))
+        .filter(|p: &Utf8PathBuf| p.is_file())
         .collect())
 }
 
-fn metadata_for(files: &HashSet<PathBuf>) -> anyhow::Result<Vec<AurMetadata>> {
+fn metadata_for(files: &HashSet<Utf8PathBuf>) -> anyhow::Result<Vec<AurMetadata>> {
     let mut ret = Vec::new();
 
     for f in media_files(files).iter() {
@@ -394,7 +382,7 @@ fn metadata_for(files: &HashSet<PathBuf>) -> anyhow::Result<Vec<AurMetadata>> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::spec_helper::fixture;
+    use crate::test_utils::spec_helper::fixture;
 
     #[test]
     fn test_all_files_are_same_type() {
@@ -578,7 +566,7 @@ mod test {
         good_names.iter().for_each(|name| {
             assert_eq!(
                 CheckResult::Good,
-                is_correctly_named(&PathBuf::from(name), false),
+                is_correctly_named(&Utf8PathBuf::from(name), false),
                 "{} is bad",
                 name,
             )
@@ -587,7 +575,7 @@ mod test {
         bad_names.iter().for_each(|name| {
             assert_eq!(
                 CheckResult::Bad(LintDirError::InvalidDirName),
-                is_correctly_named(&PathBuf::from(name), false),
+                is_correctly_named(&Utf8PathBuf::from(name), false),
                 "{} is bad",
                 name,
             )
@@ -616,11 +604,8 @@ mod test {
 
         let junk_file_dir = fixture("commands/lintdir/flac/tester.junk_files");
         let junk_files = HashSet::from([
-            junk_file_dir.join("rip.log").to_string_lossy().to_string(),
-            junk_file_dir
-                .join("Back-Cover.jpg")
-                .to_string_lossy()
-                .to_string(),
+            junk_file_dir.join("rip.log").to_string(),
+            junk_file_dir.join("Back-Cover.jpg").to_string(),
         ]);
 
         assert_eq!(
@@ -633,10 +618,7 @@ mod test {
         );
 
         let unwanted_art_dir = fixture("commands/lintdir/mp3/tester.unwanted_art");
-        let unwanted_art_files = HashSet::from([unwanted_art_dir
-            .join("front.jpg")
-            .to_string_lossy()
-            .to_string()]);
+        let unwanted_art_files = HashSet::from([unwanted_art_dir.join("front.jpg").to_string()]);
 
         assert_eq!(
             CheckResult::Bad(LintDirError::BadFile(unwanted_art_files)),
@@ -648,19 +630,19 @@ mod test {
         );
     }
 
-    fn perfect_flac_dir() -> PathBuf {
+    fn perfect_flac_dir() -> Utf8PathBuf {
         fixture("commands/lintdir/flac/tester.perfect")
     }
 
-    fn perfect_flac() -> HashSet<PathBuf> {
+    fn perfect_flac() -> HashSet<Utf8PathBuf> {
         files_in_dir(&perfect_flac_dir()).unwrap()
     }
 
-    fn perfect_mp3_dir() -> PathBuf {
+    fn perfect_mp3_dir() -> Utf8PathBuf {
         fixture("commands/lintdir/mp3/tester.perfect")
     }
 
-    fn perfect_mp3() -> HashSet<PathBuf> {
+    fn perfect_mp3() -> HashSet<Utf8PathBuf> {
         files_in_dir(&perfect_mp3_dir()).unwrap()
     }
 }

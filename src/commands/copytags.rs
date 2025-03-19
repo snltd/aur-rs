@@ -4,14 +4,13 @@ use crate::utils::tagger::Tagger;
 use crate::utils::types::{CopytagsOptions, GlobalOpts};
 use crate::verbose;
 use anyhow::anyhow;
+use camino::{Utf8Path, Utf8PathBuf};
 use colored::Colorize;
-use std::ffi::{OsStr, OsString};
 use std::fs;
 use std::os::unix::fs::MetadataExt;
-use std::path::{Path, PathBuf};
 
 pub fn run(
-    files: &[String],
+    files: &[Utf8PathBuf],
     ct_opts: &CopytagsOptions,
     global_opts: &GlobalOpts,
 ) -> anyhow::Result<()> {
@@ -21,11 +20,11 @@ pub fn run(
     Ok(())
 }
 
-fn tag_file(file: &Path, ct_opts: &CopytagsOptions, opts: &GlobalOpts) -> anyhow::Result<bool> {
+fn tag_file(file: &Utf8Path, ct_opts: &CopytagsOptions, opts: &GlobalOpts) -> anyhow::Result<bool> {
     let info = AurMetadata::new(file)?;
     let partner_path = match find_partner(&info, ct_opts.force)? {
         Some(file) => {
-            verbose!(opts, "Partner is {}", file.display());
+            verbose!(opts, "Partner is {}", file);
             file
         }
         None => {
@@ -45,7 +44,7 @@ fn tag_file(file: &Path, ct_opts: &CopytagsOptions, opts: &GlobalOpts) -> anyhow
     let tagger = Tagger::new(&info)?;
 
     if !opts.quiet {
-        println!("{}", file.display().to_string().bold());
+        println!("{}", file.to_string().bold());
     }
 
     let changes = tagger.batch_tag(partner_tags, opts.quiet)?;
@@ -53,7 +52,7 @@ fn tag_file(file: &Path, ct_opts: &CopytagsOptions, opts: &GlobalOpts) -> anyhow
     Ok(changes)
 }
 
-fn find_partner(info: &AurMetadata, force: bool) -> anyhow::Result<Option<PathBuf>> {
+fn find_partner(info: &AurMetadata, force: bool) -> anyhow::Result<Option<Utf8PathBuf>> {
     let filetype = info.filetype.as_str();
     let filename_str = &info.filename;
 
@@ -67,16 +66,15 @@ fn find_partner(info: &AurMetadata, force: bool) -> anyhow::Result<Option<PathBu
         .path
         .components()
         .map(|c| {
-            if c.as_os_str() == OsStr::new(filetype) {
-                OsString::from(newtype)
-            } else if c.as_os_str() == OsStr::new(filename_str) {
-                let modified_filename = info.filename.replace(filetype, newtype);
-                OsString::from(modified_filename)
+            if c.as_str() == filetype {
+                newtype.to_string()
+            } else if c.as_str() == filename_str.as_str() {
+                info.filename.replace(filetype, newtype)
             } else {
-                OsString::from(c.as_os_str())
+                c.to_string()
             }
         })
-        .collect::<PathBuf>();
+        .collect::<Utf8PathBuf>();
 
     // Unless the user set the force option, we won't offer a partner that is older than file
 
@@ -101,7 +99,7 @@ fn find_partner(info: &AurMetadata, force: bool) -> anyhow::Result<Option<PathBu
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::spec_helper::fixture;
+    use crate::test_utils::spec_helper::fixture;
 
     #[test]
     fn test_find_partner() {

@@ -1,8 +1,8 @@
 use crate::utils::dir::{media_files, pathbuf_set};
 use crate::utils::metadata::AurMetadata;
-use std::path::Path;
+use camino::{Utf8Path, Utf8PathBuf};
 
-pub fn run(files: &[String]) -> anyhow::Result<()> {
+pub fn run(files: &[Utf8PathBuf]) -> anyhow::Result<()> {
     let files = media_files(&pathbuf_set(files));
     let mut info_list: Vec<Vec<String>> = Vec::new();
 
@@ -14,7 +14,7 @@ pub fn run(files: &[String]) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn info_for_file(file: &Path) -> anyhow::Result<Vec<String>> {
+fn info_for_file(file: &Utf8Path) -> anyhow::Result<Vec<String>> {
     let data = AurMetadata::new(file)?;
     let fields: Vec<(&str, String)> = vec![
         ("Filename", data.filename.clone()),
@@ -43,14 +43,7 @@ fn print_file_info(info: &[String]) {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::spec_helper::fixture;
-
-    #[test]
-    fn test_run_no_file() {
-        if let Err(e) = run(&["/does/not/exist".to_string()]) {
-            println!("{}", e);
-        }
-    }
+    use crate::test_utils::spec_helper::fixture;
 
     #[test]
     fn test_info_for_file() {

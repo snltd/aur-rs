@@ -1,32 +1,34 @@
 use crate::utils::dir::{expand_file_list, media_files};
-use anyhow::anyhow;
+use anyhow::ensure;
+use camino::{Utf8Path, Utf8PathBuf};
 use regex::Regex;
 use std::collections::{BTreeSet, HashMap};
-use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
 
-type Dupes = Vec<Vec<PathBuf>>;
+type Dupes = Vec<Vec<Utf8PathBuf>>;
 
 static NO_LEADING_NUMBER: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\d\d\.(.*)$").unwrap());
 
-pub fn run(root_dir: &str) -> anyhow::Result<()> {
-    let dupes = dupes_under(&PathBuf::from(root_dir))?;
-    dupes.iter().for_each(|d| println!("{}", format_dupes(d)));
+pub fn run(root_dir: &Utf8PathBuf) -> anyhow::Result<()> {
+    dupes_under(root_dir)?
+        .iter()
+        .for_each(|d| println!("{}", format_dupes(d)));
+
     Ok(())
 }
 
-fn format_dupes(dupe_cluster: &[PathBuf]) -> String {
-    let mut ret: String = format!("{}", dupe_cluster.first().unwrap().display());
+fn format_dupes(dupe_cluster: &[Utf8PathBuf]) -> String {
+    let mut ret: String = format!("{}", dupe_cluster.first().unwrap());
     dupe_cluster[1..]
         .iter()
-        .for_each(|d| ret.push_str(&format!("\n  {}", d.display())));
+        .for_each(|d| ret.push_str(&format!("\n  {}", d)));
     ret.push('\n');
 
     ret
 }
 
-fn file_hash(paths: &BTreeSet<PathBuf>) -> HashMap<String, Vec<PathBuf>> {
-    let mut ret: HashMap<String, Vec<PathBuf>> = HashMap::new();
+fn file_hash(paths: &BTreeSet<Utf8PathBuf>) -> HashMap<String, Vec<Utf8PathBuf>> {
+    let mut ret: HashMap<String, Vec<Utf8PathBuf>> = HashMap::new();
 
     for p in paths {
         if let Some(fname) = filename_from_file(p) {
@@ -37,24 +39,14 @@ fn file_hash(paths: &BTreeSet<PathBuf>) -> HashMap<String, Vec<PathBuf>> {
     ret
 }
 
-fn dupes_under(dir: &Path) -> anyhow::Result<Dupes> {
+fn dupes_under(dir: &Utf8Path) -> anyhow::Result<Dupes> {
     for d in ["tracks", "eps", "albums"] {
         let required_dir = dir.join(d);
-        if !required_dir.exists() {
-            return Err(anyhow!(format!("{} not found", required_dir.display())));
-        }
+        ensure!(required_dir.exists(), format!("{} not found", required_dir));
     }
 
-    let needle_files = expand_file_list(
-        &[dir.join("tracks")].map(|d| d.to_string_lossy().to_string()),
-        true,
-    )?;
-
-    let haystack_files = expand_file_list(
-        &[dir.join("albums"), dir.join("eps")].map(|d| d.to_string_lossy().to_string()),
-        true,
-    )?;
-
+    let needle_files = expand_file_list(&[dir.join("tracks")], true)?;
+    let haystack_files = expand_file_list(&[dir.join("albums"), dir.join("eps")], true)?;
     let needle_hash = file_hash(&media_files(&needle_files));
     let haystack_hash = file_hash(&media_files(&haystack_files));
 
@@ -72,15 +64,14 @@ fn dupes_under(dir: &Path) -> anyhow::Result<Dupes> {
     Ok(ret)
 }
 
-fn filename_from_file(path: &Path) -> Option<String> {
+fn filename_from_file(path: &Utf8Path) -> Option<String> {
     if let Some(name) = path.file_name() {
-        if let Some(name_str) = name.to_str() {
-            if let Some(c) = NO_LEADING_NUMBER.captures(name_str) {
-                return Some(c[1].to_string());
-            }
-            return Some(name_str.to_string());
+        if let Some(c) = NO_LEADING_NUMBER.captures(name) {
+            return Some(c[1].to_string());
         }
+        return Some(name.to_string());
     }
+
     None
 }
 
@@ -91,44 +82,53 @@ mod test {
 
     #[test]
     fn test_missing_arg() {
-        assert!(dupes_under(&PathBuf::from("/does/not/exist")).is_err());
+        assert!(dupes_under(&Utf8PathBuf::from("/does/not/exist")).is_err());
     }
 
     #[test]
     fn test_filename_from_file() {
         assert_eq!(
             "singer.song.flac",
-            filename_from_file(&PathBuf::from("/path/to/singer.album/02.singer.song.flac"))
-                .unwrap()
+            filename_from_file(&Utf8PathBuf::from(
+                "/path/to/singer.album/02.singer.song.flac"
+            ))
+            .unwrap()
         );
 
         assert_eq!(
             "singer.song.flac",
-            filename_from_file(&PathBuf::from("/path/to/singer.album/singer.song.flac")).unwrap()
+            filename_from_file(&Utf8PathBuf::from("/path/to/singer.album/singer.song.flac"))
+                .unwrap()
         );
     }
 
     #[test]
     fn test_file_hash() {
         let mut input = BTreeSet::new();
-        input.insert(PathBuf::from("/flac/eps/singer.ep/01.singer.song_1.flac"));
-        input.insert(PathBuf::from("/flac/eps/singer.ep/02.singer.song_2.flac"));
-        input.insert(PathBuf::from(
+        input.insert(Utf8PathBuf::from(
+            "/flac/eps/singer.ep/01.singer.song_1.flac",
+        ));
+        input.insert(Utf8PathBuf::from(
+            "/flac/eps/singer.ep/02.singer.song_2.flac",
+        ));
+        input.insert(Utf8PathBuf::from(
             "/flac/albums/pqrs/singer.lp/06.singer.song_1.flac",
         ));
-        input.insert(PathBuf::from("/flac/eps/singer.ep/front.jpg"));
+        input.insert(Utf8PathBuf::from("/flac/eps/singer.ep/front.jpg"));
 
         let result = file_hash(&input);
 
         assert_eq!(3, result.len());
         assert_eq!(
-            &vec![PathBuf::from("/flac/eps/singer.ep/02.singer.song_2.flac")],
+            &vec![Utf8PathBuf::from(
+                "/flac/eps/singer.ep/02.singer.song_2.flac"
+            )],
             result.get("singer.song_2.flac").unwrap()
         );
 
         let expected = &vec![
-            PathBuf::from("/flac/albums/pqrs/singer.lp/06.singer.song_1.flac"),
-            PathBuf::from("/flac/eps/singer.ep/01.singer.song_1.flac"),
+            Utf8PathBuf::from("/flac/albums/pqrs/singer.lp/06.singer.song_1.flac"),
+            Utf8PathBuf::from("/flac/eps/singer.ep/01.singer.song_1.flac"),
         ];
 
         let mut sorted_result = result.get("singer.song_1.flac").unwrap().clone();

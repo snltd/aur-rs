@@ -5,9 +5,9 @@ use crate::utils::tag_maker::TagMaker;
 use crate::utils::tagger::Tagger;
 use crate::utils::types::GlobalOpts;
 use crate::utils::words::Words;
-use std::path::Path;
+use camino::{Utf8Path, Utf8PathBuf};
 
-pub fn run(files: &[String], force: bool, opts: &GlobalOpts) -> anyhow::Result<()> {
+pub fn run(files: &[Utf8PathBuf], force: bool, opts: &GlobalOpts) -> anyhow::Result<()> {
     let config = load_config(&opts.config)?;
 
     for f in media_files(&pathbuf_set(files)) {
@@ -17,12 +17,16 @@ pub fn run(files: &[String], force: bool, opts: &GlobalOpts) -> anyhow::Result<(
     Ok(())
 }
 
-fn tag_file(file: &Path, force: bool, config: &Config, opts: &GlobalOpts) -> anyhow::Result<()> {
+fn tag_file(
+    file: &Utf8Path,
+    force: bool,
+    config: &Config,
+    opts: &GlobalOpts,
+) -> anyhow::Result<()> {
     let info = AurMetadata::new(file)?;
     let tagger = Tagger::new(&info)?;
     let words = Words::new(config);
-    let tag_maker = TagMaker::new(&words, force);
-    let new_tags = tag_maker.all_tags_from(&info)?;
+    let new_tags = TagMaker::new(&words, force).all_tags_from(&info)?;
 
     tagger.set_artist(&new_tags.artist, opts.quiet)?;
     tagger.set_album(&new_tags.album, opts.quiet)?;

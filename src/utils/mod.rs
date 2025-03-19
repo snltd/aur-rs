@@ -15,6 +15,3 @@ pub mod tagger;
 pub mod term;
 pub mod types;
 pub mod words;
-
-#[cfg(test)]
-pub mod spec_helper;

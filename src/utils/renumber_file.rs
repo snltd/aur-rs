@@ -28,14 +28,14 @@ fn tag_file(info: &AurMetadata, number: u32, opts: &GlobalOpts) -> anyhow::Resul
 // #[cfg(test)]
 // mod test {
 //     use super::*;
-//     use crate::utils::spec_helper::{defopts, fixture};
+//     use crate::test_utils::spec_helper::{defopts, fixture, TempDirExt};
 //     use assert_fs::prelude::*;
 
 //     #[test]
 //     fn test_update_file_change_both() {
 //         let start_file_name = "13.change_both.mp3";
 //         let tmp = assert_fs::TempDir::new().unwrap();
-//         let start_file = tmp.path().join(start_file_name);
+//         let start_file = tmp.utf8_path().join(start_file_name);
 //         tmp.copy_from(fixture("commands/inumber"), &[start_file_name])
 //             .unwrap();
 //         let start_info = AurMetadata::new(&start_file).unwrap();
@@ -43,7 +43,7 @@ fn tag_file(info: &AurMetadata, number: u32, opts: &GlobalOpts) -> anyhow::Resul
 //         assert!(update_file(&start_info, 9, &defopts()).unwrap());
 
 //         let final_file_name = "09.change_both.mp3";
-//         let final_file = tmp.path().join(final_file_name);
+//         let final_file = tmp.utf8_path().join(final_file_name);
 //         assert!(final_file.exists());
 //         let final_info = AurMetadata::new(&final_file).unwrap();
 //         assert_eq!(9, final_info.tags.t_num);
@@ -58,14 +58,14 @@ fn tag_file(info: &AurMetadata, number: u32, opts: &GlobalOpts) -> anyhow::Resul
 //         let start_file_name = "03.change_name.mp3";
 //         let final_file_name = "06.change_name.mp3";
 //         let tmp = assert_fs::TempDir::new().unwrap();
-//         let start_file = tmp.path().join(start_file_name);
+//         let start_file = tmp.utf8_path().join(start_file_name);
 //         tmp.copy_from(fixture("commands/inumber"), &[start_file_name])
 //             .unwrap();
 //         let start_info = AurMetadata::new(&start_file).unwrap();
 
 //         assert!(update_file(&start_info, 6, &defopts()).unwrap());
 
-//         let final_file = tmp.path().join(final_file_name);
+//         let final_file = tmp.utf8_path().join(final_file_name);
 //         assert!(final_file.exists());
 //         let final_info = AurMetadata::new(&final_file).unwrap();
 //         assert_eq!(6, final_info.tags.t_num);
@@ -80,14 +80,14 @@ fn tag_file(info: &AurMetadata, number: u32, opts: &GlobalOpts) -> anyhow::Resul
 //         let start_file_name = "01.change_tag.mp3";
 //         let final_file_name = start_file_name;
 //         let tmp = assert_fs::TempDir::new().unwrap();
-//         let start_file = tmp.path().join(start_file_name);
+//         let start_file = tmp.utf8_path().join(start_file_name);
 //         tmp.copy_from(fixture("commands/inumber"), &[start_file_name])
 //             .unwrap();
 //         let start_info = AurMetadata::new(&start_file).unwrap();
 
 //         assert!(update_file(&start_info, 1, &defopts()).unwrap());
 
-//         let final_file = tmp.path().join(final_file_name);
+//         let final_file = tmp.utf8_path().join(final_file_name);
 //         assert!(final_file.exists());
 //         let final_info = AurMetadata::new(&final_file).unwrap();
 //         assert_eq!(1, final_info.tags.t_num);
@@ -101,7 +101,7 @@ fn tag_file(info: &AurMetadata, number: u32, opts: &GlobalOpts) -> anyhow::Resul
 //     fn test_update_file_change_neither() {
 //         let start_file_name = "02.change_neither.mp3";
 //         let tmp = assert_fs::TempDir::new().unwrap();
-//         let start_file = tmp.path().join(start_file_name);
+//         let start_file = tmp.utf8_path().join(start_file_name);
 //         tmp.copy_from(fixture("commands/inumber"), &[start_file_name])
 //             .unwrap();
 //         let start_info = AurMetadata::new(&start_file).unwrap();

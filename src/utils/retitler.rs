@@ -162,7 +162,8 @@ impl<'a> Retitler<'a> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::spec_helper::sample_config;
+    use crate::test_utils::spec_helper::sample_config;
+
     #[test]
     fn test_retitle() {
         let words = Words::new(&sample_config());

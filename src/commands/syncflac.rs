@@ -3,20 +3,20 @@ use crate::utils::dir::expand_dir_list;
 use crate::utils::helpers::check_hierarchy;
 use crate::utils::mp3_encoder::{mp3_dir_from, sync_dir, transcode_cmds, TranscodeCmds};
 use crate::utils::types::{GlobalOpts, Mp3dirOpts};
-use std::path::PathBuf;
+use camino::Utf8PathBuf;
 
-pub fn run(root_dir: &str, bitrate: &str, opts: &GlobalOpts) -> anyhow::Result<()> {
+pub fn run(root_dir: &Utf8PathBuf, bitrate: &str, opts: &GlobalOpts) -> anyhow::Result<()> {
+    let root_dir = root_dir.canonicalize_utf8()?;
     let cmds = transcode_cmds()?;
-    let root = PathBuf::from(root_dir).canonicalize()?;
     let conf = load_config(&opts.config)?;
 
-    check_hierarchy(&root)?;
-    syncflac(root.join("flac"), bitrate, &conf, &cmds, opts)?;
+    check_hierarchy(&root_dir)?;
+    syncflac(root_dir.join("flac"), bitrate, &conf, &cmds, opts)?;
     Ok(())
 }
 
 fn syncflac(
-    flac_root: PathBuf,
+    flac_root: Utf8PathBuf,
     bitrate: &str,
     conf: &Config,
     cmds: &TranscodeCmds,
@@ -25,11 +25,7 @@ fn syncflac(
     let mut dir_list = expand_dir_list(&[flac_root.clone()], true);
 
     if let Some(ignore_list) = conf.get_syncflac_list() {
-        dir_list.retain(|d| {
-            !ignore_list
-                .iter()
-                .any(|s| d.to_string_lossy().to_string().starts_with(s))
-        });
+        dir_list.retain(|d| !ignore_list.iter().any(|s| d.starts_with(s)));
     }
 
     let mut synced = 0;

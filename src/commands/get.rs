@@ -1,14 +1,14 @@
 use crate::utils::dir::{media_files, pathbuf_set};
 use crate::utils::metadata::AurMetadata;
-use std::path::{Path, PathBuf};
+use camino::{Utf8Path, Utf8PathBuf};
 
 // Get prints things "the wrong way round", because I sometimes want to run the results through
 // sort(1).
 
-type Info = (PathBuf, String);
+type Info = (Utf8PathBuf, String);
 type InfoList = Vec<Info>;
 
-pub fn run(property: &str, files: &[String], short: bool) -> anyhow::Result<()> {
+pub fn run(property: &str, files: &[Utf8PathBuf], short: bool) -> anyhow::Result<()> {
     let mut info_list: InfoList = Vec::new();
 
     for f in media_files(&pathbuf_set(files)) {
@@ -22,7 +22,7 @@ pub fn run(property: &str, files: &[String], short: bool) -> anyhow::Result<()> 
     Ok(())
 }
 
-fn info_for_file(property: &str, file: &Path) -> anyhow::Result<String> {
+fn info_for_file(property: &str, file: &Utf8Path) -> anyhow::Result<String> {
     let data = AurMetadata::new(file)?;
     let quality = data.quality();
     let time = data.time();
@@ -43,14 +43,14 @@ fn print_file_info(info: &Info, short: bool) {
     if short {
         println!("{}", info.1);
     } else {
-        println!("{:>20} : {}", info.1, info.0.display());
+        println!("{:>20} : {}", info.1, info.0);
     }
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::spec_helper::fixture;
+    use crate::test_utils::spec_helper::fixture;
 
     #[test]
     fn test_get_bitrate() {
