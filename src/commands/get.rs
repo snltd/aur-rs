@@ -8,7 +8,7 @@ use camino::{Utf8Path, Utf8PathBuf};
 type Info = (Utf8PathBuf, String);
 type InfoList = Vec<Info>;
 
-pub fn run(property: &str, files: &[Utf8PathBuf], short: bool) -> anyhow::Result<()> {
+pub fn run(property: &str, files: &[Utf8PathBuf], short: bool) -> anyhow::Result<bool> {
     let mut info_list: InfoList = Vec::new();
 
     for f in media_files(&pathbuf_set(files)) {
@@ -19,7 +19,8 @@ pub fn run(property: &str, files: &[Utf8PathBuf], short: bool) -> anyhow::Result
     info_list
         .iter()
         .for_each(|info| print_file_info(info, short));
-    Ok(())
+
+    Ok(true)
 }
 
 fn info_for_file(property: &str, file: &Utf8Path) -> anyhow::Result<String> {

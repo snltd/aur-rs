@@ -4,14 +4,14 @@ use crate::utils::rename;
 use crate::utils::types::{GlobalOpts, RenameOption};
 use camino::{Utf8Path, Utf8PathBuf};
 
-pub fn run(files: &[Utf8PathBuf], opts: &GlobalOpts) -> anyhow::Result<()> {
+pub fn run(files: &[Utf8PathBuf], opts: &GlobalOpts) -> anyhow::Result<bool> {
     for f in media_files(&pathbuf_set(files)) {
         if let Some(action) = rename_action(&f)? {
             rename::rename(action, opts.noop)?;
         }
     }
 
-    Ok(())
+    Ok(true)
 }
 
 pub fn rename_action(file: &Utf8Path) -> anyhow::Result<RenameOption> {

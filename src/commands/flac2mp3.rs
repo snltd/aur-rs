@@ -9,7 +9,7 @@ pub fn run(
     bitrate: String,
     force: bool,
     opts: &GlobalOpts,
-) -> anyhow::Result<()> {
+) -> anyhow::Result<bool> {
     let cmds = transcode_cmds()?;
     let transcode_opts = Mp3dirOpts {
         bitrate,
@@ -28,7 +28,7 @@ pub fn run(
         }
     }
 
-    Ok(())
+    Ok(true)
 }
 
 fn transcode_action(file: &Utf8Path) -> Option<TranscodeAction> {

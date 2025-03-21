@@ -11,14 +11,14 @@ pub fn run(
     format: &str,
     cmd_opts: &TranscodeOptions,
     opts: &GlobalOpts,
-) -> anyhow::Result<()> {
+) -> anyhow::Result<bool> {
     let ffmpeg = find_binary("ffmpeg")?;
 
     for f in &pathbuf_set(files) {
         transcode_file(f, format, cmd_opts, opts, &ffmpeg)?;
     }
 
-    Ok(())
+    Ok(true)
 }
 
 fn transcode_file(

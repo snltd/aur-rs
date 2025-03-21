@@ -9,14 +9,18 @@ use camino::{Utf8Path, Utf8PathBuf};
 use std::fs::rename;
 use std::process::Command;
 
-pub fn run(files: &[Utf8PathBuf], leave_originals: bool, opts: &GlobalOpts) -> anyhow::Result<()> {
+pub fn run(
+    files: &[Utf8PathBuf],
+    leave_originals: bool,
+    opts: &GlobalOpts,
+) -> anyhow::Result<bool> {
     let ffmpeg = find_binary("ffmpeg")?;
 
     for f in media_files(&pathbuf_set(files)) {
         reencode_file(&f, leave_originals, &ffmpeg, opts)?;
     }
 
-    Ok(())
+    Ok(true)
 }
 
 fn reencode_file(

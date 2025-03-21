@@ -32,7 +32,7 @@ mod test {
             .unwrap()
             .args(["lintdir", test_dir])
             .assert()
-            .success()
+            .failure()
             .stdout(output(test_dir, "Cover art is too small"));
     }
 
@@ -45,7 +45,7 @@ mod test {
             .unwrap()
             .args(["lintdir", test_dir])
             .assert()
-            .success()
+            .failure()
             .stdout(output(test_dir, "Cover art is too big"));
     }
 
@@ -58,7 +58,7 @@ mod test {
             .unwrap()
             .args(["lintdir", test_dir])
             .assert()
-            .success()
+            .failure()
             .stdout(output(test_dir, "Cover art is not square"));
     }
 
@@ -70,7 +70,7 @@ mod test {
             .unwrap()
             .args(["lintdir", test_dir])
             .assert()
-            .success()
+            .failure()
             .stdout(output(
                 test_dir,
                 format!("Unexpected file(s): {}/front.jpg", test_dir).as_str(),
@@ -85,7 +85,7 @@ mod test {
             .unwrap()
             .args(["lintdir", test_dir])
             .assert()
-            .success()
+            .failure()
             .stdout(output(test_dir, "Inconsistent tags: album, genre, year"));
     }
 

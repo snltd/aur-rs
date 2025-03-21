@@ -14,7 +14,7 @@ mod test {
             .unwrap()
             .args(["namecheck", &dir_under_test])
             .assert()
-            .success()
+            .failure()
             .stdout(predicate::str::contains("Artist"))
             .stdout(predicate::str::contains("The B-52's"));
     }

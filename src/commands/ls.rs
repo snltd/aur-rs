@@ -3,19 +3,19 @@ use crate::utils::metadata::{AurMetadata, AurTags};
 use crate::utils::term::term_width;
 use camino::{Utf8Path, Utf8PathBuf};
 
-pub fn run(dirlist: &[Utf8PathBuf], recurse: bool) -> anyhow::Result<()> {
+pub fn run(dirlist: &[Utf8PathBuf], recurse: bool) -> anyhow::Result<bool> {
     // If no argument is given, default to the cwd, just like real ls(1).
-    let dirs = if dirlist.is_empty() {
+    let dirlist = if dirlist.is_empty() {
         &[Utf8PathBuf::from_path_buf(std::env::current_dir()?).unwrap()]
     } else {
         dirlist
     };
 
-    let dirs_to_list: Vec<Utf8PathBuf> = dirs.to_vec().iter().map(Utf8PathBuf::from).collect();
-    for dir in expand_dir_list(&dirs_to_list, recurse) {
+    for dir in expand_dir_list(&dirlist, recurse) {
         print_listing(list_info(&dir)?);
     }
-    Ok(())
+
+    Ok(true)
 }
 
 fn list_info(dir: &Utf8Path) -> anyhow::Result<Vec<String>> {

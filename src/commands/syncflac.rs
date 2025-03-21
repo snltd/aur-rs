@@ -5,14 +5,13 @@ use crate::utils::mp3_encoder::{mp3_dir_from, sync_dir, transcode_cmds, Transcod
 use crate::utils::types::{GlobalOpts, Mp3dirOpts};
 use camino::Utf8PathBuf;
 
-pub fn run(root_dir: &Utf8PathBuf, bitrate: &str, opts: &GlobalOpts) -> anyhow::Result<()> {
+pub fn run(root_dir: &Utf8PathBuf, bitrate: &str, opts: &GlobalOpts) -> anyhow::Result<bool> {
     let root_dir = root_dir.canonicalize_utf8()?;
     let cmds = transcode_cmds()?;
     let conf = load_config(&opts.config)?;
-
     check_hierarchy(&root_dir)?;
     syncflac(root_dir.join("flac"), bitrate, &conf, &cmds, opts)?;
-    Ok(())
+    Ok(true)
 }
 
 fn syncflac(

@@ -17,7 +17,7 @@ mod test {
             .unwrap()
             .args(["dupes", &file_under_test.to_string_lossy()])
             .assert()
-            .success()
+            .failure()
             .stdout(predicate::str::contains(
                 "flac/tracks/fall.free_ranger.flac",
             ))
