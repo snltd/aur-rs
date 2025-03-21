@@ -12,14 +12,14 @@ pub fn run(
     from: &str,
     to: &str,
     opts: &GlobalOpts,
-) -> anyhow::Result<()> {
+) -> anyhow::Result<bool> {
     let rx = Regex::new(from)?;
 
     for file in media_files(&pathbuf_set(files)) {
         process_file(&file, tag, &rx, to, opts)?;
     }
 
-    Ok(())
+    Ok(true)
 }
 
 fn process_file(

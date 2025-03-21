@@ -7,14 +7,14 @@ use crate::utils::types::GlobalOpts;
 use crate::utils::words::Words;
 use camino::{Utf8Path, Utf8PathBuf};
 
-pub fn run(files: &[Utf8PathBuf], force: bool, opts: &GlobalOpts) -> anyhow::Result<()> {
+pub fn run(files: &[Utf8PathBuf], force: bool, opts: &GlobalOpts) -> anyhow::Result<bool> {
     let config = load_config(&opts.config)?;
 
     for f in media_files(&pathbuf_set(files)) {
         tag_file(&f, force, &config, opts)?
     }
 
-    Ok(())
+    Ok(true)
 }
 
 fn tag_file(

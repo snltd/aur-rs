@@ -11,7 +11,7 @@ struct ReencodeCmds {
     lame: Utf8PathBuf,
 }
 
-pub fn run(files: &[Utf8PathBuf], keep_originals: bool) -> anyhow::Result<()> {
+pub fn run(files: &[Utf8PathBuf], keep_originals: bool) -> anyhow::Result<bool> {
     let cmds = ReencodeCmds {
         lame: find_binary("lame")?,
         ffmpeg: find_binary("ffmpeg")?,
@@ -21,7 +21,7 @@ pub fn run(files: &[Utf8PathBuf], keep_originals: bool) -> anyhow::Result<()> {
         .par_iter()
         .try_for_each(|f| reencode_file(f, keep_originals, &cmds))?;
 
-    Ok(())
+    Ok(true)
 }
 
 fn reencode_file(file: &Utf8Path, keep_originals: bool, cmds: &ReencodeCmds) -> anyhow::Result<()> {

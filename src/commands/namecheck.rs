@@ -11,12 +11,14 @@ type ArtistDirs = HashMap<String, BTreeSet<Utf8PathBuf>>;
 type Dupes = Vec<DupeCluster>;
 type DupeCluster = HashMap<String, BTreeSet<Utf8PathBuf>>;
 
-pub fn run(root_dir: &Utf8PathBuf, opts: &GlobalOpts) -> anyhow::Result<()> {
-    for cluster in find_dupes(root_dir, opts)? {
+pub fn run(root_dir: &Utf8PathBuf, opts: &GlobalOpts) -> anyhow::Result<bool> {
+    let dupes = find_dupes(root_dir, opts)?;
+
+    for cluster in &dupes {
         println!("{}", format_dupes(&cluster));
     }
 
-    Ok(())
+    Ok(dupes.is_empty())
 }
 
 fn find_dupes(root_dir: &Utf8PathBuf, opts: &GlobalOpts) -> anyhow::Result<Dupes> {

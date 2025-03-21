@@ -5,12 +5,12 @@ use crate::utils::tagger::Tagger;
 use camino::{Utf8Path, Utf8PathBuf};
 use std::collections::HashSet;
 
-pub fn run(files: &[Utf8PathBuf]) -> anyhow::Result<()> {
+pub fn run(files: &[Utf8PathBuf]) -> anyhow::Result<bool> {
     for f in media_files(&pathbuf_set(files)) {
         strip_file(&f)?;
     }
 
-    Ok(())
+    Ok(true)
 }
 
 fn strip_file(file: &Utf8Path) -> anyhow::Result<bool> {

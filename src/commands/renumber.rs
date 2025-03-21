@@ -10,7 +10,7 @@ pub fn run(
     delta: u32,
     files: &[Utf8PathBuf],
     opts: &GlobalOpts,
-) -> anyhow::Result<()> {
+) -> anyhow::Result<bool> {
     ensure!(
         (1..=99).contains(&delta),
         "Delta must be from 1 to 99 inclusive"
@@ -34,5 +34,5 @@ pub fn run(
         renumber_file::update_file(&info, number as u32, opts)?;
     }
 
-    Ok(())
+    Ok(true)
 }

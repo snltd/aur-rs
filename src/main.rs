@@ -13,7 +13,7 @@ struct Cli {
     /// Be silent
     #[arg(short, long, global = true)]
     pub quiet: bool,
-    /// Say what would happen, without actually doing it (currently not implemented)
+    /// Say what would happen, without actually doing it
     #[arg(short, long, global = true)]
     pub noop: bool,
     /// Path to config file
@@ -425,8 +425,14 @@ fn main() {
         Commands::Wantflac { root, tracks } => commands::wantflac::run(&root, tracks, &global_opts),
     };
 
-    if let Err(e) = result {
-        handle_error(e);
-        std::process::exit(1);
+    match result {
+        Ok(result) => match result {
+            true => std::process::exit(0),
+            false => std::process::exit(2),
+        },
+        Err(e) => {
+            handle_error(e);
+            std::process::exit(1);
+        }
     }
 }

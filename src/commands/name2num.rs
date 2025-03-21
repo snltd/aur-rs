@@ -6,12 +6,12 @@ use crate::utils::types::GlobalOpts;
 use crate::verbose;
 use camino::{Utf8Path, Utf8PathBuf};
 
-pub fn run(files: &[Utf8PathBuf], opts: &GlobalOpts) -> anyhow::Result<()> {
+pub fn run(files: &[Utf8PathBuf], opts: &GlobalOpts) -> anyhow::Result<bool> {
     for f in media_files(&pathbuf_set(files)) {
         tag_file(&f, opts)?;
     }
 
-    Ok(())
+    Ok(true)
 }
 
 fn tag_file(file: &Utf8Path, opts: &GlobalOpts) -> anyhow::Result<bool> {

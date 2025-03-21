@@ -14,7 +14,7 @@ mod test {
                 &fixture_as_string("commands/lint/00.tester.missing_genre_track_no_year.flac"),
             ])
             .assert()
-            .success()
+            .failure()
             .stdout(predicate::str::contains("Invalid track number tag: 0"))
             .stdout(predicate::str::contains("Invalid year tag: 0"))
             .stdout(predicate::str::contains("Invalid genre tag: "));
@@ -43,7 +43,7 @@ mod test {
             .unwrap()
             .args(["lint", &file_to_test])
             .assert()
-            .success()
+            .failure()
             .stdout(predicate::str::contains(
                 "Invalid title tag: BAD title allo,Wed",
             ));

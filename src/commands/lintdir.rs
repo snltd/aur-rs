@@ -72,10 +72,10 @@ impl LintDirError {
     }
 }
 
-pub fn run(dirlist: &[Utf8PathBuf], recurse: bool, opts: &GlobalOpts) -> anyhow::Result<()> {
+pub fn run(dirlist: &[Utf8PathBuf], recurse: bool, opts: &GlobalOpts) -> anyhow::Result<bool> {
     let config = load_config(&opts.config)?;
     let dirs_to_list: Vec<Utf8PathBuf> = dirlist.iter().map(Utf8PathBuf::from).collect();
-    // let mut found_problems = false;
+    let mut ret = true;
 
     for dir in expand_dir_list(&dirs_to_list, recurse) {
         let dir = dir.canonicalize_utf8()?;
@@ -85,13 +85,12 @@ pub fn run(dirlist: &[Utf8PathBuf], recurse: bool, opts: &GlobalOpts) -> anyhow:
 
             if !problems.is_empty() {
                 display_problems(&dir, &problems);
-                // found_problems = true;
+                ret = false;
             }
         }
     }
 
-    // Ok(!found_problems)
-    Ok(())
+    Ok(ret)
 }
 
 fn display_problems(dir: &Utf8Path, problems: &Vec<&CheckResult>) {

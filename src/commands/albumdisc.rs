@@ -7,14 +7,14 @@ use anyhow::anyhow;
 use camino::{Utf8Path, Utf8PathBuf};
 use regex::Regex;
 
-pub fn run(files: &[Utf8PathBuf], global_opts: &GlobalOpts) -> anyhow::Result<()> {
+pub fn run(files: &[Utf8PathBuf], global_opts: &GlobalOpts) -> anyhow::Result<bool> {
     let rx = Regex::new(r"^disc_(\d+)$")?;
 
     for file in media_files(&pathbuf_set(files)) {
         tag_file(&file, &rx, global_opts)?;
     }
 
-    Ok(())
+    Ok(true)
 }
 
 fn tag_file(file: &Utf8Path, rx: &Regex, opts: &GlobalOpts) -> anyhow::Result<bool> {

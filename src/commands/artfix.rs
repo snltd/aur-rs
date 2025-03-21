@@ -14,7 +14,7 @@ pub fn run(
     recurse: bool,
     linkdir: Utf8PathBuf,
     opts: &GlobalOpts,
-) -> anyhow::Result<()> {
+) -> anyhow::Result<bool> {
     let dirs = expand_dir_list(dirlist, recurse);
     let bar = ProgressBar::new(dirs.len() as u64);
 
@@ -22,8 +22,9 @@ pub fn run(
         bar.inc(1);
         check_artwork(&dir, &linkdir, opts)?;
     }
+
     bar.finish();
-    Ok(())
+    Ok(true)
 }
 
 fn check_artwork(dir: &Utf8Path, linkdir: &Utf8Path, opts: &GlobalOpts) -> anyhow::Result<bool> {

@@ -13,11 +13,11 @@ pub fn run(
     files: &[Utf8PathBuf],
     ct_opts: &CopytagsOptions,
     global_opts: &GlobalOpts,
-) -> anyhow::Result<()> {
+) -> anyhow::Result<bool> {
     for f in media_files(&expand_file_list(files, ct_opts.recurse)?) {
         tag_file(&f, ct_opts, global_opts)?;
     }
-    Ok(())
+    Ok(true)
 }
 
 fn tag_file(file: &Utf8Path, ct_opts: &CopytagsOptions, opts: &GlobalOpts) -> anyhow::Result<bool> {

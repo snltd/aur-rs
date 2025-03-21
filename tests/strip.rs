@@ -24,7 +24,7 @@ mod test {
                 &file_str,
             ])
             .assert()
-            .success()
+            .failure()
             .stdout(predicate::str::contains("Unexpected tags: composer, tempo"))
             .stdout(predicate::str::contains("File contains embedded artwork"));
 
@@ -73,7 +73,7 @@ mod test {
                 &file_str,
             ])
             .assert()
-            .success()
+            .failure()
             .stdout(predicate::str::contains(
                 "Unexpected tags: apic, tcom, tenc, txxx",
             ))

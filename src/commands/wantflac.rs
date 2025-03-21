@@ -7,7 +7,7 @@ use camino::{Utf8Path, Utf8PathBuf};
 use pathdiff::diff_utf8_paths;
 use std::collections::BTreeSet;
 
-pub fn run(root: &Utf8PathBuf, tracks: bool, opts: &GlobalOpts) -> anyhow::Result<()> {
+pub fn run(root: &Utf8PathBuf, tracks: bool, opts: &GlobalOpts) -> anyhow::Result<bool> {
     let root = root.canonicalize_utf8()?;
 
     let config = config::load_config(&opts.config)?;
@@ -28,7 +28,7 @@ pub fn run(root: &Utf8PathBuf, tracks: bool, opts: &GlobalOpts) -> anyhow::Resul
     };
 
     print_output(wants_list);
-    Ok(())
+    Ok(true)
 }
 
 fn filter_by_top_level(list: WantsList, config_list: Option<&WantsList>) -> WantsList {

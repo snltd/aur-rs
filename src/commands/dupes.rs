@@ -9,12 +9,10 @@ type Dupes = Vec<Vec<Utf8PathBuf>>;
 
 static NO_LEADING_NUMBER: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\d\d\.(.*)$").unwrap());
 
-pub fn run(root_dir: &Utf8PathBuf) -> anyhow::Result<()> {
-    dupes_under(root_dir)?
-        .iter()
-        .for_each(|d| println!("{}", format_dupes(d)));
-
-    Ok(())
+pub fn run(root_dir: &Utf8PathBuf) -> anyhow::Result<bool> {
+    let dupes = dupes_under(root_dir)?;
+    dupes.iter().for_each(|d| println!("{}", format_dupes(d)));
+    Ok(dupes.is_empty())
 }
 
 fn format_dupes(dupe_cluster: &[Utf8PathBuf]) -> String {

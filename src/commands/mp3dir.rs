@@ -8,7 +8,7 @@ pub fn run(
     dirlist: &[Utf8PathBuf],
     cmd_opts: &Mp3dirOpts,
     opts: &GlobalOpts,
-) -> anyhow::Result<()> {
+) -> anyhow::Result<bool> {
     let cmds = transcode_cmds()?;
     let root = cmd_opts.root.canonicalize_utf8()?;
 
@@ -18,7 +18,7 @@ pub fn run(
         mp3dir(&dir.canonicalize_utf8()?, &cmds, cmd_opts, opts)?;
     }
 
-    Ok(())
+    Ok(true)
 }
 
 fn mp3dir(

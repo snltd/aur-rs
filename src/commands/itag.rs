@@ -10,16 +10,18 @@ use anyhow::Context;
 use camino::{Utf8Path, Utf8PathBuf};
 use std::io::{self, Write};
 
-pub fn run(files: &[Utf8PathBuf], tag: &str, opts: &GlobalOpts) -> anyhow::Result<()> {
+pub fn run(files: &[Utf8PathBuf], tag: &str, opts: &GlobalOpts) -> anyhow::Result<bool> {
     let config = load_config(&opts.config)?;
     let words = Words::new(&config);
     let validator = TagValidator::new(&words, config.get_genres());
+    let mut ret = true;
 
     for f in media_files(&pathbuf_set(files)) {
         let value = read_value(&f, tag)?;
 
         if !validator.validate_tag(tag, value.as_str())? {
             eprintln!("ERROR: '{}' is not a valid {} value", value, tag);
+            ret = false;
             continue;
         }
 
@@ -28,7 +30,7 @@ pub fn run(files: &[Utf8PathBuf], tag: &str, opts: &GlobalOpts) -> anyhow::Resul
         }
     }
 
-    Ok(())
+    Ok(ret)
 }
 
 fn read_value(file: &Utf8Path, tag: &str) -> anyhow::Result<String> {

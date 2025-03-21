@@ -2,7 +2,7 @@ use crate::utils::dir::{media_files, pathbuf_set};
 use crate::utils::metadata::AurMetadata;
 use camino::{Utf8Path, Utf8PathBuf};
 
-pub fn run(files: &[Utf8PathBuf]) -> anyhow::Result<()> {
+pub fn run(files: &[Utf8PathBuf]) -> anyhow::Result<bool> {
     let mut info_list: Vec<Vec<String>> = Vec::new();
 
     for f in media_files(&pathbuf_set(files)) {
@@ -10,7 +10,7 @@ pub fn run(files: &[Utf8PathBuf]) -> anyhow::Result<()> {
     }
 
     info_list.iter().for_each(|info| print_file_info(info));
-    Ok(())
+    Ok(true)
 }
 
 fn info_for_file(file: &Utf8Path) -> anyhow::Result<Vec<String>> {

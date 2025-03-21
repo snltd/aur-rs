@@ -62,19 +62,22 @@ impl LintError {
     }
 }
 
-pub fn run(files: &[Utf8PathBuf], recurse: bool, opts: &GlobalOpts) -> anyhow::Result<()> {
+pub fn run(files: &[Utf8PathBuf], recurse: bool, opts: &GlobalOpts) -> anyhow::Result<bool> {
     let config = load_config(&opts.config)?;
     let words = Words::new(&config);
     let validator = TagValidator::new(&words, config.get_genres());
+    let mut ret = true;
 
     for f in media_files(&expand_file_list(files, recurse)?) {
         let results = filter_results(&f, lint_file(&f, &validator, opts)?, &config);
         let problems: Vec<_> = results.iter().filter_map(Some).collect();
         if !problems.is_empty() {
+            ret = false;
             display_problems(&f, &problems);
         }
     }
-    Ok(())
+
+    Ok(ret)
 }
 
 fn is_file_excluded(file: &Utf8Path, list: Option<&HashSet<String>>) -> bool {

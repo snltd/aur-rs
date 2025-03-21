@@ -12,20 +12,32 @@ struct Cmds {
     mp3val: Utf8PathBuf,
 }
 
-pub fn run(files: &[Utf8PathBuf], recurse: bool, opts: &GlobalOpts) -> anyhow::Result<()> {
+pub fn run(files: &[Utf8PathBuf], recurse: bool, opts: &GlobalOpts) -> anyhow::Result<bool> {
     let cmds = Cmds {
         flac: find_binary("flac")?,
         mp3val: find_binary("mp3val")?,
     };
 
+    use std::sync::atomic::{AtomicBool, Ordering};
+
+    let ret = AtomicBool::new(true);
+
     media_files(&expand_file_list(files, recurse)?)
         .par_iter()
         .for_each(|f| match verify_file(f, &cmds) {
-            Ok(result) => display_result(f, result, opts),
-            Err(e) => eprintln!("Error processing {}: {}", f, e),
+            Ok(result) => {
+                display_result(f, result, opts);
+                if !result {
+                    ret.store(false, Ordering::Relaxed);
+                }
+            }
+            Err(e) => {
+                eprintln!("Error processing {}: {}", f, e);
+                ret.store(false, Ordering::Relaxed);
+            }
         });
 
-    Ok(())
+    Ok(ret.load(Ordering::Relaxed))
 }
 
 fn display_result(file: &Utf8Path, result: bool, opts: &GlobalOpts) {

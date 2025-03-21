@@ -4,7 +4,7 @@ use anyhow::ensure;
 use camino::{Utf8Path, Utf8PathBuf};
 use std::process::Command;
 
-pub fn run(files: &[Utf8PathBuf]) -> anyhow::Result<()> {
+pub fn run(files: &[Utf8PathBuf]) -> anyhow::Result<bool> {
     let shnsplit = find_binary("shnsplit")?;
 
     for f in &pathbuf_set(files) {
@@ -12,7 +12,7 @@ pub fn run(files: &[Utf8PathBuf]) -> anyhow::Result<()> {
         split_file(f, &shnsplit)?;
     }
 
-    Ok(())
+    Ok(true)
 }
 
 fn split_file(file: &Utf8Path, shnsplit: &Utf8Path) -> anyhow::Result<bool> {

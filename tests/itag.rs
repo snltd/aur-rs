@@ -143,7 +143,7 @@ mod test {
             .args(["itag", "t_num", &file_under_test])
             .write_stdin("merp")
             .assert()
-            .success()
+            .failure()
             .stdout("01.original_artist.original_title.flac [t_num]> ")
             .stderr("ERROR: 'merp' is not a valid t_num value\n");
     }
