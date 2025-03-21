@@ -1,62 +1,48 @@
-mod common;
-
 #[cfg(test)]
 mod test {
-    use super::common;
+    use assert_cmd::Command;
     use aur::test_utils::spec_helper::fixture_as_string;
+    use predicates::prelude::*;
 
     #[test]
     #[ignore]
     fn test_verify_command_valid_tree() {
         let dir_under_test = fixture_as_string("commands/verify");
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["verify", "-r", &dir_under_test])
-            .succeeds()
-            .and()
-            .stdout()
-            .contains("04.tester.truncated.mp3")
-            .and()
-            .stdout()
-            .contains("02.tester.truncated.flac")
-            .and()
-            .stdout()
-            .contains("06.tester.junk.mp3")
-            .and()
-            .stdout()
-            .contains("05.tester.junk.flac")
-            .and()
-            .stdout()
-            .doesnt_contain("OK")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["verify", "-r", &dir_under_test])
+            .assert()
+            .success()
+            .stdout(predicate::str::contains("04.tester.truncated.mp3"))
+            .stdout(predicate::str::contains("02.tester.truncated.flac"))
+            .stdout(predicate::str::contains("06.tester.junk.mp3"))
+            .stdout(predicate::str::contains("05.tester.junk.flac"))
+            .stdout(predicate::str::contains("OK").not());
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["verify", "-r", "-v", &dir_under_test])
-            .succeeds()
-            .and()
-            .stdout()
-            .contains("04.tester.truncated.mp3")
-            .and()
-            .stdout()
-            .contains("02.tester.truncated.flac")
-            .and()
-            .stdout()
-            .contains("06.tester.junk.mp3")
-            .and()
-            .stdout()
-            .contains("05.tester.junk.flac")
-            .and()
-            .stdout()
-            .contains("OK")
-            .and()
-            .stdout()
-            .contains("01.tester.valid.flac")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["verify", "-r", "-v", &dir_under_test])
+            .assert()
+            .success()
+            .stdout(predicate::str::contains("04.tester.truncated.mp3"))
+            .stdout(predicate::str::contains("02.tester.truncated.flac"))
+            .stdout(predicate::str::contains("06.tester.junk.mp3"))
+            .stdout(predicate::str::contains("05.tester.junk.flac"))
+            .stdout(predicate::str::contains("OK"))
+            .stdout(predicate::str::contains("01.tester.valid.flac"));
     }
 
     #[test]
     #[ignore]
-    fn test_inumber_incorrect_usage() {
-        common::missing_file_args_test("verify");
+    fn test_verify_incorrect_usage() {
+        Command::cargo_bin("aur")
+            .unwrap()
+            .arg("verify")
+            .assert()
+            .failure()
+            .stderr(predicate::str::contains(
+                "the following required arguments were not provided",
+            ));
     }
 }

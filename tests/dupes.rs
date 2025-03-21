@@ -1,10 +1,9 @@
-mod common;
-
 #[cfg(test)]
 mod test {
-    use super::common;
+    use assert_cmd::Command;
     use assert_fs::prelude::*;
     use aur::test_utils::spec_helper::fixture;
+    use predicates::prelude::*;
 
     #[test]
     #[ignore]
@@ -14,33 +13,38 @@ mod test {
             .unwrap();
         let file_under_test = tmp.path().join("flac");
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["dupes", &file_under_test.to_string_lossy()])
-            .succeeds()
-            .and()
-            .stdout()
-            .contains("flac/tracks/fall.free_ranger.flac")
-            .and()
-            .stdout()
-            .contains("flac/tracks/slint.don_aman.flac")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["dupes", &file_under_test.to_string_lossy()])
+            .assert()
+            .success()
+            .stdout(predicate::str::contains(
+                "flac/tracks/fall.free_ranger.flac",
+            ))
+            .stdout(predicate::str::contains("flac/tracks/slint.don_aman.flac"));
     }
 
     #[test]
     #[ignore]
     fn test_dupes_command_invalid_tree() {
-        assert_cli::Assert::main_binary()
-            .with_args(&["dupes", "/tmp"])
-            .fails()
-            .and()
-            .stderr()
-            .is("ERROR: /tmp/tracks not found")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["dupes", "/tmp"])
+            .assert()
+            .failure()
+            .stderr("ERROR: /tmp/tracks not found\n");
     }
 
     #[test]
     #[ignore]
     fn test_dupes_incorrect_usage() {
-        common::missing_file_args_test("dupes");
+        Command::cargo_bin("aur")
+            .unwrap()
+            .arg("dupes")
+            .assert()
+            .failure()
+            .stderr(predicate::str::contains(
+                "the following required arguments were not provided",
+            ));
     }
 }

@@ -1,10 +1,9 @@
-mod common;
-
 #[cfg(test)]
 mod test {
-    use super::common;
+    use assert_cmd::Command;
     use assert_fs::prelude::*;
     use aur::test_utils::spec_helper::{fixture, fixture_as_string};
+    use predicates::prelude::*;
 
     #[test]
     #[ignore]
@@ -16,45 +15,43 @@ mod test {
         let file_under_test = tmp.path().join(file_name);
         let file_str = file_under_test.to_string_lossy();
 
-        assert_cli::Assert::main_binary()
-            .with_args(&[
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args([
                 "lint",
                 "--config",
                 &fixture_as_string("config/test.toml"),
                 &file_str,
             ])
-            .stdout()
-            .contains("Unexpected tags: composer, tempo")
-            .and()
-            .stdout()
-            .contains("File contains embedded artwork")
-            .unwrap();
+            .assert()
+            .success()
+            .stdout(predicate::str::contains("Unexpected tags: composer, tempo"))
+            .stdout(predicate::str::contains("File contains embedded artwork"));
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["strip", &file_str])
-            .stdout()
-            .contains(
-                format!(
-                    "Strip: {} :: composer, encoder, tempo",
-                    file_under_test.display()
-                )
-                .as_str(),
-            )
-            .and()
-            .stdout()
-            .contains(format!("Strip: {} :: embedded artwork", file_under_test.display()).as_str())
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["strip", &file_str])
+            .assert()
+            .success()
+            .stdout(predicate::str::contains(format!(
+                "Strip: {} :: composer, encoder, tempo",
+                file_under_test.display()
+            )))
+            .stdout(predicate::str::contains(
+                format!("Strip: {} :: embedded artwork", file_under_test.display()).as_str(),
+            ));
 
-        assert_cli::Assert::main_binary()
-            .with_args(&[
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args([
                 "lint",
                 "--config",
                 &fixture_as_string("config/test.toml"),
                 &file_str,
             ])
-            .stdout()
-            .is("")
-            .unwrap();
+            .assert()
+            .success()
+            .stdout("");
     }
 
     #[test]
@@ -67,50 +64,58 @@ mod test {
         let file_under_test = tmp.path().join(file_name);
         let file_str = file_under_test.to_string_lossy();
 
-        assert_cli::Assert::main_binary()
-            .with_args(&[
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args([
                 "lint",
                 "--config",
                 &fixture_as_string("config/test.toml"),
                 &file_str,
             ])
-            .stdout()
-            .contains("Unexpected tags: apic, tcom, tenc, txxx")
-            .and()
-            .stdout()
-            .contains("File contains embedded artwork")
-            .unwrap();
+            .assert()
+            .success()
+            .stdout(predicate::str::contains(
+                "Unexpected tags: apic, tcom, tenc, txxx",
+            ))
+            .stdout(predicate::str::contains("File contains embedded artwork"));
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["strip", &file_str])
-            .stdout()
-            .contains(
-                format!(
-                    "Strip: {} :: apic, tcom, tenc, tlen, tsse, txxx",
-                    file_under_test.display()
-                )
-                .as_str(),
-            )
-            .and()
-            .stdout()
-            .contains(format!("Strip: {} :: embedded artwork", file_under_test.display()).as_str())
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["strip", &file_str])
+            .assert()
+            .success()
+            .stdout(predicate::str::contains(format!(
+                "Strip: {} :: apic, tcom, tenc, tlen, tsse, txxx",
+                file_under_test.display()
+            )))
+            .stdout(predicate::str::contains(format!(
+                "Strip: {} :: embedded artwork",
+                file_under_test.display()
+            )));
 
-        assert_cli::Assert::main_binary()
-            .with_args(&[
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args([
                 "lint",
                 "--config",
                 &fixture_as_string("config/test.toml"),
                 &file_str,
             ])
-            .stdout()
-            .is("")
-            .unwrap();
+            .assert()
+            .success()
+            .stdout("");
     }
 
     #[test]
     #[ignore]
     fn test_strip_incorrect_usage() {
-        common::missing_file_args_test("strip");
+        Command::cargo_bin("aur")
+            .unwrap()
+            .arg("strip")
+            .assert()
+            .failure()
+            .stderr(predicate::str::contains(
+                "the following required arguments were not provided",
+            ));
     }
 }

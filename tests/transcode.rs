@@ -1,7 +1,9 @@
 #[cfg(test)]
 mod test {
+    use assert_cmd::Command;
     use assert_fs::prelude::*;
     use aur::test_utils::spec_helper::fixture;
+    use predicates::prelude::*;
 
     #[test]
     #[ignore]
@@ -16,48 +18,49 @@ mod test {
 
         assert!(!expected_file.exists());
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["transcode", "--verbose", "flac", &file_str])
-            .succeeds()
-            .stdout()
-            .is(format!(
-                "{} -> {}",
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["transcode", "--verbose", "flac", &file_str])
+            .assert()
+            .success()
+            .stdout(format!(
+                "{} -> {}\n",
                 file_under_test.display(),
                 expected_file.display(),
-            )
-            .as_str())
-            .unwrap();
+            ));
 
         assert!(expected_file.exists());
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["transcode", "--verbose", "flac", &file_str])
-            .succeeds()
-            .and()
-            .stdout()
-            .is(format!(
-                "target '{}' exists. Use -f to overwrite",
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["transcode", "--verbose", "flac", &file_str])
+            .assert()
+            .success()
+            .stdout(format!(
+                "target '{}' exists. Use -f to overwrite\n",
                 expected_file.display()
-            )
-            .as_str())
-            .unwrap();
+            ));
     }
 
     #[test]
     #[ignore]
     fn test_transcode_incorrect_usage() {
-        assert_cli::Assert::main_binary()
-            .with_args(&["transcode"])
-            .fails()
-            .stderr()
-            .contains("Usage: aur transcode <FORMAT> <FILES>...")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .arg("transcode")
+            .assert()
+            .failure()
+            .stderr(predicate::str::contains(
+                "the following required arguments were not provided",
+            ));
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["transcode", "flac"])
-            .fails()
-            .stderr()
-            .contains("Usage: aur transcode <FORMAT> <FILES>...")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["transcode", "flac"])
+            .assert()
+            .failure()
+            .stderr(predicate::str::contains(
+                "the following required arguments were not provided",
+            ));
     }
 }

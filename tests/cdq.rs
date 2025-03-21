@@ -1,10 +1,9 @@
-mod common;
-
 #[cfg(test)]
 mod test {
-    use super::common;
+    use assert_cmd::Command;
     use assert_fs::prelude::*;
     use aur::test_utils::spec_helper::fixture;
+    use predicates::prelude::*;
 
     #[test]
     #[ignore]
@@ -15,20 +14,26 @@ mod test {
         let file_under_test = tmp.path().join("01.tester.hi-res.flac");
         let cdq_file = tmp.path().join("01.tester.hi-res-cdq.flac");
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["cdq", &file_under_test.to_string_lossy()])
-            .succeeds()
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["cdq", &file_under_test.to_string_lossy()])
+            .assert()
+            .stdout("")
+            .success();
 
         assert!(!cdq_file.exists());
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["get", "bitrate", &file_under_test.to_string_lossy()])
-            .succeeds()
-            .and()
-            .stdout()
-            .contains("16-bit/44100Hz")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args([
+                "get",
+                "--short",
+                "bitrate",
+                &file_under_test.to_string_lossy(),
+            ])
+            .assert()
+            .success()
+            .stdout("16-bit/44100Hz\n");
     }
 
     #[test]
@@ -40,28 +45,32 @@ mod test {
         let file_under_test = tmp.path().join("01.tester.hi-res.flac");
         let cdq_file = tmp.path().join("01.tester.hi-res-cdq.flac");
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["cdq", "-l", &file_under_test.to_string_lossy()])
-            .succeeds()
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["cdq", "-l", &file_under_test.to_string_lossy()])
+            .assert()
+            .success();
 
         assert!(cdq_file.exists());
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["get", "bitrate", &file_under_test.to_string_lossy()])
-            .succeeds()
-            .and()
-            .stdout()
-            .contains("24-bit/96000Hz")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args([
+                "get",
+                "bitrate",
+                "--short",
+                &file_under_test.to_string_lossy(),
+            ])
+            .assert()
+            .success()
+            .stdout("24-bit/96000Hz\n");
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["get", "bitrate", &cdq_file.to_string_lossy()])
-            .succeeds()
-            .and()
-            .stdout()
-            .contains("16-bit/44100Hz")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["get", "-s", "bitrate", &cdq_file.to_string_lossy()])
+            .assert()
+            .success()
+            .stdout("16-bit/44100Hz\n");
     }
 
     #[test]
@@ -72,30 +81,35 @@ mod test {
             .unwrap();
         let file_under_test = tmp.path().join("02.tester.not_a_flac.mp3");
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["cdq", &file_under_test.to_string_lossy()])
-            .fails()
-            .and()
-            .stderr()
-            .is("ERROR: Only FLAC files can be CDQed")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["cdq", &file_under_test.to_string_lossy()])
+            .assert()
+            .failure()
+            .stderr("ERROR: Only FLAC files can be CDQed\n");
     }
 
     #[test]
     #[ignore]
     fn test_cdq_command_missing_file() {
-        assert_cli::Assert::main_binary()
-            .with_args(&["cdq", "up", "2", "/no/such/file.flac"])
-            .fails()
-            .and()
-            .stderr()
-            .is("ERROR: (I/O) : No such file or directory (os error 2)")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["cdq", "up", "2", "/no/such/file.flac"])
+            .assert()
+            .failure()
+            .stderr("ERROR: (I/O) : No such file or directory (os error 2)\n");
     }
 
     #[test]
     #[ignore]
     fn test_cdq_incorrect_usage() {
-        common::missing_file_args_test("cdq");
+        Command::cargo_bin("aur")
+            .unwrap()
+            .arg("cdq")
+            .assert()
+            .failure()
+            .stderr(predicate::str::contains(
+                "the following required arguments were not provided",
+            ));
     }
 }

@@ -1,10 +1,9 @@
-mod common;
-
 #[cfg(test)]
 mod test {
-    use super::common;
+    use assert_cmd::Command;
     use assert_fs::prelude::*;
     use aur::test_utils::spec_helper::{fixture, fixture_as_string};
+    use predicates::prelude::*;
 
     #[test]
     #[ignore]
@@ -15,50 +14,53 @@ mod test {
             .unwrap();
         let file_under_test = tmp.path().join(file_name);
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["name2num", &file_under_test.to_string_lossy()])
-            .succeeds()
-            .and()
-            .stdout()
-            .is("t_num -> 1")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["name2num", &file_under_test.to_string_lossy()])
+            .assert()
+            .success()
+            .stdout("           t_num -> 1\n");
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["name2num", &file_under_test.to_string_lossy()])
-            .succeeds()
-            .and()
-            .stdout()
-            .is("")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["name2num", &file_under_test.to_string_lossy()])
+            .assert()
+            .success()
+            .stdout("");
     }
 
     #[test]
     #[ignore]
     fn test_name2num_command_bad_file() {
-        assert_cli::Assert::main_binary()
-            .with_args(&["name2num", &fixture_as_string("info/bad_file.flac")])
-            .fails()
-            .and()
-            .stderr()
-            .is("ERROR: InvalidInput: reader does not contain flac metadata")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["name2num", &fixture_as_string("info/bad_file.flac")])
+            .assert()
+            .failure()
+            .stderr("ERROR: InvalidInput: reader does not contain flac metadata\n");
     }
 
     #[test]
     #[ignore]
     fn test_name2num_command_missing_file() {
-        assert_cli::Assert::main_binary()
-            .with_args(&["name2num", "/no/such/file.flac"])
-            .fails()
-            .and()
-            .stderr()
-            .is("ERROR: (I/O) : No such file or directory (os error 2)")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["name2num", "/no/such/file.flac"])
+            .assert()
+            .failure()
+            .stderr("ERROR: (I/O) : No such file or directory (os error 2)\n");
     }
 
     #[test]
     #[ignore]
     fn test_name2num_incorrect_usage() {
-        common::missing_file_args_test("name2num");
+        Command::cargo_bin("aur")
+            .unwrap()
+            .arg("name2num")
+            .assert()
+            .failure()
+            .stderr(predicate::str::contains(
+                "the following required arguments were not provided",
+            ));
     }
 }

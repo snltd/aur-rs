@@ -1,10 +1,9 @@
-mod common;
-
 #[cfg(test)]
 mod test {
-    use super::common;
+    use assert_cmd::Command;
     use assert_fs::prelude::*;
     use aur::test_utils::spec_helper::fixture;
+    use predicates::prelude::*;
 
     #[ignore]
     #[test]
@@ -19,38 +18,32 @@ mod test {
         assert!(dir_under_test.join("some_file.JPEG").exists());
         assert!(!dir_under_test.join("front.jpg").exists());
 
-        assert_cli::Assert::main_binary()
-            .with_args(&[
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args([
                 "artfix",
                 "-d",
                 &linkdir.to_string_lossy(),
                 &dir_under_test.to_string_lossy(),
             ])
-            .succeeds()
-            .and()
-            .stdout()
-            .contains(
-                format!(
-                    "Rename: {dir}/some_file.JPEG -> front.jpg",
-                    dir = dir_under_test.display()
-                )
-                .as_str(),
-            )
-            .unwrap();
+            .assert()
+            .success()
+            .stdout(predicate::str::contains(format!(
+                "Rename: {dir}/some_file.JPEG -> front.jpg",
+                dir = dir_under_test.display()
+            )));
 
         assert!(!dir_under_test.join("some_file.JPEG").exists());
         assert!(dir_under_test.join("front.jpg").exists());
 
-        assert_cli::Assert::command(&["ls", "-l", &linkdir.to_string_lossy()])
-            .stdout()
-            .contains(
-                format!(
-                    "-tester.all_wrong-front.jpg -> {}/front.jpg",
-                    dir_under_test.to_string_lossy()
-                )
-                .as_str(),
-            )
-            .unwrap()
+        Command::new("ls")
+            .args(["-l", &linkdir.to_string_lossy()])
+            .assert()
+            .success()
+            .stdout(predicate::str::contains(format!(
+                "-tester.all_wrong-front.jpg -> {}/front.jpg",
+                dir_under_test.to_string_lossy()
+            )));
     }
 
     #[ignore]
@@ -61,26 +54,34 @@ mod test {
             .unwrap();
         let dir_under_test = tmp.join("tester.too_big");
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["artfix", &dir_under_test.to_string_lossy()])
-            .succeeds()
-            .and()
-            .stdout()
-            .contains(format!("Resize: {}/front.jpg -> 750x750", dir_under_test.display()).as_str())
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["artfix", &dir_under_test.to_string_lossy()])
+            .assert()
+            .success()
+            .stdout(predicate::str::contains(format!(
+                "Resize: {}/front.jpg -> 750x750",
+                dir_under_test.display()
+            )));
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["artfix", &dir_under_test.to_string_lossy()])
-            .succeeds()
-            .and()
-            .stdout()
-            .is("")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["artfix", &dir_under_test.to_string_lossy()])
+            .assert()
+            .success()
+            .stdout("");
     }
 
-    #[ignore]
     #[test]
+    #[ignore]
     fn test_artfix_incorrect_usage() {
-        common::missing_file_args_test("artfix");
+        Command::cargo_bin("aur")
+            .unwrap()
+            .arg("artfix")
+            .assert()
+            .failure()
+            .stderr(predicate::str::contains(
+                "the following required arguments were not provided",
+            ));
     }
 }

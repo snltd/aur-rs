@@ -1,10 +1,9 @@
-mod common;
-
 #[cfg(test)]
 mod test {
-    use super::common;
+    use assert_cmd::Command;
     use assert_fs::prelude::*;
     use aur::test_utils::spec_helper::{fixture, fixture_as_string};
+    use predicates::prelude::*;
 
     #[test]
     #[ignore]
@@ -15,66 +14,65 @@ mod test {
         tmp.child("test.artist.test_album")
             .create_dir_all()
             .unwrap();
+
         let target = tmp.child("test_artist.test_album");
+
         target
             .copy_from(fixture("commands/name2tag"), &[file_name])
             .unwrap();
 
         let file_under_test = target.path().join(file_name);
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["name2tag", &file_under_test.to_string_lossy()])
-            .succeeds()
-            .and()
-            .stdout()
-            .contains("t_num -> 1")
-            .and()
-            .stdout()
-            .contains("artist -> Test Artist")
-            .and()
-            .stdout()
-            .contains("album -> Test Album")
-            .and()
-            .stdout()
-            .contains("title -> Untagged Song")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["name2tag", &file_under_test.to_string_lossy()])
+            .assert()
+            .success()
+            .stdout(predicate::str::contains("t_num -> 1"))
+            .stdout(predicate::str::contains("artist -> Test Artist"))
+            .stdout(predicate::str::contains("album -> Test Album"))
+            .stdout(predicate::str::contains("title -> Untagged Song"));
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["name2tag", &file_under_test.to_string_lossy()])
-            .succeeds()
-            .and()
-            .stdout()
-            .is("")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["name2tag", &file_under_test.to_string_lossy()])
+            .assert()
+            .success()
+            .stdout("");
     }
 
     #[test]
     #[ignore]
     fn test_name2tag_command_bad_file() {
-        assert_cli::Assert::main_binary()
-            .with_args(&["name2tag", &fixture_as_string("info/bad_file.flac")])
-            .fails()
-            .and()
-            .stderr()
-            .is("ERROR: InvalidInput: reader does not contain flac metadata")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["name2tag", &fixture_as_string("info/bad_file.flac")])
+            .assert()
+            .failure()
+            .stderr("ERROR: InvalidInput: reader does not contain flac metadata\n");
     }
 
     #[test]
     #[ignore]
     fn test_name2tag_command_missing_file() {
-        assert_cli::Assert::main_binary()
-            .with_args(&["name2tag", "/no/such/file.flac"])
-            .fails()
-            .and()
-            .stderr()
-            .is("ERROR: (I/O) : No such file or directory (os error 2)")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["name2tag", "/no/such/file.flac"])
+            .assert()
+            .failure()
+            .stderr("ERROR: (I/O) : No such file or directory (os error 2)\n");
     }
 
     #[test]
     #[ignore]
     fn test_name2tag_incorrect_usage() {
-        common::missing_file_args_test("name2tag");
+        Command::cargo_bin("aur")
+            .unwrap()
+            .arg("name2tag")
+            .assert()
+            .failure()
+            .stderr(predicate::str::contains(
+                "the following required arguments were not provided",
+            ));
     }
 }

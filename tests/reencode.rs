@@ -1,10 +1,9 @@
-mod common;
-
 #[cfg(test)]
 mod test {
-    use super::common;
+    use assert_cmd::Command;
     use assert_fs::prelude::*;
     use aur::test_utils::spec_helper::fixture;
+    use predicates::prelude::*;
     use std::fs;
 
     #[test]
@@ -20,11 +19,12 @@ mod test {
 
         assert!(!expected_file.exists());
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["reencode", "-k", &file_str])
-            .stdout()
-            .is(file_under_test.display().to_string().as_str())
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["reencode", "-k", &file_str])
+            .assert()
+            .success()
+            .stdout(format!("{}\n", file_under_test.to_string_lossy()));
 
         assert!(file_under_test.exists());
         assert!(expected_file.exists());
@@ -44,23 +44,26 @@ mod test {
         assert!(!intermediate_file.exists());
         let original_size = fs::metadata(&file_under_test).unwrap().len();
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["get", "-s", "bitrate", &file_str])
-            .stdout()
-            .is("320kbps")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["get", "-s", "bitrate", &file_str])
+            .assert()
+            .success()
+            .stdout("320kbps\n");
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["reencode", &file_str])
-            .stdout()
-            .is(file_under_test.display().to_string().as_str())
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["reencode", &file_str])
+            .assert()
+            .success()
+            .stdout(format!("{}\n", file_under_test.to_string_lossy()));
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["get", "-s", "bitrate", &file_str])
-            .stdout()
-            .is("128kbps")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["get", "-s", "bitrate", &file_str])
+            .assert()
+            .success()
+            .stdout("128kbps\n");
 
         let new_size = fs::metadata(&file_under_test).unwrap().len();
 
@@ -72,6 +75,13 @@ mod test {
     #[test]
     #[ignore]
     fn test_reencode_incorrect_usage() {
-        common::missing_file_args_test("reencode");
+        Command::cargo_bin("aur")
+            .unwrap()
+            .arg("reencode")
+            .assert()
+            .failure()
+            .stderr(predicate::str::contains(
+                "the following required arguments were not provided",
+            ));
     }
 }

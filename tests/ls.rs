@@ -1,55 +1,48 @@
 #[cfg(test)]
 mod test {
+    use assert_cmd::Command;
     use aur::test_utils::spec_helper::{fixture_as_string, sample_output};
 
     #[test]
     #[ignore]
     fn test_ls_command() {
-        assert_cli::Assert::main_binary()
-            .with_args(&["ls", &fixture_as_string("commands/ls")])
-            .succeeds()
-            .and()
-            .stdout()
-            .is(sample_output("commands/ls/ls.txt").as_str())
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["ls", &fixture_as_string("commands/ls")])
+            .assert()
+            .success()
+            .stdout(sample_output("commands/ls/ls.txt"));
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["ls"])
+        Command::cargo_bin("aur")
+            .unwrap()
+            .arg("ls")
             .current_dir(fixture_as_string("commands/ls"))
-            .succeeds()
-            .and()
-            .stdout()
-            .is(sample_output("commands/ls/ls.txt").as_str())
-            .unwrap();
+            .assert()
+            .success()
+            .stdout(sample_output("commands/ls/ls.txt"));
     }
 
     #[test]
     #[ignore]
     fn test_ls_command_no_media() {
-        assert_cli::Assert::main_binary()
-            .with_args(&["ls", "/"])
-            .succeeds()
-            .and()
-            .stdout()
-            .is("")
-            .and()
-            .stderr()
-            .is("")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["ls", "/"])
+            .assert()
+            .success()
+            .stdout("\n")
+            .stderr("");
     }
 
     #[test]
     #[ignore]
     fn test_ls_command_no_dir() {
-        assert_cli::Assert::main_binary()
-            .with_args(&["ls", "/no/such/directory"])
-            .fails()
-            .and()
-            .stdout()
-            .is("")
-            .and()
-            .stderr()
-            .is("ERROR: (I/O) : No such file or directory (os error 2)")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["ls", "/no/such/directory"])
+            .assert()
+            .failure()
+            .stdout("")
+            .stderr("ERROR: (I/O) : No such file or directory (os error 2)\n");
     }
 }
