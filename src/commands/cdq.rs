@@ -4,12 +4,12 @@ use crate::utils::metadata::AurMetadata;
 use crate::utils::string::ReplaceLast;
 use crate::utils::types::GlobalOpts;
 use crate::verbose;
-use anyhow::anyhow;
+use anyhow::ensure;
+use camino::{Utf8Path, Utf8PathBuf};
 use std::fs::rename;
-use std::path::Path;
 use std::process::Command;
 
-pub fn run(files: &[String], leave_originals: bool, opts: &GlobalOpts) -> anyhow::Result<()> {
+pub fn run(files: &[Utf8PathBuf], leave_originals: bool, opts: &GlobalOpts) -> anyhow::Result<()> {
     let ffmpeg = find_binary("ffmpeg")?;
 
     for f in media_files(&pathbuf_set(files)) {
@@ -20,26 +20,24 @@ pub fn run(files: &[String], leave_originals: bool, opts: &GlobalOpts) -> anyhow
 }
 
 fn reencode_file(
-    file: &Path,
+    file: &Utf8Path,
     leave_original: bool,
-    ffmpeg: &Path,
+    ffmpeg: &Utf8Path,
     opts: &GlobalOpts,
 ) -> anyhow::Result<bool> {
     let info = AurMetadata::new(file)?;
 
-    if info.filetype != "flac" {
-        return Err(anyhow!("Only FLAC files can be CDQed"));
-    }
+    ensure!(info.filetype == "flac", "Only FLAC files can be CDQed");
 
     if info.quality.bit_depth == 16 && info.quality.sample_rate == 44100 {
-        verbose!(opts, "{}: already 16/44100", file.display());
+        verbose!(opts, "{}: already 16/44100", file);
         return Ok(false);
     }
 
     let work_dir = file.parent().unwrap();
     let output_file = work_dir.join(cdq_name(&info.filename));
 
-    verbose!(opts, "{} -> {}", file.display(), output_file.display());
+    verbose!(opts, "{} -> {}", file, output_file);
 
     Command::new(ffmpeg)
         .arg("-hide_banner")
@@ -67,7 +65,7 @@ fn cdq_name(original_name: &str) -> String {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::spec_helper::{defopts, fixture};
+    use crate::test_utils::spec_helper::{defopts, fixture, TempDirExt};
     use assert_fs::prelude::*;
 
     #[test]
@@ -83,8 +81,8 @@ mod test {
         let tmp = assert_fs::TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/cdq"), &[file_name])
             .unwrap();
-        let file_under_test = tmp.path().join(file_name);
-        let cdq_file = tmp.path().join("01.tester.hi-res-cdq.flac");
+        let file_under_test = tmp.utf8_path().join(file_name);
+        let cdq_file = tmp.utf8_path().join("01.tester.hi-res-cdq.flac");
         let original_info = AurMetadata::new(&file_under_test).unwrap();
         assert_eq!("24-bit/96000Hz", original_info.quality.formatted);
         assert!(reencode_file(&file_under_test, leave_original, &ffmpeg, &defopts()).unwrap());
@@ -102,8 +100,8 @@ mod test {
         let tmp = assert_fs::TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/cdq"), &[file_name])
             .unwrap();
-        let file_under_test = tmp.path().join(file_name);
-        let cdq_file = tmp.path().join("01.tester.hi-res-cdq.flac");
+        let file_under_test = tmp.utf8_path().join(file_name);
+        let cdq_file = tmp.utf8_path().join("01.tester.hi-res-cdq.flac");
         let original_info = AurMetadata::new(&file_under_test).unwrap();
         assert_eq!("24-bit/96000Hz", original_info.quality.formatted);
         assert!(reencode_file(&file_under_test, leave_original, &ffmpeg, &defopts()).unwrap());
@@ -123,7 +121,7 @@ mod test {
         let tmp = assert_fs::TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/cdq"), &[file_name])
             .unwrap();
-        let file_under_test = tmp.path().join(file_name);
+        let file_under_test = tmp.utf8_path().join(file_name);
         assert!(reencode_file(&file_under_test, true, &ffmpeg, &defopts()).is_err());
     }
 }

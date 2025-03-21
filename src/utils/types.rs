@@ -1,6 +1,6 @@
+use camino::Utf8PathBuf;
 use clap::ValueEnum;
 use std::collections::{BTreeSet, HashSet};
-use std::path::PathBuf;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
 pub enum RenumberDirection {
@@ -19,7 +19,7 @@ pub struct TranscodeOptions {
 }
 
 pub struct GlobalOpts {
-    pub config: PathBuf,
+    pub config: Utf8PathBuf,
     pub noop: bool,
     pub quiet: bool,
     pub verbose: bool,
@@ -29,11 +29,11 @@ pub struct Mp3dirOpts {
     pub bitrate: String,
     pub force: bool,
     pub recurse: bool,
-    pub root: PathBuf,
+    pub root: Utf8PathBuf,
     pub suffix: bool,
 }
 
 pub type WantsList = BTreeSet<String>;
-pub type RenameAction = (PathBuf, PathBuf);
+pub type RenameAction = (Utf8PathBuf, Utf8PathBuf);
 pub type RenameOption = Option<RenameAction>;
 pub type Genres = HashSet<String>;

@@ -17,6 +17,7 @@ impl<'a> Retitler<'a> {
 
     pub fn retitle(&self, old_title: &str) -> String {
         let old_title = old_title.replace(" & ", " and ");
+        let old_title = old_title.replace("’", "'");
         let mut words: Vec<_> = old_title.split_whitespace().collect();
         words.splice(0..0, [PLACEHOLDER]);
         words.push(PLACEHOLDER);
@@ -79,16 +80,25 @@ impl<'a> Retitler<'a> {
     fn start_with_nonword(&self, word: &str) -> String {
         let mut chars = word.chars();
         let mut nonword_prefix = String::new();
+        let mut last_char = 'x';
 
         for c in chars.by_ref() {
             if c.is_alphanumeric() {
-                nonword_prefix.push(c.to_ascii_uppercase()); // change
+                if last_char == '(' {
+                    nonword_prefix.push(c.to_ascii_uppercase());
+                } else {
+                    nonword_prefix.push(c);
+                }
                 break;
+            } else {
+                nonword_prefix.push(c);
             }
-            nonword_prefix.push(c);
+
+            last_char = c;
         }
 
         let rest: String = chars.collect();
+
         format!(
             "{}{}",
             nonword_prefix,
@@ -152,7 +162,8 @@ impl<'a> Retitler<'a> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::spec_helper::sample_config;
+    use crate::test_utils::spec_helper::sample_config;
+
     #[test]
     fn test_retitle() {
         let words = Words::new(&sample_config());
@@ -205,6 +216,10 @@ mod test {
         assert_eq!(
             "Amiri Baraka feat. DJ Spooky",
             rt.retitle("Amiri bARAKA FEAT. DJ Spooky")
+        );
+        assert_eq!(
+            "Black Bunny (I'm Not Vince Taylor)",
+            rt.retitle("Black bUNNY (I'm Not Vince Taylor)")
         );
     }
 }

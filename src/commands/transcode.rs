@@ -2,12 +2,12 @@ use crate::utils::dir::pathbuf_set;
 use crate::utils::external::find_binary;
 use crate::utils::types::{GlobalOpts, TranscodeOptions};
 use crate::verbose;
+use camino::{Utf8Path, Utf8PathBuf};
 use std::fs;
-use std::path::Path;
 use std::process::Command;
 
 pub fn run(
-    files: &[String],
+    files: &[Utf8PathBuf],
     format: &str,
     cmd_opts: &TranscodeOptions,
     opts: &GlobalOpts,
@@ -22,24 +22,20 @@ pub fn run(
 }
 
 fn transcode_file(
-    file: &Path,
+    file: &Utf8Path,
     format: &str,
     cmd_opts: &TranscodeOptions,
     opts: &GlobalOpts,
-    ffmpeg: &Path,
+    ffmpeg: &Utf8Path,
 ) -> anyhow::Result<bool> {
     let target_file = file.with_extension(format);
 
     if target_file.exists() && !cmd_opts.force {
-        verbose!(
-            opts,
-            "target '{}' exists. Use -f to overwrite",
-            target_file.display()
-        );
+        verbose!(opts, "target '{}' exists. Use -f to overwrite", target_file);
         return Ok(false);
     }
 
-    println!("{} -> {}", file.display(), target_file.display());
+    println!("{} -> {}", file, target_file);
 
     let result = Command::new(ffmpeg)
         .arg("-hide_banner")
@@ -52,7 +48,7 @@ fn transcode_file(
         .status()?;
 
     if cmd_opts.remove_originals {
-        verbose!(opts, "Removing {}", file.display());
+        verbose!(opts, "Removing {}", file);
         fs::remove_file(file)?;
     }
 

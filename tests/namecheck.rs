@@ -1,9 +1,8 @@
-mod common;
-
 #[cfg(test)]
 mod test {
-    use super::common;
+    use assert_cmd::Command;
     use aur::test_utils::spec_helper::fixture_as_string;
+    use predicates::prelude::*;
 
     #[test]
     #[ignore]
@@ -11,33 +10,36 @@ mod test {
         // this test is rubbish. make it better
         let dir_under_test = fixture_as_string("commands/namecheck");
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["namecheck", &dir_under_test])
-            .succeeds()
-            .and()
-            .stdout()
-            .contains("Artist")
-            .and()
-            .stdout()
-            .contains("The B-52's")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["namecheck", &dir_under_test])
+            .assert()
+            .success()
+            .stdout(predicate::str::contains("Artist"))
+            .stdout(predicate::str::contains("The B-52's"));
     }
 
     #[test]
     #[ignore]
     fn test_namecheck_command_invalid_tree() {
-        assert_cli::Assert::main_binary()
-            .with_args(&["namecheck", "/no/such/dir"])
-            .fails()
-            .and()
-            .stderr()
-            .is("ERROR: No files found")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["namecheck", "/no/such/dir"])
+            .assert()
+            .failure()
+            .stderr("ERROR: No files found\n");
     }
 
     #[test]
     #[ignore]
     fn test_namecheck_incorrect_usage() {
-        common::missing_file_args_test("namecheck");
+        Command::cargo_bin("aur")
+            .unwrap()
+            .arg("namecheck")
+            .assert()
+            .failure()
+            .stderr(predicate::str::contains(
+                "the following required arguments were not provided",
+            ));
     }
 }

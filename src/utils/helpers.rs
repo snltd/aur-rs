@@ -1,17 +1,12 @@
-use anyhow::anyhow;
-use std::path::Path;
+use anyhow::ensure;
+use camino::Utf8Path;
 
-pub fn check_hierarchy(root: &Path) -> anyhow::Result<()> {
+pub fn check_hierarchy(root: &Utf8Path) -> anyhow::Result<()> {
     let mp3_root = root.join("mp3");
     let flac_root = root.join("flac");
 
-    if !mp3_root.exists() {
-        return Err(anyhow!(format!("did not find {}", mp3_root.display())));
-    }
-
-    if !flac_root.exists() {
-        return Err(anyhow!(format!("did not find {}", flac_root.display())));
-    }
+    ensure!(mp3_root.exists(), format!("did not find {}", mp3_root));
+    ensure!(flac_root.exists(), format!("did not find {}", flac_root));
 
     Ok(())
 }

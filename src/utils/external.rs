@@ -1,9 +1,9 @@
 use anyhow::anyhow;
-use std::path::PathBuf;
+use camino::Utf8PathBuf;
 
-pub fn find_binary(name: &str) -> anyhow::Result<PathBuf> {
+pub fn find_binary(name: &str) -> anyhow::Result<Utf8PathBuf> {
     for dir in ["/opt/ooce/bin", "/usr/bin", "/home/rob/bin/SunOS"] {
-        let d = PathBuf::from(dir);
+        let d = Utf8PathBuf::from(dir);
         let candidate = d.join(name);
 
         if candidate.exists() {

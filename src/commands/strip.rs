@@ -2,10 +2,10 @@ use crate::utils::dir::{media_files, pathbuf_set};
 use crate::utils::metadata::expected_tags;
 use crate::utils::metadata::AurMetadata;
 use crate::utils::tagger::Tagger;
+use camino::{Utf8Path, Utf8PathBuf};
 use std::collections::HashSet;
-use std::path::Path;
 
-pub fn run(files: &[String]) -> anyhow::Result<()> {
+pub fn run(files: &[Utf8PathBuf]) -> anyhow::Result<()> {
     for f in media_files(&pathbuf_set(files)) {
         strip_file(&f)?;
     }
@@ -13,7 +13,7 @@ pub fn run(files: &[String]) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn strip_file(file: &Path) -> anyhow::Result<bool> {
+fn strip_file(file: &Utf8Path) -> anyhow::Result<bool> {
     let info = AurMetadata::new(file)?;
     let tagger = Tagger::new(&info)?;
     remove_artwork(&info, &tagger)?;
@@ -28,7 +28,7 @@ fn remove_tags(info: &AurMetadata, tagger: &Tagger) -> anyhow::Result<bool> {
 
     println!(
         "Strip: {} :: {}",
-        info.path.display(),
+        info.path,
         to_remove
             .iter()
             .map(|s| s.as_str())
@@ -41,7 +41,7 @@ fn remove_tags(info: &AurMetadata, tagger: &Tagger) -> anyhow::Result<bool> {
 
 fn remove_artwork(info: &AurMetadata, tagger: &Tagger) -> anyhow::Result<bool> {
     if info.has_picture {
-        println!("Strip: {} :: embedded artwork", info.path.display());
+        println!("Strip: {} :: embedded artwork", info.path);
         tagger.remove_artwork()
     } else {
         Ok(false)
@@ -51,7 +51,7 @@ fn remove_artwork(info: &AurMetadata, tagger: &Tagger) -> anyhow::Result<bool> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::spec_helper::fixture;
+    use crate::test_utils::spec_helper::{fixture, TempDirExt};
     use assert_fs::prelude::*;
 
     #[test]
@@ -60,7 +60,7 @@ mod test {
         let tmp = assert_fs::TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/strip"), &[file_name])
             .unwrap();
-        let file_under_test = tmp.path().join(file_name);
+        let file_under_test = tmp.utf8_path().join(file_name);
 
         let original_info = AurMetadata::new(&file_under_test).unwrap();
         assert_eq!(9, original_info.rawtags.len());
@@ -79,7 +79,7 @@ mod test {
         let tmp = assert_fs::TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/strip"), &[file_name])
             .unwrap();
-        let file_under_test = tmp.path().join(file_name);
+        let file_under_test = tmp.utf8_path().join(file_name);
 
         let original_info = AurMetadata::new(&file_under_test).unwrap();
         assert_eq!(12, original_info.rawtags.len());

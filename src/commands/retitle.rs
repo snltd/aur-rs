@@ -5,9 +5,9 @@ use crate::utils::retitler::Retitler;
 use crate::utils::tagger::Tagger;
 use crate::utils::types::GlobalOpts;
 use crate::utils::words::Words;
-use std::path::Path;
+use camino::{Utf8Path, Utf8PathBuf};
 
-pub fn run(files: &[String], opts: &GlobalOpts) -> anyhow::Result<()> {
+pub fn run(files: &[Utf8PathBuf], opts: &GlobalOpts) -> anyhow::Result<()> {
     let config = load_config(&opts.config)?;
 
     for f in media_files(&pathbuf_set(files)) {
@@ -17,7 +17,7 @@ pub fn run(files: &[String], opts: &GlobalOpts) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn tag_file(file: &Path, config: &Config, opts: &GlobalOpts) -> anyhow::Result<()> {
+fn tag_file(file: &Utf8Path, config: &Config, opts: &GlobalOpts) -> anyhow::Result<()> {
     let info = AurMetadata::new(file)?;
     let tagger = Tagger::new(&info)?;
     let words = Words::new(config);

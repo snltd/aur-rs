@@ -1,10 +1,9 @@
-mod common;
-
 #[cfg(test)]
 mod test {
-    use super::common;
+    use assert_cmd::Command;
     use assert_fs::prelude::*;
     use aur::test_utils::spec_helper::fixture;
+    use predicates::prelude::*;
 
     #[test]
     #[ignore]
@@ -13,38 +12,42 @@ mod test {
         tmp.copy_from(fixture("commands/thes"), &["*"]).unwrap();
         let file_under_test = tmp.path().join("01.tester.song.mp3");
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["thes", &file_under_test.to_string_lossy()])
-            .succeeds()
-            .and()
-            .stdout()
-            .is("artist -> The Tester")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["thes", &file_under_test.to_string_lossy()])
+            .assert()
+            .success()
+            .stdout("          artist -> The Tester\n");
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["thes", &file_under_test.to_string_lossy()])
-            .succeeds()
-            .and()
-            .stdout()
-            .is("")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["thes", &file_under_test.to_string_lossy()])
+            .assert()
+            .success()
+            .stdout("");
     }
 
     #[test]
     #[ignore]
     fn test_thes_command_missing_file() {
-        assert_cli::Assert::main_binary()
-            .with_args(&["thes", "/no/such/file.flac"])
-            .fails()
-            .and()
-            .stderr()
-            .is("ERROR: (I/O) : No such file or directory (os error 2)")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["thes", "/no/such/file.flac"])
+            .assert()
+            .failure()
+            .stderr("ERROR: (I/O) : No such file or directory (os error 2)\n");
     }
 
     #[test]
     #[ignore]
     fn test_thes_incorrect_usage() {
-        common::missing_file_args_test("thes");
+        Command::cargo_bin("aur")
+            .unwrap()
+            .arg("thes")
+            .assert()
+            .failure()
+            .stderr(predicate::str::contains(
+                "the following required arguments were not provided",
+            ));
     }
 }

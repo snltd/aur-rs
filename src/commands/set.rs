@@ -2,9 +2,9 @@ use crate::utils::dir::{media_files, pathbuf_set};
 use crate::utils::metadata::AurMetadata;
 use crate::utils::tagger::Tagger;
 use crate::utils::types::GlobalOpts;
-use std::path::Path;
+use camino::{Utf8Path, Utf8PathBuf};
 
-pub fn run(tag: &str, value: &str, files: &[String], opts: &GlobalOpts) -> anyhow::Result<()> {
+pub fn run(tag: &str, value: &str, files: &[Utf8PathBuf], opts: &GlobalOpts) -> anyhow::Result<()> {
     for f in media_files(&pathbuf_set(files)) {
         tag_file(tag, value, &f, opts)?;
     }
@@ -12,16 +12,15 @@ pub fn run(tag: &str, value: &str, files: &[String], opts: &GlobalOpts) -> anyho
     Ok(())
 }
 
-fn tag_file(key: &str, value: &str, file: &Path, opts: &GlobalOpts) -> anyhow::Result<bool> {
+fn tag_file(key: &str, value: &str, file: &Utf8Path, opts: &GlobalOpts) -> anyhow::Result<bool> {
     let info = AurMetadata::new(file)?;
-    let tagger = Tagger::new(&info)?;
-    tagger.set_tag(key, value, opts.quiet)
+    Tagger::new(&info)?.set_tag(key, value, opts.quiet)
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::spec_helper::{defopts, fixture};
+    use crate::test_utils::spec_helper::{defopts, fixture, TempDirExt};
     use assert_fs::prelude::*;
 
     #[test]
@@ -30,7 +29,7 @@ mod test {
         let tmp = assert_fs::TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/set"), &[file_name])
             .unwrap();
-        let file_under_test = tmp.path().join(file_name);
+        let file_under_test = tmp.utf8_path().join(file_name);
 
         let original_info = AurMetadata::new(&file_under_test).unwrap();
         assert_eq!("Tester", original_info.tags.artist);
@@ -49,7 +48,7 @@ mod test {
         let tmp = assert_fs::TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/set"), &[file_name])
             .unwrap();
-        let file_under_test = tmp.path().join(file_name);
+        let file_under_test = tmp.utf8_path().join(file_name);
 
         let original_info = AurMetadata::new(&file_under_test).unwrap();
         assert_eq!("Test Set", original_info.tags.album);

@@ -1,10 +1,9 @@
-mod common;
-
 #[cfg(test)]
 mod test {
-    use super::common;
+    use assert_cmd::Command;
     use assert_fs::prelude::*;
     use aur::test_utils::spec_helper::fixture;
+    use predicates::prelude::*;
 
     #[test]
     #[ignore]
@@ -16,54 +15,45 @@ mod test {
         let file_01_step_2 = tmp.path().join("15.test.song.flac");
         let file_02_step_2 = tmp.path().join("16.test.song.mp3");
 
-        // Renumber upwards
-        assert_cli::Assert::main_binary()
-            .with_args(&[
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args([
                 "renumber",
                 "up",
                 "14",
                 &file_01_step_1.to_string_lossy(),
                 &file_02_step_1.to_string_lossy(),
             ])
-            .succeeds()
-            .and()
-            .stdout()
-            .contains("01.test.song.flac -> 15.test.song.flac")
-            .and()
-            .stdout()
-            .contains("t_num -> 15")
-            .and()
-            .stdout()
-            .contains("t_num -> 16")
-            .and()
-            .stdout()
-            .contains("02.test.song.mp3 -> 16.test.song.mp3")
-            .unwrap();
+            .assert()
+            .success()
+            .stdout(predicate::str::contains(
+                "01.test.song.flac -> 15.test.song.flac",
+            ))
+            .stdout(predicate::str::contains("t_num -> 15"))
+            .stdout(predicate::str::contains("t_num -> 16"))
+            .stdout(predicate::str::contains(
+                "02.test.song.mp3 -> 16.test.song.mp3",
+            ));
 
-        // Renumber down
-
-        assert_cli::Assert::main_binary()
-            .with_args(&[
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args([
                 "renumber",
                 "down",
                 "7",
                 &file_01_step_2.to_string_lossy(),
                 &file_02_step_2.to_string_lossy(),
             ])
-            .succeeds()
-            .and()
-            .stdout()
-            .contains("15.test.song.flac -> 08.test.song.flac")
-            .and()
-            .stdout()
-            .contains("t_num -> 8")
-            .and()
-            .stdout()
-            .contains("t_num -> 9")
-            .and()
-            .stdout()
-            .contains("16.test.song.mp3 -> 09.test.song.mp3")
-            .unwrap();
+            .assert()
+            .success()
+            .stdout(predicate::str::contains(
+                "15.test.song.flac -> 08.test.song.flac",
+            ))
+            .stdout(predicate::str::contains("t_num -> 8"))
+            .stdout(predicate::str::contains("t_num -> 9"))
+            .stdout(predicate::str::contains(
+                "16.test.song.mp3 -> 09.test.song.mp3",
+            ));
     }
 
     #[test]
@@ -74,46 +64,49 @@ mod test {
             .unwrap();
         let file_under_test = tmp.path().join("02.test.song.mp3");
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["renumber", &file_under_test.to_string_lossy()])
-            .fails()
-            .and()
-            .stderr()
-            .contains("[possible values: up, down]")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["renumber", &file_under_test.to_string_lossy()])
+            .assert()
+            .failure()
+            .stderr(predicate::str::contains("[possible values: up, down]"));
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["renumber", "up", "1000", &file_under_test.to_string_lossy()])
-            .fails()
-            .and()
-            .stderr()
-            .is("ERROR: Delta must be from 1 to 99 inclusive")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["renumber", "up", "1000", &file_under_test.to_string_lossy()])
+            .assert()
+            .failure()
+            .stderr("ERROR: Delta must be from 1 to 99 inclusive\n");
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["renumber", "down", "30", &file_under_test.to_string_lossy()])
-            .fails()
-            .and()
-            .stderr()
-            .is("ERROR: Tag number must be from 1 to 99 inclusive")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["renumber", "down", "30", &file_under_test.to_string_lossy()])
+            .assert()
+            .failure()
+            .stderr("ERROR: Tag number must be from 1 to 99 inclusive\n");
     }
 
     #[test]
     #[ignore]
     fn test_renumber_command_missing_file() {
-        assert_cli::Assert::main_binary()
-            .with_args(&["renumber", "up", "2", "/no/such/file.flac"])
-            .fails()
-            .and()
-            .stderr()
-            .is("ERROR: (I/O) : No such file or directory (os error 2)")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["renumber", "up", "2", "/no/such/file.flac"])
+            .assert()
+            .failure()
+            .stderr("ERROR: (I/O) : No such file or directory (os error 2)\n");
     }
 
     #[test]
     #[ignore]
     fn test_renumber_incorrect_usage() {
-        common::missing_file_args_test("renumber");
+        Command::cargo_bin("aur")
+            .unwrap()
+            .arg("renumber")
+            .assert()
+            .failure()
+            .stderr(predicate::str::contains(
+                "the following required arguments were not provided",
+            ));
     }
 }

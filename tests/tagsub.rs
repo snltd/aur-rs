@@ -1,10 +1,9 @@
-mod common;
-
 #[cfg(test)]
 mod test {
-    use super::common;
+    use assert_cmd::Command;
     use assert_fs::prelude::*;
     use aur::test_utils::spec_helper::fixture;
+    use predicates::prelude::*;
 
     #[test]
     #[ignore]
@@ -15,20 +14,23 @@ mod test {
             .unwrap();
         let file_under_test = tmp.path().join(file_name);
         let file_str = file_under_test.to_string_lossy();
-        assert_cli::Assert::main_binary()
-            .with_args(&["--verbose", "tagsub", "artist", "Test", "Tested", &file_str])
-            .stdout()
-            .contains("06.test_artist.test_title.mp3: Test Artist -> Tested Artist")
-            .and()
-            .stdout()
-            .contains("artist -> Tested Artist")
-            .unwrap();
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["get", "artist", &file_str])
-            .stdout()
-            .contains("Tested Artist : ")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["--verbose", "tagsub", "artist", "Test", "Tested", &file_str])
+            .assert()
+            .success()
+            .stdout(predicate::str::contains(
+                "06.test_artist.test_title.mp3: Test Artist -> Tested Artist",
+            ))
+            .stdout(predicate::str::contains("artist -> Tested Artist"));
+
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["get", "--short", "artist", &file_str])
+            .assert()
+            .success()
+            .stdout("Tested Artist\n");
     }
 
     #[test]
@@ -40,29 +42,31 @@ mod test {
             .unwrap();
         let file_under_test = tmp.path().join(file_name);
         let file_str = file_under_test.to_string_lossy();
-        assert_cli::Assert::main_binary()
-            .with_args(&["--noop", "tagsub", "artist", "Test", "Tested", &file_str])
-            .stdout()
-            .contains("06.test_artist.test_title.mp3: Test Artist -> Tested Artist")
-            .unwrap();
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["get", "artist", &file_str])
-            .stdout()
-            .contains("Test Artist : ")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["--noop", "tagsub", "artist", "Test", "Tested", &file_str])
+            .assert()
+            .success()
+            .stdout(format!("{}: Test Artist -> Tested Artist\n", file_str));
+
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["get", "--short", "artist", &file_str])
+            .assert()
+            .success()
+            .stdout("Test Artist\n");
     }
 
     #[test]
     #[ignore]
     fn test_tagsub_command_missing_file() {
-        assert_cli::Assert::main_binary()
-            .with_args(&["tagsub", "title", "find", "replace", "/no/such/file.flac"])
-            .fails()
-            .and()
-            .stderr()
-            .is("ERROR: (I/O) : No such file or directory (os error 2)")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["tagsub", "title", "find", "replace", "/no/such/file.flac"])
+            .assert()
+            .failure()
+            .stderr("ERROR: (I/O) : No such file or directory (os error 2)\n");
     }
 
     #[test]
@@ -74,18 +78,25 @@ mod test {
             .unwrap();
         let file_under_test = tmp.path().join(file_name);
         let file_str = file_under_test.to_string_lossy();
-        assert_cli::Assert::main_binary()
-            .with_args(&["tagsub", "whatever", "find", "replace", &file_str])
-            .fails()
-            .and()
-            .stderr()
-            .is("ERROR: Unknown tag: whatever")
-            .unwrap();
+
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["tagsub", "whatever", "find", "replace", &file_str])
+            .assert()
+            .failure()
+            .stderr("ERROR: Unknown tag: whatever\n");
     }
 
     #[test]
     #[ignore]
     fn test_tagsub_incorrect_usage() {
-        common::missing_file_args_test("tagsub");
+        Command::cargo_bin("aur")
+            .unwrap()
+            .arg("tagsub")
+            .assert()
+            .failure()
+            .stderr(predicate::str::contains(
+                "the following required arguments were not provided",
+            ));
     }
 }

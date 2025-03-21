@@ -1,9 +1,9 @@
-mod common;
-
 #[cfg(test)]
 mod test {
+    use assert_cmd::Command;
     use assert_fs::prelude::*;
     use aur::test_utils::spec_helper::{fixture, sample_output};
+    use predicates::prelude::*;
 
     #[test]
     #[ignore]
@@ -13,69 +13,59 @@ mod test {
             .unwrap();
         let dir_under_test = tmp.path().join("syncflac");
 
-        assert_cli::Assert::main_binary()
-            .with_args(&[
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args([
                 "syncflac",
                 "--verbose",
                 "-R",
                 &dir_under_test.to_string_lossy(),
             ])
-            .succeeds()
-            .and()
-            .stdout()
-            .contains("Creating target")
-            .and()
-            .stdout()
-            .contains(
-                format!(
-                    "Removing {}",
-                    tmp.path()
-                        .join("syncflac/mp3/eps/band.flac_and_mp3_unequal/03.band.song_3.mp3")
-                        .display()
-                )
-                .as_str(),
-            )
-            .unwrap();
+            .assert()
+            .success()
+            .stdout(predicate::str::contains("Creating target"))
+            .stdout(predicate::str::contains(format!(
+                "Removing {}",
+                tmp.path()
+                    .join("syncflac/mp3/eps/band.flac_and_mp3_unequal/03.band.song_3.mp3")
+                    .display()
+            )));
 
-        assert_cli::Assert::command(&["ls", "-R"])
+        Command::new("ls")
             .current_dir(&dir_under_test)
-            .stdout()
-            .is(sample_output("commands/syncflac/ls").as_str())
-            .unwrap();
+            .arg("-R")
+            .assert()
+            .success()
+            .stdout(sample_output("commands/syncflac/ls"));
 
         let sample_file = dir_under_test
             .join("mp3/albums/tuv/tester.flac_album")
             .join("01.tester.song_1.mp3");
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["info", &sample_file.to_string_lossy()])
-            .succeeds()
-            .and()
-            .stdout()
-            .is(sample_output("commands/syncflac/info-new-mp3").as_str())
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["info", &sample_file.to_string_lossy()])
+            .assert()
+            .success()
+            .stdout(sample_output("commands/syncflac/info-new-mp3"));
 
-        assert_cli::Assert::main_binary()
-            .with_args(&["syncflac", "-R", &dir_under_test.to_string_lossy()])
-            .succeeds()
-            .and()
-            .stdout()
-            .is("")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["syncflac", "-R", &dir_under_test.to_string_lossy()])
+            .assert()
+            .success()
+            .stdout("");
     }
 
     #[test]
     #[ignore]
     fn test_syncflac_bad_directory() {
-        assert_cli::Assert::main_binary()
-            .with_args(&["syncflac", "--root", "/tmp"])
-            .fails()
-            .and()
-            .stdout()
-            .is("")
-            .and()
-            .stderr()
-            .is("ERROR: did not find /tmp/mp3")
-            .unwrap();
+        Command::cargo_bin("aur")
+            .unwrap()
+            .args(["syncflac", "--root", "/tmp"])
+            .assert()
+            .failure()
+            .stdout("")
+            .stderr("ERROR: did not find /tmp/mp3\n");
     }
 }

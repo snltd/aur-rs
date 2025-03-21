@@ -2,7 +2,7 @@ use super::metadata::AurMetadata;
 use super::string::ToLowerAlnums;
 use crate::utils::string::Capitalize;
 use crate::utils::words::Words;
-use anyhow::anyhow;
+use anyhow::{anyhow, Context};
 
 type InBrackets = bool;
 
@@ -26,26 +26,15 @@ impl<'a> TagMaker<'a> {
     }
 
     pub fn all_tags_from(&self, info: &AurMetadata) -> anyhow::Result<TagMakerAllTags> {
-        let path = info.path.canonicalize()?;
-        let album_dir = match path.parent() {
-            Some(dir) => dir,
-            None => {
-                return Err(anyhow!(
-                    "could not get album directory for {}",
-                    info.path.display()
-                ))
-            }
-        };
+        let path = info.path.canonicalize_utf8()?;
+        let album_dir = path
+            .parent()
+            .context(format!("could not get album directory for {}", info.path))?;
 
-        let album_dir_name = match album_dir.file_name() {
-            Some(name) => name.to_string_lossy().to_string(),
-            None => {
-                return Err(anyhow!(
-                    "could not get album directory name for {}",
-                    info.path.display()
-                ))
-            }
-        };
+        let album_dir_name = album_dir.file_name().context(format!(
+            "could not get album directory name for {}",
+            info.path
+        ))?;
 
         let fname_chunks: Vec<_> = info.filename.split('.').collect();
 
@@ -237,7 +226,7 @@ impl<'a> TagMaker<'a> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::spec_helper::sample_config;
+    use crate::test_utils::spec_helper::sample_config;
 
     #[test]
     fn test_title_from() {

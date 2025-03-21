@@ -3,11 +3,11 @@ use crate::utils::metadata::AurMetadata;
 use crate::utils::tagger::Tagger;
 use crate::utils::types::GlobalOpts;
 use crate::verbose;
+use camino::{Utf8Path, Utf8PathBuf};
 use regex::Regex;
-use std::path::Path;
 
 pub fn run(
-    files: &[String],
+    files: &[Utf8PathBuf],
     tag: &str,
     from: &str,
     to: &str,
@@ -23,7 +23,7 @@ pub fn run(
 }
 
 fn process_file(
-    file: &Path,
+    file: &Utf8Path,
     tag: &str,
     rx: &Regex,
     to: &str,
@@ -33,16 +33,16 @@ fn process_file(
     let old_value = info.get_tag(tag)?;
     match new_tag(&old_value, rx, to)? {
         Some(new_value) => {
-            verbose!(opts, "{}: {} -> {}", file.display(), old_value, new_value);
+            verbose!(opts, "{}: {} -> {}", file, old_value, new_value);
             if opts.noop {
-                println!("{}: {} -> {}", file.display(), old_value, new_value);
+                println!("{}: {} -> {}", file, old_value, new_value);
                 Ok(true)
             } else {
                 retag_file(&info, tag, &new_value, opts)
             }
         }
         None => {
-            verbose!(opts, "{}: no change", file.display());
+            verbose!(opts, "{}: no change", file);
             Ok(false)
         }
     }
@@ -66,7 +66,7 @@ fn retag_file(info: &AurMetadata, tag: &str, new: &str, opts: &GlobalOpts) -> an
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::spec_helper::{defopts, fixture};
+    use crate::test_utils::spec_helper::{defopts, fixture, TempDirExt};
     use assert_fs::prelude::*;
 
     #[test]
@@ -110,7 +110,7 @@ mod test {
 
         tmp.copy_from(fixture("commands/tagsub"), &[file_name])
             .unwrap();
-        let file_under_test = tmp.path().join(file_name);
+        let file_under_test = tmp.utf8_path().join(file_name);
 
         let original_info = AurMetadata::new(&file_under_test).unwrap();
         assert_eq!("Test Artist", original_info.tags.artist);
@@ -125,7 +125,7 @@ mod test {
 
         tmp.copy_from(fixture("commands/tagsub"), &[file_name])
             .unwrap();
-        let file_under_test = tmp.path().join(file_name);
+        let file_under_test = tmp.utf8_path().join(file_name);
 
         let original_info = AurMetadata::new(&file_under_test).unwrap();
         assert_eq!("Test Artist", original_info.tags.artist);

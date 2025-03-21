@@ -2,12 +2,13 @@ use crate::utils::config;
 use crate::utils::dir::{expand_dir_list, expand_file_list};
 use crate::utils::helpers::check_hierarchy;
 use crate::utils::types::{GlobalOpts, WantsList};
-use anyhow::anyhow;
+use anyhow::ensure;
+use camino::{Utf8Path, Utf8PathBuf};
+use pathdiff::diff_utf8_paths;
 use std::collections::BTreeSet;
-use std::path::{Path, PathBuf};
 
-pub fn run(root: &str, tracks: bool, opts: &GlobalOpts) -> anyhow::Result<()> {
-    let root = PathBuf::from(root).canonicalize()?;
+pub fn run(root: &Utf8PathBuf, tracks: bool, opts: &GlobalOpts) -> anyhow::Result<()> {
+    let root = root.canonicalize_utf8()?;
 
     let config = config::load_config(&opts.config)?;
 
@@ -56,7 +57,7 @@ fn print_output(wants_list: WantsList) {
     }
 }
 
-fn find_missing_albums(root: &Path) -> anyhow::Result<WantsList> {
+fn find_missing_albums(root: &Utf8Path) -> anyhow::Result<WantsList> {
     check_hierarchy(root)?;
 
     let mp3_root = root.join("mp3");
@@ -72,44 +73,31 @@ fn find_missing_albums(root: &Path) -> anyhow::Result<WantsList> {
     Ok(wanted)
 }
 
-fn relative_paths(dirs: &BTreeSet<PathBuf>, root: &PathBuf) -> WantsList {
+fn relative_paths(dirs: &BTreeSet<Utf8PathBuf>, root: &Utf8PathBuf) -> WantsList {
     dirs.iter()
-        .filter_map(|p| {
-            p.strip_prefix(root)
-                .ok()
-                .and_then(|s| s.to_str().map(String::from))
-        })
+        .filter_map(|p| diff_utf8_paths(p, root))
+        .map(|p| p.to_string())
         .collect()
 }
 
-fn simple_filenames(files: &BTreeSet<PathBuf>) -> WantsList {
+fn simple_filenames(files: &BTreeSet<Utf8PathBuf>) -> WantsList {
     files
         .iter()
-        .filter_map(|p| p.file_stem().map(|s| s.to_string_lossy().to_string()))
+        .filter_map(|p| p.file_stem().map(|s| s.to_string()))
         .collect()
 }
 
-fn find_missing_tracks(root: &Path) -> anyhow::Result<WantsList> {
+fn find_missing_tracks(root: &Utf8Path) -> anyhow::Result<WantsList> {
     let mp3_root = root.join("mp3").join("tracks");
     let flac_root = root.join("flac").join("tracks");
 
-    if !mp3_root.exists() {
-        return Err(anyhow!(format!("did not find {}", mp3_root.display())));
-    }
+    ensure!(mp3_root.exists(), format!("did not find {}", mp3_root));
 
-    if !flac_root.exists() {
-        return Err(anyhow!(format!("did not find {}", flac_root.display())));
-    }
+    ensure!(flac_root.exists(), format!("did not find {}", flac_root));
 
-    let mp3_names = simple_filenames(&expand_file_list(
-        &[mp3_root.to_string_lossy().to_string()],
-        true,
-    )?);
+    let mp3_names = simple_filenames(&expand_file_list(&[mp3_root], true)?);
 
-    let flac_names = simple_filenames(&expand_file_list(
-        &[flac_root.to_string_lossy().to_string()],
-        true,
-    )?);
+    let flac_names = simple_filenames(&expand_file_list(&[flac_root], true)?);
 
     let wanted: BTreeSet<_> = mp3_names
         .difference(&flac_names)
@@ -121,7 +109,7 @@ fn find_missing_tracks(root: &Path) -> anyhow::Result<WantsList> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::spec_helper::fixture;
+    use crate::test_utils::spec_helper::fixture;
 
     #[test]
     fn test_filter_by_config() {

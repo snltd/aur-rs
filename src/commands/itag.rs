@@ -6,11 +6,11 @@ use crate::utils::tag_validator::TagValidator;
 use crate::utils::tagger::Tagger;
 use crate::utils::types::{GlobalOpts, RenameOption};
 use crate::utils::words::Words;
-use anyhow::anyhow;
+use anyhow::Context;
+use camino::{Utf8Path, Utf8PathBuf};
 use std::io::{self, Write};
-use std::path::Path;
 
-pub fn run(files: &[String], tag: &str, opts: &GlobalOpts) -> anyhow::Result<()> {
+pub fn run(files: &[Utf8PathBuf], tag: &str, opts: &GlobalOpts) -> anyhow::Result<()> {
     let config = load_config(&opts.config)?;
     let words = Words::new(&config);
     let validator = TagValidator::new(&words, config.get_genres());
@@ -31,26 +31,20 @@ pub fn run(files: &[String], tag: &str, opts: &GlobalOpts) -> anyhow::Result<()>
     Ok(())
 }
 
-fn read_value(file: &Path, tag: &str) -> anyhow::Result<String> {
-    let basename = match file.file_name() {
-        Some(name) => name.to_string_lossy().to_string(),
-        None => return Err(anyhow!("could not get file name")),
-    };
+fn read_value(file: &Utf8Path, tag: &str) -> anyhow::Result<String> {
+    let basename = file.file_name().context("could not get file name")?;
 
     print!("{} [{}]> ", basename, tag);
     io::stdout().flush().unwrap();
     let mut buffer = String::new();
     let stdin = io::stdin();
     stdin.read_line(&mut buffer)?;
-    let input = buffer.to_owned().trim().to_string();
-    Ok(input)
+    Ok(buffer.to_owned().trim().to_string())
 }
 
-fn tag_and_rename_action(file: &Path, tag: &str, value: &str) -> anyhow::Result<RenameOption> {
+fn tag_and_rename_action(file: &Utf8Path, tag: &str, value: &str) -> anyhow::Result<RenameOption> {
     let info = AurMetadata::new(file)?;
-    let tagger = Tagger::new(&info)?;
-
-    let retagged = tagger.set_tag(tag, value, true)?;
+    let retagged = Tagger::new(&info)?.set_tag(tag, value, true)?;
 
     if !retagged {
         return Ok(None);

@@ -36,7 +36,6 @@ impl<'a> TagValidator<'a> {
     }
 
     pub fn validate_title(&self, tag: &str) -> bool {
-        // sanitised(tag) == self.tag_maker.title_from(tag) &&
         self.validate_artist(tag)
     }
 
@@ -127,7 +126,7 @@ fn this_year() -> i32 {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::spec_helper::sample_config;
+    use crate::test_utils::spec_helper::sample_config;
     use std::collections::HashSet;
 
     #[test]

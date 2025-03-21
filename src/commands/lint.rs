@@ -5,9 +5,9 @@ use crate::utils::rename;
 use crate::utils::tag_validator::TagValidator;
 use crate::utils::types::GlobalOpts;
 use crate::utils::words::Words;
+use camino::{Utf8Path, Utf8PathBuf};
 use colored::Colorize;
 use std::collections::HashSet;
-use std::path::Path;
 
 #[derive(Debug)]
 #[cfg_attr(test, derive(PartialEq, Eq))]
@@ -62,7 +62,7 @@ impl LintError {
     }
 }
 
-pub fn run(files: &[String], recurse: bool, opts: &GlobalOpts) -> anyhow::Result<()> {
+pub fn run(files: &[Utf8PathBuf], recurse: bool, opts: &GlobalOpts) -> anyhow::Result<()> {
     let config = load_config(&opts.config)?;
     let words = Words::new(&config);
     let validator = TagValidator::new(&words, config.get_genres());
@@ -77,17 +77,17 @@ pub fn run(files: &[String], recurse: bool, opts: &GlobalOpts) -> anyhow::Result
     Ok(())
 }
 
-fn is_file_excluded(file: &Path, list: Option<&HashSet<String>>) -> bool {
+fn is_file_excluded(file: &Utf8Path, list: Option<&HashSet<String>>) -> bool {
     match list {
         Some(rules) => {
-            let file_str = file.to_string_lossy().to_string();
+            let file_str = file.to_string();
             rules.iter().any(|rule| file_str.contains(rule))
         }
         None => false,
     }
 }
 
-fn filter_results(file: &Path, results: Vec<CheckResult>, config: &Config) -> Vec<CheckResult> {
+fn filter_results(file: &Utf8Path, results: Vec<CheckResult>, config: &Config) -> Vec<CheckResult> {
     results
         .into_iter()
         .filter(|r| match r {
@@ -108,8 +108,8 @@ fn filter_results(file: &Path, results: Vec<CheckResult>, config: &Config) -> Ve
         .collect()
 }
 
-fn display_problems(file: &Path, problems: &Vec<&CheckResult>) {
-    println!("{}", file.display().to_string().bold());
+fn display_problems(file: &Utf8Path, problems: &Vec<&CheckResult>) {
+    println!("{}", file.to_string().bold());
     for p in problems {
         match p {
             CheckResult::Good => (),
@@ -120,7 +120,7 @@ fn display_problems(file: &Path, problems: &Vec<&CheckResult>) {
 }
 
 fn lint_file(
-    file: &Path,
+    file: &Utf8Path,
     validator: &TagValidator,
     opts: &GlobalOpts,
 ) -> anyhow::Result<Vec<CheckResult>> {
@@ -150,14 +150,13 @@ fn run_checks(
     .collect()
 }
 
-fn has_disc_number_or_not(file: &Path, album_tag: &str) -> CheckResult {
+fn has_disc_number_or_not(file: &Utf8Path, album_tag: &str) -> CheckResult {
     let disc_in_name = album_tag.contains("Disc ");
     let in_disc_dir = file
         .parent()
         .unwrap()
         .file_name()
         .unwrap()
-        .to_string_lossy()
         .contains("disc_");
 
     if disc_in_name && !in_disc_dir {
@@ -292,7 +291,7 @@ fn has_bom_leader(string: &str) -> bool {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::spec_helper::{defopts, fixture, sample_config};
+    use crate::test_utils::spec_helper::{defopts, fixture, sample_config};
 
     #[test]
     fn test_allow_from_config() {

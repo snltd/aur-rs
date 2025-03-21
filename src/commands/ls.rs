@@ -1,32 +1,31 @@
 use crate::utils::dir::expand_dir_list;
 use crate::utils::metadata::{AurMetadata, AurTags};
 use crate::utils::term::term_width;
-use std::fs;
-use std::path::{Path, PathBuf};
+use camino::{Utf8Path, Utf8PathBuf};
 
-pub fn run(dirlist: &[String], recurse: bool) -> anyhow::Result<()> {
+pub fn run(dirlist: &[Utf8PathBuf], recurse: bool) -> anyhow::Result<()> {
     // If no argument is given, default to the cwd, just like real ls(1).
     let dirs = if dirlist.is_empty() {
-        &[std::env::current_dir()?.to_string_lossy().to_string()]
+        &[Utf8PathBuf::from_path_buf(std::env::current_dir()?).unwrap()]
     } else {
         dirlist
     };
 
-    let dirs_to_list: Vec<PathBuf> = dirs.to_vec().iter().map(PathBuf::from).collect();
+    let dirs_to_list: Vec<Utf8PathBuf> = dirs.to_vec().iter().map(Utf8PathBuf::from).collect();
     for dir in expand_dir_list(&dirs_to_list, recurse) {
         print_listing(list_info(&dir)?);
     }
     Ok(())
 }
 
-fn list_info(dir: &Path) -> anyhow::Result<Vec<String>> {
-    let entries = fs::read_dir(dir)?;
+fn list_info(dir: &Utf8Path) -> anyhow::Result<Vec<String>> {
+    let entries = dir.read_dir_utf8()?;
 
     let mut all_file_tags: Vec<AurTags> = entries
         .filter_map(|entry| entry.ok())
         .filter_map(|entry| {
             let file = entry.path();
-            AurMetadata::new(&file).ok().map(|metadata| metadata.tags)
+            AurMetadata::new(file).ok().map(|metadata| metadata.tags)
         })
         .collect();
 
@@ -57,7 +56,7 @@ fn print_listing(lines: Vec<String>) {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::spec_helper::fixture;
+    use crate::test_utils::spec_helper::fixture;
 
     #[test]
     fn test_list_info() {

@@ -1,4 +1,5 @@
 use anyhow::anyhow;
+use camino::{Utf8Path, Utf8PathBuf};
 use id3::Tag as Id3Tag;
 use id3::TagLike;
 use metaflac::Tag as FlacTag;
@@ -6,7 +7,6 @@ use mp3_metadata::{self, MP3Metadata};
 use std::collections::HashSet;
 use std::ffi::OsStr;
 use std::fs;
-use std::path::{Path, PathBuf};
 
 const UNDEFINED: &str = "unknown";
 
@@ -15,7 +15,7 @@ pub type RawTags = Vec<(String, String)>;
 #[derive(Debug)]
 pub struct AurMetadata {
     pub filename: String,
-    pub path: PathBuf,
+    pub path: Utf8PathBuf,
     pub filetype: String,
     pub tags: AurTags,
     pub time: AurTime,
@@ -52,8 +52,8 @@ pub struct AurTime {
 }
 
 impl AurMetadata {
-    pub fn new(file: &Path) -> anyhow::Result<Self> {
-        let file = file.to_path_buf().canonicalize()?;
+    pub fn new(file: &Utf8Path) -> anyhow::Result<Self> {
+        let file = file.canonicalize_utf8()?;
         let tags: AurTags;
         let filetype: String;
         let quality: AurQuality;
@@ -62,7 +62,7 @@ impl AurMetadata {
         let has_picture: bool;
         let in_tracks = in_tracks(&file);
 
-        match file.extension().and_then(|ext| ext.to_str()) {
+        match file.extension() {
             Some("flac") => {
                 let raw_info = FlacTag::read_from_path(&file)?;
                 filetype = "flac".to_string();
@@ -88,12 +88,12 @@ impl AurMetadata {
                 rawtags = Self::rawtags_from_mp3(&id3tags)?;
                 has_picture = Self::has_picture_mp3(&id3tags)?;
             }
-            _ => return Err(anyhow!("Unsupported filetype: {}", file.display())),
+            _ => return Err(anyhow!("Unsupported filetype: {}", file)),
         }
 
         let filename = match file.file_name() {
-            Some(name) => name.to_string_lossy().to_string(),
-            None => return Err(anyhow!("Unable to work out file name: {}", file.display())),
+            Some(name) => name.to_string(),
+            None => return Err(anyhow!("Unable to work out file name: {}", file)),
         };
 
         Ok(Self {
@@ -114,13 +114,9 @@ impl AurMetadata {
             "flac" => self.time.clone(),
             "mp3" => match mp3_metadata::read_from_file(&self.path) {
                 Ok(metadata) => AurTime::from_mp3(&metadata),
-                Err(e) => panic!(
-                    "Failed to read MP3 metadata in {}: {}",
-                    self.path.display(),
-                    e
-                ),
+                Err(e) => panic!("Failed to read MP3 metadata in {}: {}", self.path, e),
             },
-            _ => panic!("Cannot get time of unknown filetype"),
+            _ => unreachable!("Cannot get time of unknown filetype"),
         }
     }
 
@@ -129,13 +125,9 @@ impl AurMetadata {
             "flac" => self.quality.clone(),
             "mp3" => match mp3_metadata::read_from_file(&self.path) {
                 Ok(metadata) => AurQuality::from_mp3(&self.path, &metadata),
-                Err(e) => panic!(
-                    "Failed to read MP3 metadata in {}: {}",
-                    self.path.display(),
-                    e
-                ),
+                Err(e) => panic!("Failed to read MP3 metadata in {}: {}", self.path, e),
             },
-            _ => panic!("Cannot get time of unknown filetype"),
+            _ => unreachable!("Cannot get time of unknown filetype"),
         }
     }
 
@@ -248,7 +240,7 @@ impl AurQuality {
         Ok(ret)
     }
 
-    fn from_mp3(path: &PathBuf, metadata: &MP3Metadata) -> Self {
+    fn from_mp3(path: &Utf8PathBuf, metadata: &MP3Metadata) -> Self {
         let file_size = fs::metadata(path).unwrap().len();
         let duration = metadata.duration.as_secs();
 
@@ -352,7 +344,7 @@ pub fn irrelevant_tags(filetype: &str) -> anyhow::Result<HashSet<String>> {
     }
 }
 
-pub fn in_tracks(file: &Path) -> bool {
+pub fn in_tracks(file: &Utf8Path) -> bool {
     match file.parent() {
         Some(parent) => match parent.file_name() {
             Some(basename) => basename == OsStr::new("tracks"),
@@ -364,7 +356,7 @@ pub fn in_tracks(file: &Path) -> bool {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::spec_helper::fixture;
+    use crate::test_utils::spec_helper::fixture;
 
     #[test]
     fn test_metadata_valid_files() {
@@ -397,17 +389,19 @@ mod test {
 
     #[test]
     fn test_metadata_missing_file() {
-        let result = AurMetadata::new(&PathBuf::from("/does/not/exist"));
-        assert!(
-            matches!(result, Err(ref e) if e.to_string() == "No such file or directory (os error 2)")
-        );
+        let result = AurMetadata::new(&Utf8PathBuf::from("/does/not/exist"));
+        assert!(matches!(
+            result,
+            Err(ref e) if e.to_string() == "No such file or directory (os error 2)"
+        ));
     }
 
     #[test]
     fn test_metadata_bad_file() {
         let flac_result = AurMetadata::new(&fixture("info/bad_file.flac"));
-        assert!(
-            matches!(flac_result, Err(ref e) if e.to_string() == "InvalidInput: reader does not contain flac metadata")
-        );
+        assert!(matches!(
+            flac_result,
+            Err(ref e) if e.to_string() == "InvalidInput: reader does not contain flac metadata"
+        ));
     }
 }

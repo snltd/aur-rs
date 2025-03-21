@@ -184,8 +184,8 @@ fn expand() -> HashMap<String, String> {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::test_utils::spec_helper::fixture;
     use crate::utils::config::load_config;
-    use crate::utils::spec_helper::fixture;
 
     #[test]
     fn test_words() {

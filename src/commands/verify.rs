@@ -2,18 +2,17 @@ use crate::utils::dir::{expand_file_list, media_files};
 use crate::utils::external::find_binary;
 use crate::utils::types::GlobalOpts;
 use crate::verbose;
+use camino::{Utf8Path, Utf8PathBuf};
 use colored::Colorize;
 use rayon::prelude::*;
-use std::ffi::OsStr;
-use std::path::{Path, PathBuf};
 use std::process::Command;
 
 struct Cmds {
-    flac: PathBuf,
-    mp3val: PathBuf,
+    flac: Utf8PathBuf,
+    mp3val: Utf8PathBuf,
 }
 
-pub fn run(files: &[String], recurse: bool, opts: &GlobalOpts) -> anyhow::Result<()> {
+pub fn run(files: &[Utf8PathBuf], recurse: bool, opts: &GlobalOpts) -> anyhow::Result<()> {
     let cmds = Cmds {
         flac: find_binary("flac")?,
         mp3val: find_binary("mp3val")?,
@@ -23,45 +22,36 @@ pub fn run(files: &[String], recurse: bool, opts: &GlobalOpts) -> anyhow::Result
         .par_iter()
         .for_each(|f| match verify_file(f, &cmds) {
             Ok(result) => display_result(f, result, opts),
-            Err(e) => eprintln!("Error processing {}: {}", f.display(), e),
+            Err(e) => eprintln!("Error processing {}: {}", f, e),
         });
 
     Ok(())
 }
 
-fn display_result(file: &Path, result: bool, opts: &GlobalOpts) {
+fn display_result(file: &Utf8Path, result: bool, opts: &GlobalOpts) {
     if result {
-        verbose!(
-            opts,
-            "{:^9}: {}",
-            "OK".to_string().green().reversed(),
-            file.display()
-        );
+        verbose!(opts, "{:^9}: {}", "OK".to_string().green().reversed(), file);
     } else {
         println!(
             "{:^9}: {}",
             "INVALID".to_string().bold().red().reversed(),
-            file.display()
+            file
         );
     }
 }
 
-fn verify_file(file: &Path, cmds: &Cmds) -> anyhow::Result<bool> {
+fn verify_file(file: &Utf8Path, cmds: &Cmds) -> anyhow::Result<bool> {
     match file.extension() {
-        Some(ext) => {
-            if ext == OsStr::new("flac") {
-                verify_flac(file, &cmds.flac)
-            } else if ext == OsStr::new("mp3") {
-                verify_mp3(file, &cmds.mp3val)
-            } else {
-                Ok(false)
-            }
-        }
+        Some(ext) => match ext {
+            "flac" => verify_flac(file, &cmds.flac),
+            "mp3" => verify_mp3(file, &cmds.mp3val),
+            _ => Ok(false),
+        },
         None => Ok(false),
     }
 }
 
-fn verify_flac(file: &Path, cmd: &PathBuf) -> anyhow::Result<bool> {
+fn verify_flac(file: &Utf8Path, cmd: &Utf8PathBuf) -> anyhow::Result<bool> {
     let result = Command::new(cmd)
         .arg("--test")
         .arg("--totally-silent")
@@ -71,7 +61,7 @@ fn verify_flac(file: &Path, cmd: &PathBuf) -> anyhow::Result<bool> {
     Ok(result.success())
 }
 
-fn verify_mp3(file: &Path, cmd: &PathBuf) -> anyhow::Result<bool> {
+fn verify_mp3(file: &Utf8Path, cmd: &Utf8PathBuf) -> anyhow::Result<bool> {
     // mp3val exits 0 whatever.
     let output = Command::new(cmd).arg("-si").arg(file).output()?;
     let stdout_string = String::from_utf8(output.stdout)?;
@@ -86,7 +76,7 @@ fn verify_mp3(file: &Path, cmd: &PathBuf) -> anyhow::Result<bool> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::spec_helper::fixture;
+    use crate::test_utils::spec_helper::fixture;
 
     #[test]
     fn test_verify_files() {

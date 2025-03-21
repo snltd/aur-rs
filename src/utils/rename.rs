@@ -2,9 +2,10 @@ use crate::utils::metadata::AurMetadata;
 use crate::utils::string::ToFilenameChunk;
 use crate::utils::types::{RenameAction, RenameOption};
 use anyhow::anyhow;
-use std::path::Path;
+use camino::Utf8Path;
+use std::fs;
 
-pub fn rename_action_from_file(file: &Path) -> anyhow::Result<RenameOption> {
+pub fn rename_action_from_file(file: &Utf8Path) -> anyhow::Result<RenameOption> {
     let info = AurMetadata::new(file)?;
     rename_action_from_metadata(&info)
 }
@@ -25,7 +26,7 @@ pub fn rename_action_from_metadata(info: &AurMetadata) -> anyhow::Result<RenameO
         let dest = info
             .path
             .parent()
-            .ok_or_else(|| anyhow::anyhow!("Failed to get directory of {:?}", info.filename))?
+            .ok_or_else(|| anyhow!("Failed to get directory of {:?}", info.filename))?
             .join(correct_filename);
 
         Ok(Some((info.path.clone(), dest.to_path_buf())))
@@ -83,13 +84,13 @@ pub fn rename((src, dest): RenameAction, noop: bool) -> anyhow::Result<bool> {
     if src == dest {
         Ok(false)
     } else if dest.exists() && !noop {
-        Err(anyhow!(format!("destination exists: {}", dest.display())))
+        Err(anyhow!(format!("destination exists: {}", dest)))
     } else {
         if let Some(parent_dir) = dest.parent() {
             if !parent_dir.exists() {
-                println!("Creating {}", parent_dir.display());
+                println!("Creating {}", parent_dir);
                 if !noop {
-                    std::fs::create_dir_all(parent_dir)?;
+                    fs::create_dir_all(parent_dir)?;
                 }
             }
         }
@@ -97,23 +98,19 @@ pub fn rename((src, dest): RenameAction, noop: bool) -> anyhow::Result<bool> {
         let src_dir = src.parent().expect("Cannot find parent of src_dir");
         let dest_dir = dest.parent().expect("Cannot find parent of dest_dir");
 
-        let target_to_print = if dest_dir == src_dir || src_dir.to_string_lossy() == "" {
-            dest.file_name().unwrap()
+        let target_to_print = if dest_dir == src_dir || src_dir.as_str() == "" {
+            dest.file_name().unwrap().to_string()
         } else {
             match dest_dir.strip_prefix(src_dir) {
-                Ok(relative_path) => relative_path.as_os_str(),
-                Err(_) => dest.file_name().unwrap(),
+                Ok(relative_path) => relative_path.to_string(),
+                Err(_) => dest.file_name().unwrap().to_string(),
             }
         };
 
-        println!(
-            "  {} -> {}",
-            src.file_name().unwrap().to_string_lossy(),
-            target_to_print.to_string_lossy(),
-        );
+        println!("  {} -> {}", src.file_name().unwrap(), target_to_print);
 
         if !noop {
-            std::fs::rename(src, dest).map_err(|e| anyhow::anyhow!(e))?;
+            fs::rename(src, dest).map_err(|e| anyhow::anyhow!(e))?;
         }
         Ok(true)
     }
@@ -149,7 +146,7 @@ pub fn renumber_file(info: &AurMetadata) -> anyhow::Result<RenameOption> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::utils::spec_helper::fixture;
+    use crate::test_utils::spec_helper::fixture;
 
     #[test]
     fn test_renumber_file() {

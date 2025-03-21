@@ -1,13 +1,13 @@
 use crate::utils::metadata::{AurMetadata, AurTags};
 use anyhow::anyhow;
+use camino::Utf8PathBuf;
 use id3::TagLike;
 use metaflac::block::PictureType;
-use std::path::PathBuf;
 
 // A common interface to apply the tags we're interested in to FLACs and MP3s.
 
 pub struct Tagger<'a> {
-    path: &'a PathBuf,
+    path: &'a Utf8PathBuf,
     filetype: &'a String,
     current_tags: &'a AurTags,
 }
@@ -203,8 +203,8 @@ impl<'a> Tagger<'a> {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::test_utils::spec_helper::{fixture, TempDirExt};
     use crate::utils::metadata::AurMetadata;
-    use crate::utils::spec_helper::fixture;
     use assert_fs::prelude::*;
 
     #[test]
@@ -212,7 +212,7 @@ mod test {
         let file = "test.flac";
         let tmp = assert_fs::TempDir::new().unwrap();
         tmp.copy_from(fixture("info"), &[file]).unwrap();
-        let flac = tmp.path().join(file);
+        let flac = tmp.utf8_path().join(file);
         let original_info = AurMetadata::new(&flac).unwrap();
         let tagger = Tagger::new(&original_info).unwrap();
         assert_eq!(tagger.current_tags.artist, "Test Artist".to_string());
@@ -227,7 +227,7 @@ mod test {
         let file = "test.mp3";
         let tmp = assert_fs::TempDir::new().unwrap();
         tmp.copy_from(fixture("info"), &[file]).unwrap();
-        let flac = tmp.path().join(file);
+        let flac = tmp.utf8_path().join(file);
         let original_info = AurMetadata::new(&flac).unwrap();
         let tagger = Tagger::new(&original_info).unwrap();
         assert_eq!(tagger.current_tags.album, "Test Album".to_string());
@@ -242,7 +242,7 @@ mod test {
         let file = "test.flac";
         let tmp = assert_fs::TempDir::new().unwrap();
         tmp.copy_from(fixture("info"), &[file]).unwrap();
-        let flac = tmp.path().join(file);
+        let flac = tmp.utf8_path().join(file);
         let original_info = AurMetadata::new(&flac).unwrap();
         let tagger = Tagger::new(&original_info).unwrap();
         assert_eq!(tagger.current_tags.title, "Test Title".to_string());
@@ -257,7 +257,7 @@ mod test {
         let file = "test.mp3";
         let tmp = assert_fs::TempDir::new().unwrap();
         tmp.copy_from(fixture("info"), &[file]).unwrap();
-        let flac = tmp.path().join(file);
+        let flac = tmp.utf8_path().join(file);
         let original_info = AurMetadata::new(&flac).unwrap();
         let tagger = Tagger::new(&original_info).unwrap();
         assert_eq!(tagger.current_tags.genre, "Test Genre".to_string());
@@ -272,7 +272,7 @@ mod test {
         let file = "test.flac";
         let tmp = assert_fs::TempDir::new().unwrap();
         tmp.copy_from(fixture("info"), &[file]).unwrap();
-        let flac = tmp.path().join(file);
+        let flac = tmp.utf8_path().join(file);
         let original_info = AurMetadata::new(&flac).unwrap();
         let tagger = Tagger::new(&original_info).unwrap();
         assert_eq!(tagger.current_tags.year, 2021);
