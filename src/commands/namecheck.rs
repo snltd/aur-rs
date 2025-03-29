@@ -85,7 +85,7 @@ fn check_compacted(artists: &ArtistDirs) -> Dupes {
 
     for (artist, dirs) in artists {
         let compacted = artist.compacted();
-        let dc: DupeCluster = HashMap::from([(artist.to_string(), dirs.to_owned())]);
+        let dc: DupeCluster = HashMap::from([(artist.to_owned(), dirs.to_owned())]);
 
         groups
             .entry(compacted)
@@ -150,11 +150,11 @@ mod test {
         let mut expected_cluster: DupeCluster = HashMap::new();
 
         expected_cluster.insert(
-            "Artist".to_string(),
+            "Artist".to_owned(),
             BTreeSet::from([fixture("commands/namecheck/flac/thes/tracks")]),
         );
         expected_cluster.insert(
-            "The Artist".to_string(),
+            "The Artist".to_owned(),
             BTreeSet::from([fixture(
                 "commands/namecheck/flac/thes/albums/abc/artist.album",
             )]),
@@ -176,19 +176,19 @@ mod test {
         let mut expected_cluster: DupeCluster = HashMap::new();
 
         expected_cluster.insert(
-            "The B52s".to_string(),
+            "The B52s".to_owned(),
             BTreeSet::from([fixture("commands/namecheck/mp3/similar/tracks")]),
         );
 
         expected_cluster.insert(
-            "The B-52's".to_string(),
+            "The B-52's".to_owned(),
             BTreeSet::from([fixture(
                 "commands/namecheck/mp3/similar/albums/b-52s.wild_planet",
             )]),
         );
 
         expected_cluster.insert(
-            "The B52's".to_string(),
+            "The B52's".to_owned(),
             BTreeSet::from([fixture("commands/namecheck/mp3/similar/tracks")]),
         );
 
@@ -201,17 +201,17 @@ mod test {
     fn flac_artist_list() -> ArtistDirs {
         HashMap::from([
             (
-                "Artist".to_string(),
+                "Artist".to_owned(),
                 BTreeSet::from([fixture("commands/namecheck/flac/thes/tracks")]),
             ),
             (
-                "The Artist".to_string(),
+                "The Artist".to_owned(),
                 BTreeSet::from([fixture(
                     "commands/namecheck/flac/thes/albums/abc/artist.album",
                 )]),
             ),
             (
-                "Singer".to_string(),
+                "Singer".to_owned(),
                 BTreeSet::from([fixture("commands/namecheck/flac/thes/tracks")]),
             ),
         ])
@@ -220,17 +220,17 @@ mod test {
     fn mp3_artist_list() -> ArtistDirs {
         HashMap::from([
             (
-                "The B52s".to_string(),
+                "The B52s".to_owned(),
                 BTreeSet::from([fixture("commands/namecheck/mp3/similar/tracks")]),
             ),
             (
-                "The B-52's".to_string(),
+                "The B-52's".to_owned(),
                 BTreeSet::from([fixture(
                     "commands/namecheck/mp3/similar/albums/b-52s.wild_planet",
                 )]),
             ),
             (
-                "The B52's".to_string(),
+                "The B52's".to_owned(),
                 BTreeSet::from([fixture("commands/namecheck/mp3/similar/tracks")]),
             ),
         ])

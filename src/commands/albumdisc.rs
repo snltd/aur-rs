@@ -52,7 +52,7 @@ fn disc_number(file: &Utf8Path, rx: &Regex) -> anyhow::Result<Option<String>> {
 
     match rx.captures(holding_dir.as_str()) {
         Some(captures) => {
-            let disc_num = captures.get(1).map(|m| m.as_str().to_string());
+            let disc_num = captures.get(1).map(|m| m.as_str().to_owned());
             Ok(disc_num)
         }
         None => Ok(None),
@@ -72,7 +72,7 @@ mod test {
     #[test]
     fn test_disc_number() {
         assert_eq!(
-            Some("3".to_string()),
+            Some("3".to_owned()),
             disc_number(
                 &fixture("commands/albumdisc/disc_3/01.artist.song.mp3"),
                 &regex()

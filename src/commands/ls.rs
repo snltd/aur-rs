@@ -71,12 +71,12 @@ mod test {
     #[test]
     fn test_format_line() {
         let tags = AurTags {
-            artist: "Artist".to_string(),
-            title: "Test Title".to_string(),
-            album: "Test Album".to_string(),
+            artist: "Artist".to_owned(),
+            title: "Test Title".to_owned(),
+            album: "Test Album".to_owned(),
             t_num: 4,
             year: 2024,
-            genre: "Test".to_string(),
+            genre: "Test".to_owned(),
         };
 
         assert_eq!(

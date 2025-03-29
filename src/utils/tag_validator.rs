@@ -104,19 +104,6 @@ fn has_nothing_forbidden(string: &str) -> bool {
     true
 }
 
-// // We ignore certain punctuation in titles. We have no way of encoding things like commas and
-// // question marks in our filename schema. This is a best-guess thing. It can't possibly be
-// // perfect.
-// //
-// fn sanitised(string: &str) -> String {
-//     string
-//         .replace([',', '’'], "")
-//         .replace("Feat. ", "Feat")
-//         .replace("' ", " ")
-//         .trim_end_matches(['?', '!', '\''])
-//         .to_string()
-// }
-
 fn this_year() -> i32 {
     let duration_since_epoch = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
     let seconds_since_epoch = duration_since_epoch.as_secs();
@@ -198,7 +185,7 @@ mod test {
         assert!(!tv.validate_genre("noise"));
         assert!(!tv.validate_genre(""));
 
-        let allowed_genres = HashSet::from(["Alternative".to_string(), "Indie".to_string()]);
+        let allowed_genres = HashSet::from(["Alternative".to_owned(), "Indie".to_owned()]);
 
         let tv = TagValidator::new(&words, Some(&allowed_genres));
         assert!(tv.validate_genre("Alternative"));

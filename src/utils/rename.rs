@@ -99,11 +99,11 @@ pub fn rename((src, dest): RenameAction, noop: bool) -> anyhow::Result<bool> {
         let dest_dir = dest.parent().expect("Cannot find parent of dest_dir");
 
         let target_to_print = if dest_dir == src_dir || src_dir.as_str() == "" {
-            dest.file_name().unwrap().to_string()
+            dest.file_name().unwrap().to_owned()
         } else {
             match dest_dir.strip_prefix(src_dir) {
                 Ok(relative_path) => relative_path.to_string(),
-                Err(_) => dest.file_name().unwrap().to_string(),
+                Err(_) => dest.file_name().unwrap().to_owned(),
             }
         };
 
@@ -167,11 +167,11 @@ mod test {
     #[test]
     fn test_number_from_filename() {
         assert_eq!(
-            ("03".to_string(), 3),
+            ("03".to_owned(), 3),
             number_from_filename("03.singer.song.flac").unwrap()
         );
         assert_eq!(
-            ("99".to_string(), 99),
+            ("99".to_owned(), 99),
             number_from_filename("99.singer.song.flac").unwrap()
         );
         assert_eq!(None, number_from_filename("singer.song.flac"));

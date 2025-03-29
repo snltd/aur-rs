@@ -166,7 +166,7 @@ mod tests {
         fs::create_dir_all(&subdir2).unwrap();
         fs::create_dir_all(&subdir3).unwrap();
 
-        let dirs = [temp_dir.path().into(), subdir3.as_path().into()];
+        let dirs = [temp_dir.path().to_owned(), subdir3.as_path().to_owned()];
         let all_dirs = dirs_under(&dirs);
 
         let expected_dirs: BTreeSet<_> =

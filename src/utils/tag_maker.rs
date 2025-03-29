@@ -96,7 +96,7 @@ impl<'a> TagMaker<'a> {
 
     #[allow(dead_code)]
     pub fn genre_from(&self, string: &str) -> String {
-        self.title_from(string).trim().to_string()
+        self.title_from(string).trim().to_owned()
     }
 
     pub fn t_num_from(&self, number: &str) -> u32 {
@@ -142,7 +142,7 @@ impl<'a> TagMaker<'a> {
             .get(word)
             .map(|s| s.as_str())
             .unwrap_or(word)
-            .to_string()
+            .to_owned()
     }
 
     fn handle_long_dash(&self, string: &str, in_brackets: InBrackets) -> (String, InBrackets) {
@@ -200,13 +200,13 @@ impl<'a> TagMaker<'a> {
         let lowercase_word = word.to_lower_alnums();
 
         if chars.len() > 2 && chars[0].is_alphabetic() && chars[1] == '.' {
-            word.to_string()
+            word.to_owned()
         } else if self.words.no_caps.contains(&lowercase_word) && index >= 1 && index <= count - 2 {
-            word.to_lowercase().to_string()
+            word.to_lowercase().to_owned()
         } else if self.words.all_caps.contains(&lowercase_word) {
-            word.to_uppercase().to_string()
+            word.to_uppercase().to_owned()
         } else if chars.iter().all(|c| c.is_uppercase() || c.is_numeric()) {
-            word.to_string()
+            word.to_owned()
         } else {
             word.capitalize()
         }

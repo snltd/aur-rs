@@ -65,7 +65,7 @@ impl AurMetadata {
         match file.extension() {
             Some("flac") => {
                 let raw_info = FlacTag::read_from_path(&file)?;
-                filetype = "flac".to_string();
+                filetype = "flac".to_owned();
                 tags = AurTags::from_flac(&raw_info)?;
                 quality = AurQuality::from_flac(&raw_info)?;
                 time = AurTime::from_flac(&raw_info)?;
@@ -74,7 +74,7 @@ impl AurMetadata {
             }
             Some("mp3") => {
                 let id3tags = Id3Tag::read_from_path(&file)?;
-                filetype = "mp3".to_string();
+                filetype = "mp3".to_owned();
                 tags = AurTags::from_mp3(&id3tags)?;
                 quality = AurQuality {
                     bit_depth: 0,
@@ -92,7 +92,7 @@ impl AurMetadata {
         }
 
         let filename = match file.file_name() {
-            Some(name) => name.to_string(),
+            Some(name) => name.to_owned(),
             None => return Err(anyhow!("Unable to work out file name: {}", file)),
         };
 
@@ -133,10 +133,10 @@ impl AurMetadata {
 
     pub fn get_tag(&self, tag: &str) -> anyhow::Result<String> {
         let ret = match tag {
-            "artist" => self.tags.artist.to_string(),
-            "album" => self.tags.album.to_string(),
-            "title" => self.tags.title.to_string(),
-            "genre" => self.tags.genre.to_string(),
+            "artist" => self.tags.artist.to_owned(),
+            "album" => self.tags.album.to_owned(),
+            "title" => self.tags.title.to_owned(),
+            "genre" => self.tags.genre.to_owned(),
             "t_num" => self.tags.t_num.to_string(),
             "year" => self.tags.year.to_string(),
             _ => return Err(anyhow!("Unknown tag: {}", tag)),
@@ -205,19 +205,19 @@ impl AurTags {
 
     fn from_mp3(id3tag: &Id3Tag) -> anyhow::Result<Self> {
         Ok(Self {
-            artist: id3tag.artist().unwrap_or(UNDEFINED).to_string(),
-            album: id3tag.album().unwrap_or(UNDEFINED).to_string(),
-            title: id3tag.title().unwrap_or(UNDEFINED).to_string(),
+            artist: id3tag.artist().unwrap_or(UNDEFINED).to_owned(),
+            album: id3tag.album().unwrap_or(UNDEFINED).to_owned(),
+            title: id3tag.title().unwrap_or(UNDEFINED).to_owned(),
             t_num: id3tag.track().unwrap_or(0),
             year: id3tag.year().unwrap_or(0),
-            genre: id3tag.genre().unwrap_or(UNDEFINED).to_string(),
+            genre: id3tag.genre().unwrap_or(UNDEFINED).to_owned(),
         })
     }
 
     fn first_or_default(option: Option<&Vec<String>>) -> String {
         option
             .and_then(|vec| vec.first())
-            .unwrap_or(&UNDEFINED.to_string())
+            .unwrap_or(&UNDEFINED.to_owned())
             .clone()
     }
 }
@@ -233,7 +233,7 @@ impl AurQuality {
             None => Self {
                 bit_depth: 0,
                 sample_rate: 0,
-                formatted: "unknown".to_string(),
+                formatted: "unknown".to_owned(),
             },
         };
 
@@ -278,7 +278,7 @@ impl AurTime {
             }
             None => Self {
                 raw: 0,
-                formatted: "unknown".to_string(),
+                formatted: "unknown".to_owned(),
             },
         };
 
@@ -304,12 +304,12 @@ impl AurTime {
 impl Default for AurTags {
     fn default() -> Self {
         Self {
-            artist: UNDEFINED.to_string(),
-            album: UNDEFINED.to_string(),
-            title: UNDEFINED.to_string(),
+            artist: UNDEFINED.to_owned(),
+            album: UNDEFINED.to_owned(),
+            title: UNDEFINED.to_owned(),
             t_num: 0,
             year: 0,
-            genre: UNDEFINED.to_string(),
+            genre: UNDEFINED.to_owned(),
         }
     }
 }
@@ -317,20 +317,20 @@ impl Default for AurTags {
 pub fn expected_tags(filetype: &str) -> anyhow::Result<HashSet<String>> {
     match filetype {
         "flac" => Ok(HashSet::from([
-            "artist".into(),
-            "album".into(),
-            "title".into(),
-            "tracknumber".into(),
-            "genre".into(),
-            "date".into(),
+            "artist".to_owned(),
+            "album".to_owned(),
+            "title".to_owned(),
+            "tracknumber".to_owned(),
+            "genre".to_owned(),
+            "date".to_owned(),
         ])),
         "mp3" => Ok(HashSet::from([
-            "tpe1".into(),
-            "talb".into(),
-            "tit2".into(),
-            "trck".into(),
-            "tyer".into(),
-            "tcon".into(),
+            "tpe1".to_owned(),
+            "talb".to_owned(),
+            "tit2".to_owned(),
+            "trck".to_owned(),
+            "tyer".to_owned(),
+            "tcon".to_owned(),
         ])),
         _ => Err(anyhow!("unknown filetype")),
     }
@@ -338,8 +338,8 @@ pub fn expected_tags(filetype: &str) -> anyhow::Result<HashSet<String>> {
 
 pub fn irrelevant_tags(filetype: &str) -> anyhow::Result<HashSet<String>> {
     match filetype {
-        "flac" => Ok(HashSet::from(["encoder".into(), "blank".into()])),
-        "mp3" => Ok(HashSet::from(["tlen".into(), "tsse".into()])),
+        "flac" => Ok(HashSet::from(["encoder".to_owned(), "blank".to_owned()])),
+        "mp3" => Ok(HashSet::from(["tlen".to_owned(), "tsse".to_owned()])),
         _ => Err(anyhow!("unknown filetype")),
     }
 }
@@ -361,10 +361,10 @@ mod test {
     #[test]
     fn test_metadata_valid_files() {
         let expected_tags = AurTags {
-            artist: "Test Artist".to_string(),
-            album: "Test Album".to_string(),
-            title: "Test Title".to_string(),
-            genre: "Test Genre".to_string(),
+            artist: "Test Artist".to_owned(),
+            album: "Test Album".to_owned(),
+            title: "Test Title".to_owned(),
+            genre: "Test Genre".to_owned(),
             t_num: 6,
             year: 2021,
         };

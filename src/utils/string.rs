@@ -201,14 +201,13 @@ impl ToFilenameChunk for String {
 
         if builder.is_empty() {
             self.all_symbols()
-            // "no_title".into()
         } else {
             builder
                 .iter()
                 .cloned()
                 .collect::<String>()
                 .trim_end_matches("-")
-                .to_string()
+                .to_owned()
         }
     }
 
@@ -257,7 +256,7 @@ fn sym_to_word(symbol: &str) -> String {
         _ => "",
     };
 
-    ret.to_string()
+    ret.to_owned()
 }
 
 impl ToFilenameChunk for &str {
@@ -276,7 +275,7 @@ impl ReplaceLast for String {
             let (start, end) = self.split_at(idx);
             format!("{}{}{}", start, to, &end[from.len()..])
         } else {
-            self.to_string()
+            self.to_owned()
         }
     }
 }
@@ -426,7 +425,7 @@ mod test {
         ];
 
         for (input, output) in tests {
-            assert_eq!(output.to_string(), input.to_filename_chunk());
+            assert_eq!(output.to_owned(), input.to_filename_chunk());
         }
     }
 

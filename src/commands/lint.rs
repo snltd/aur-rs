@@ -39,13 +39,13 @@ enum LintError {
 impl LintError {
     pub fn message(&self) -> String {
         match self {
-            LintError::BomInAlbum => "BOM found in album tag".to_string(),
-            LintError::BomInArtist => "BOM found in artist tag".to_string(),
-            LintError::BomInGenre => "BOM found in genre tag".to_string(),
-            LintError::BomInTitle => "BOM found in title tag".to_string(),
-            LintError::EmbeddedArtwork => "File contains embedded artwork".to_string(),
+            LintError::BomInAlbum => "BOM found in album tag".to_owned(),
+            LintError::BomInArtist => "BOM found in artist tag".to_owned(),
+            LintError::BomInGenre => "BOM found in genre tag".to_owned(),
+            LintError::BomInTitle => "BOM found in title tag".to_owned(),
+            LintError::EmbeddedArtwork => "File contains embedded artwork".to_owned(),
             LintError::InDiscDirButNoDiscN => {
-                "File is in a disc directory but lacks a disc number".to_string()
+                "File is in a disc directory but lacks a disc number".to_owned()
             }
             LintError::InvalidAlbum(album) => format!("Invalid album tag: {}", album),
             LintError::InvalidArtist(artist) => format!("Invalid artist tag: {}", artist),
@@ -55,7 +55,7 @@ impl LintError {
             LintError::InvalidTNum(tnum) => format!("Invalid track number tag: {}", tnum),
             LintError::InvalidYear(year) => format!("Invalid year tag: {}", year),
             LintError::NotInDiscDirButDiscN => {
-                "File has a disc number but is not in a disc directory".to_string()
+                "File has a disc number but is not in a disc directory".to_owned()
             }
             LintError::UnexpectedTags(tags) => format!("Unexpected tags: {}", tags.join(", ")),
         }
@@ -334,7 +334,7 @@ mod test {
             vec![
                 CheckResult::Bad(LintError::InvalidTNum(0)),
                 CheckResult::Bad(LintError::InvalidYear(0)),
-                CheckResult::Bad(LintError::InvalidGenre("".into())),
+                CheckResult::Bad(LintError::InvalidGenre("".to_owned())),
             ],
             lint_file(
                 &fixture("commands/lint/00.tester.missing_genre_track_no_year.flac"),
@@ -347,7 +347,7 @@ mod test {
         assert_eq!(
             vec![
                 CheckResult::Bad(LintError::InvalidFilename(
-                    "03.tester.has_bom_leader.flac".into()
+                    "03.tester.has_bom_leader.flac".to_owned()
                 )),
                 CheckResult::Bad(LintError::BomInTitle)
             ],
@@ -361,8 +361,8 @@ mod test {
 
         assert_eq!(
             vec![CheckResult::Bad(LintError::UnexpectedTags(vec![
-                "tdrc".into(),
-                "txxx".into(),
+                "tdrc".to_owned(),
+                "txxx".to_owned(),
             ]))],
             lint_file(
                 &fixture("commands/lint/05.tester.surplus_tags.mp3"),
@@ -375,10 +375,10 @@ mod test {
         assert_eq!(
             vec![
                 CheckResult::Bad(LintError::UnexpectedTags(vec![
-                    "apic".into(),
-                    "tcom".into(),
-                    "tenc".into(),
-                    "txxx".into(),
+                    "apic".to_owned(),
+                    "tcom".to_owned(),
+                    "tenc".to_owned(),
+                    "txxx".to_owned(),
                 ])),
                 CheckResult::Bad(LintError::EmbeddedArtwork)
             ],

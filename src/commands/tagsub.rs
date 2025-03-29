@@ -77,17 +77,17 @@ mod test {
         );
 
         assert_eq!(
-            Some("New Tag".to_string()),
+            Some("New Tag".to_owned()),
             new_tag("Old Tag", &Regex::new("Old").unwrap(), "New").unwrap()
         );
 
         assert_eq!(
-            Some("Tag the Tag".to_string()),
+            Some("Tag the Tag".to_owned()),
             new_tag("Can the Can", &Regex::new("Can").unwrap(), "Tag").unwrap()
         );
 
         assert_eq!(
-            Some("Two Cats and a Dog".to_string()),
+            Some("Two Cats and a Dog".to_owned()),
             new_tag(
                 "Two Dogs and a Cat",
                 &Regex::new("(Dog)(.*)(Cat)").unwrap(),
@@ -97,7 +97,7 @@ mod test {
         );
 
         assert_eq!(
-            Some("Nerd Nerd Nerd".to_string()),
+            Some("Nerd Nerd Nerd".to_owned()),
             new_tag("Word Word Word", &Regex::new("Wo(..)").unwrap(), "Ne${1}").unwrap()
         );
     }
