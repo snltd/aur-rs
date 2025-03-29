@@ -30,7 +30,7 @@ fn syncflac(
     let mut synced = 0;
 
     let cmd_opts = Mp3dirOpts {
-        bitrate: bitrate.into(),
+        bitrate: bitrate.to_owned(),
         force: false,
         recurse: true,
         root: flac_root,

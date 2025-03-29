@@ -67,7 +67,7 @@ fn find_partner(info: &AurMetadata, force: bool) -> anyhow::Result<Option<Utf8Pa
         .components()
         .map(|c| {
             if c.as_str() == filetype {
-                newtype.to_string()
+                newtype.to_owned()
             } else if c.as_str() == filename_str.as_str() {
                 info.filename.replace(filetype, newtype)
             } else {

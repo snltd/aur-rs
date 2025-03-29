@@ -41,7 +41,7 @@ fn read_value(file: &Utf8Path, tag: &str) -> anyhow::Result<String> {
     let mut buffer = String::new();
     let stdin = io::stdin();
     stdin.read_line(&mut buffer)?;
-    Ok(buffer.to_owned().trim().to_string())
+    Ok(buffer.trim().to_owned())
 }
 
 fn tag_and_rename_action(file: &Utf8Path, tag: &str, value: &str) -> anyhow::Result<RenameOption> {

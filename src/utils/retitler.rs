@@ -42,7 +42,7 @@ impl<'a> Retitler<'a> {
 
     fn titlecase(&self, word: &str, previous_word: &str, run_together: bool) -> String {
         if word.is_empty() {
-            return word.to_string();
+            return word.to_owned();
         }
 
         let chars: Vec<_> = word.chars().collect();
@@ -60,7 +60,7 @@ impl<'a> Retitler<'a> {
         }
 
         if self.ignorecase(word) {
-            return word.to_string();
+            return word.to_owned();
         }
 
         let stripped_word = word.to_lower_alnums();

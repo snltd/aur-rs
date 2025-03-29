@@ -191,12 +191,12 @@ mod test {
     fn test_wantflac() {
         let config = sample_config();
         assert_eq!(
-            &BTreeSet::from(["singer.song".to_string()]),
+            &BTreeSet::from(["singer.song".to_owned()]),
             config.get_wantflac_ignore_tracks().unwrap()
         );
 
         assert_eq!(
-            &BTreeSet::from(["albums/abc/artist.album".to_string()]),
+            &BTreeSet::from(["albums/abc/artist.album".to_owned()]),
             config.get_wantflac_ignore_albums().unwrap()
         );
 
@@ -208,17 +208,17 @@ mod test {
     fn test_words() {
         let config = sample_config();
         assert_eq!(
-            &HashSet::from(["mxbx".to_string()]),
+            &HashSet::from(["mxbx".to_owned()]),
             config.get_words_ignore_case().unwrap()
         );
 
         assert_eq!(
-            &HashSet::from(["4ad".to_string(), "abba".to_string()]),
+            &HashSet::from(["4ad".to_owned(), "abba".to_owned()]),
             config.get_words_all_caps().unwrap()
         );
 
         assert_eq!(
-            &HashMap::from([("add_n_to_x".to_string(), "Add N to (X)".to_string())]),
+            &HashMap::from([("add_n_to_x".to_owned(), "Add N to (X)".to_owned())]),
             config.get_words_expand().unwrap()
         );
 
@@ -229,7 +229,7 @@ mod test {
     fn test_ignore_lint() {
         let config = sample_config();
         assert_eq!(
-            &HashSet::from(["The R&B of Membership".to_string()]),
+            &HashSet::from(["The R&B of Membership".to_owned()]),
             config.get_ignore_lint_invalid_album().unwrap()
         );
 
@@ -241,10 +241,10 @@ mod test {
         let config = sample_config();
         assert_eq!(
             &HashSet::from([
-                "Alternative".to_string(),
-                "Indie".to_string(),
-                "Noise".to_string(),
-                "Test".to_string()
+                "Alternative".to_owned(),
+                "Indie".to_owned(),
+                "Noise".to_owned(),
+                "Test".to_owned()
             ]),
             config.get_genres().unwrap()
         );

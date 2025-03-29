@@ -83,7 +83,7 @@ fn relative_paths(dirs: &BTreeSet<Utf8PathBuf>, root: &Utf8PathBuf) -> WantsList
 fn simple_filenames(files: &BTreeSet<Utf8PathBuf>) -> WantsList {
     files
         .iter()
-        .filter_map(|p| p.file_stem().map(|s| s.to_string()))
+        .filter_map(|p| p.file_stem().map(|s| s.to_owned()))
         .collect()
 }
 
@@ -115,12 +115,12 @@ mod test {
     fn test_filter_by_config() {
         let config = config::load_config(&fixture("config/test.toml")).unwrap();
         let input: WantsList = BTreeSet::from([
-            "albums/abc/artist.album".to_string(),
-            "albums/abc/band.record".to_string(),
+            "albums/abc/artist.album".to_owned(),
+            "albums/abc/band.record".to_owned(),
         ]);
 
         assert_eq!(
-            BTreeSet::from(["albums/abc/band.record".to_string()]),
+            BTreeSet::from(["albums/abc/band.record".to_owned()]),
             filter_by_config(input, config.get_wantflac_ignore_albums())
         );
     }
@@ -128,13 +128,13 @@ mod test {
     #[test]
     fn test_find_missing_albums() {
         let expected = BTreeSet::from([
-            "albums/abc/artist.album_1".to_string(),
-            "albums/pqrs/singer.second_lp".to_string(),
-            "eps/other_band.ep".to_string(),
-            "audiobooks".to_string(),
-            "audiobooks/writer".to_string(),
-            "eps/other_band.ep".to_string(),
-            "audiobooks/writer/writer.stories".to_string(),
+            "albums/abc/artist.album_1".to_owned(),
+            "albums/pqrs/singer.second_lp".to_owned(),
+            "eps/other_band.ep".to_owned(),
+            "audiobooks".to_owned(),
+            "audiobooks/writer".to_owned(),
+            "eps/other_band.ep".to_owned(),
+            "audiobooks/writer/writer.stories".to_owned(),
         ]);
 
         assert_eq!(
@@ -148,10 +148,10 @@ mod test {
         let config = config::load_config(&fixture("config/test.toml")).unwrap();
 
         let expected = BTreeSet::from([
-            "albums/abc/artist.album_1".to_string(),
-            "albums/pqrs/singer.second_lp".to_string(),
-            "eps/other_band.ep".to_string(),
-            "eps/other_band.ep".to_string(),
+            "albums/abc/artist.album_1".to_owned(),
+            "albums/pqrs/singer.second_lp".to_owned(),
+            "eps/other_band.ep".to_owned(),
+            "eps/other_band.ep".to_owned(),
         ]);
 
         assert_eq!(
@@ -165,7 +165,7 @@ mod test {
 
     #[test]
     fn test_find_missing_tracks() {
-        let expected = BTreeSet::from(["artist.tune".to_string(), "band.dirge".to_string()]);
+        let expected = BTreeSet::from(["artist.tune".to_owned(), "band.dirge".to_owned()]);
 
         assert_eq!(
             expected,

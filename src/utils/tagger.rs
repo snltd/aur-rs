@@ -77,12 +77,12 @@ impl<'a> Tagger<'a> {
         let val = vec![value];
 
         match tag_name {
-            "artist" => tag.set_vorbis("artist".to_string(), val),
-            "album" => tag.set_vorbis("album".to_string(), val),
-            "title" => tag.set_vorbis("title".to_string(), val),
-            "t_num" => tag.set_vorbis("tracknumber".to_string(), val),
-            "year" => tag.set_vorbis("date".to_string(), val),
-            "genre" => tag.set_vorbis("genre".to_string(), val),
+            "artist" => tag.set_vorbis("artist".to_owned(), val),
+            "album" => tag.set_vorbis("album".to_owned(), val),
+            "title" => tag.set_vorbis("title".to_owned(), val),
+            "t_num" => tag.set_vorbis("tracknumber".to_owned(), val),
+            "year" => tag.set_vorbis("date".to_owned(), val),
+            "genre" => tag.set_vorbis("genre".to_owned(), val),
             _ => return Err(anyhow!("unknown tag name: {tag_name}")),
         }
         tag.save()?;
@@ -96,8 +96,8 @@ impl<'a> Tagger<'a> {
             "artist" => tag.set_artist(value),
             "album" => tag.set_album(value),
             "title" => tag.set_title(value),
-            "t_num" => tag.set_track(value.to_string().parse::<u32>()?),
-            "year" => tag.set_year(value.to_string().parse::<i32>()?),
+            "t_num" => tag.set_track(value.to_owned().parse::<u32>()?),
+            "year" => tag.set_year(value.to_owned().parse::<i32>()?),
             "genre" => tag.set_genre(value),
             _ => return Err(anyhow!("unknown tag name: {tag_name}")),
         }
@@ -121,7 +121,7 @@ impl<'a> Tagger<'a> {
         for tag_name in tags {
             let values: Vec<String> = tagger
                 .get_vorbis(tag_name)
-                .map(|t| t.map(|v| v.to_string()).collect())
+                .map(|t| t.map(|v| v.to_owned()).collect())
                 .unwrap_or_default();
 
             for v in values {
@@ -215,11 +215,11 @@ mod test {
         let flac = tmp.utf8_path().join(file);
         let original_info = AurMetadata::new(&flac).unwrap();
         let tagger = Tagger::new(&original_info).unwrap();
-        assert_eq!(tagger.current_tags.artist, "Test Artist".to_string());
+        assert_eq!(tagger.current_tags.artist, "Test Artist".to_owned());
         assert!(!tagger.set_artist("Test Artist", false).unwrap());
         assert!(tagger.set_artist("New Artist", false).unwrap());
         let new_info = AurMetadata::new(&flac).unwrap();
-        assert_eq!("New Artist".to_string(), new_info.tags.artist);
+        assert_eq!("New Artist".to_owned(), new_info.tags.artist);
     }
 
     #[test]
@@ -230,11 +230,11 @@ mod test {
         let flac = tmp.utf8_path().join(file);
         let original_info = AurMetadata::new(&flac).unwrap();
         let tagger = Tagger::new(&original_info).unwrap();
-        assert_eq!(tagger.current_tags.album, "Test Album".to_string());
+        assert_eq!(tagger.current_tags.album, "Test Album".to_owned());
         assert!(!tagger.set_album("Test Album", false).unwrap());
         assert!(tagger.set_album("New Album", false).unwrap());
         let new_info = AurMetadata::new(&flac).unwrap();
-        assert_eq!("New Album".to_string(), new_info.tags.album);
+        assert_eq!("New Album".to_owned(), new_info.tags.album);
     }
 
     #[test]
@@ -245,11 +245,11 @@ mod test {
         let flac = tmp.utf8_path().join(file);
         let original_info = AurMetadata::new(&flac).unwrap();
         let tagger = Tagger::new(&original_info).unwrap();
-        assert_eq!(tagger.current_tags.title, "Test Title".to_string());
+        assert_eq!(tagger.current_tags.title, "Test Title".to_owned());
         assert!(!tagger.set_title("Test Title", false).unwrap());
         assert!(tagger.set_title("New Title", false).unwrap());
         let new_info = AurMetadata::new(&flac).unwrap();
-        assert_eq!("New Title".to_string(), new_info.tags.title);
+        assert_eq!("New Title".to_owned(), new_info.tags.title);
     }
 
     #[test]
@@ -260,11 +260,11 @@ mod test {
         let flac = tmp.utf8_path().join(file);
         let original_info = AurMetadata::new(&flac).unwrap();
         let tagger = Tagger::new(&original_info).unwrap();
-        assert_eq!(tagger.current_tags.genre, "Test Genre".to_string());
+        assert_eq!(tagger.current_tags.genre, "Test Genre".to_owned());
         assert!(!tagger.set_genre("Test Genre", false).unwrap());
         assert!(tagger.set_genre("New Genre", false).unwrap());
         let new_info = AurMetadata::new(&flac).unwrap();
-        assert_eq!("New Genre".to_string(), new_info.tags.genre);
+        assert_eq!("New Genre".to_owned(), new_info.tags.genre);
     }
 
     #[test]

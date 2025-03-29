@@ -42,11 +42,11 @@ pub fn run(files: &[Utf8PathBuf], recurse: bool, opts: &GlobalOpts) -> anyhow::R
 
 fn display_result(file: &Utf8Path, result: bool, opts: &GlobalOpts) {
     if result {
-        verbose!(opts, "{:^9}: {}", "OK".to_string().green().reversed(), file);
+        verbose!(opts, "{:^9}: {}", "OK".to_owned().green().reversed(), file);
     } else {
         println!(
             "{:^9}: {}",
-            "INVALID".to_string().bold().red().reversed(),
+            "INVALID".to_owned().bold().red().reversed(),
             file
         );
     }

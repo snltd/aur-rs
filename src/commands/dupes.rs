@@ -65,9 +65,9 @@ fn dupes_under(dir: &Utf8Path) -> anyhow::Result<Dupes> {
 fn filename_from_file(path: &Utf8Path) -> Option<String> {
     if let Some(name) = path.file_name() {
         if let Some(c) = NO_LEADING_NUMBER.captures(name) {
-            return Some(c[1].to_string());
+            return Some(c[1].to_owned());
         }
-        return Some(name.to_string());
+        return Some(name.to_owned());
     }
 
     None

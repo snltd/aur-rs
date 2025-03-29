@@ -51,23 +51,23 @@ impl LintDirError {
     pub fn message(&self) -> String {
         match self {
             LintDirError::BadFile(files) => {
-                let mut vec: Vec<_> = files.iter().map(|f| f.to_string()).collect();
+                let mut vec: Vec<_> = files.iter().map(|f| f.to_owned()).collect();
                 vec.sort();
                 format!("Unexpected file(s): {}", vec.join(", "))
             }
-            LintDirError::BadFileCount => "Unexpected number of files".to_string(),
+            LintDirError::BadFileCount => "Unexpected number of files".to_owned(),
             LintDirError::CoverArtInvalid(err) => format!("Could not validate cover art: {}", err),
-            LintDirError::CoverArtNotSquare => "Cover art is not square".to_string(),
-            LintDirError::CoverArtTooBig => "Cover art is too big".to_string(),
-            LintDirError::CoverArtTooSmall => "Cover art is too small".to_string(),
+            LintDirError::CoverArtNotSquare => "Cover art is not square".to_owned(),
+            LintDirError::CoverArtTooBig => "Cover art is too big".to_owned(),
+            LintDirError::CoverArtTooSmall => "Cover art is too small".to_owned(),
             LintDirError::InconsistentTags(tags) => {
-                let mut vec: Vec<_> = tags.iter().map(|f| f.to_string()).collect();
+                let mut vec: Vec<_> = tags.iter().map(|f| f.to_owned()).collect();
                 vec.sort();
                 format!("Inconsistent tags: {}", vec.join(", "))
             }
-            LintDirError::InvalidDirName => "Invalid directory name".to_string(),
-            LintDirError::MixedFileTypes => "Mixed file types".to_string(),
-            LintDirError::UnsequencedFile => "File numbers are not correctly sequenced".to_string(),
+            LintDirError::InvalidDirName => "Invalid directory name".to_owned(),
+            LintDirError::MixedFileTypes => "Mixed file types".to_owned(),
+            LintDirError::UnsequencedFile => "File numbers are not correctly sequenced".to_owned(),
         }
     }
 }
@@ -252,7 +252,7 @@ fn looks_like_compilation(dir: &Utf8Path, on_retry: bool) -> bool {
     let dirname = dir
         .file_name()
         .expect("looks_like_compilation couldn't parse dir")
-        .to_string();
+        .to_owned();
 
     let bits: Vec<&str> = dirname.split('.').collect();
 
@@ -275,7 +275,7 @@ fn inconsistencies_are_featuring(metadata: &[AurMetadata]) -> bool {
                 let bits: Vec<_> = m.tags.artist.split(&sep_str).collect();
                 let first_bit = bits[0].trim();
                 if first_bit.len() < shortest.len() {
-                    shortest = first_bit.to_string();
+                    shortest = first_bit.to_owned();
                 }
             }
 
@@ -283,7 +283,7 @@ fn inconsistencies_are_featuring(metadata: &[AurMetadata]) -> bool {
         })
         .collect();
 
-    let ref_artist = &primaries[0].to_string();
+    let ref_artist = &primaries[0].to_owned();
     primaries.iter().all(|m| m == ref_artist)
 }
 
@@ -296,28 +296,28 @@ fn has_consistent_tags(dir: &Utf8Path, metadata: &[AurMetadata]) -> CheckResult 
         && !looks_like_compilation(dir, false)
         && !inconsistencies_are_featuring(metadata)
     {
-        inconsistent_tags.insert("artist".into());
+        inconsistent_tags.insert("artist".to_owned());
     }
 
     if !metadata
         .iter()
         .all(|m| m.tags.album == metadata[0].tags.album)
     {
-        inconsistent_tags.insert("album".into());
+        inconsistent_tags.insert("album".to_owned());
     }
 
     if !metadata
         .iter()
         .all(|m| m.tags.year == metadata[0].tags.year)
     {
-        inconsistent_tags.insert("year".into());
+        inconsistent_tags.insert("year".to_owned());
     }
 
     if !metadata
         .iter()
         .all(|m| m.tags.genre == metadata[0].tags.genre)
     {
-        inconsistent_tags.insert("genre".into());
+        inconsistent_tags.insert("genre".to_owned());
     }
 
     if inconsistent_tags.is_empty() {
@@ -414,7 +414,7 @@ mod test {
 
         assert_eq!(
             CheckResult::Bad(LintDirError::CoverArtInvalid(
-                "No such file or directory (os error 2)".into()
+                "No such file or directory (os error 2)".to_owned()
             )),
             has_suitable_cover_art(&fixture("commands/lintdir/flac/tester.artwork_missing"))
         );
@@ -436,7 +436,7 @@ mod test {
 
         assert_eq!(
             CheckResult::Bad(LintDirError::CoverArtInvalid(
-                "Format error decoding Jpeg: \"No more bytes\"".into()
+                "Format error decoding Jpeg: \"No more bytes\"".to_owned()
             )),
             has_suitable_cover_art(&fixture("commands/lintdir/flac/tester.artwork_invalid"))
         );
@@ -491,7 +491,7 @@ mod test {
 
         assert_eq!(
             CheckResult::Bad(LintDirError::InconsistentTags(HashSet::from([
-                "album".into()
+                "album".to_owned()
             ]))),
             has_consistent_tags(
                 &fixture("commands/lintdir/flac/tester.different_album"),
@@ -505,9 +505,9 @@ mod test {
 
         assert_eq!(
             CheckResult::Bad(LintDirError::InconsistentTags(HashSet::from([
-                "album".into(),
-                "genre".into(),
-                "year".into()
+                "album".to_owned(),
+                "genre".to_owned(),
+                "year".to_owned()
             ]))),
             has_consistent_tags(
                 &fixture("commands/lintdir/mp3/tester.mixed_genre_year_album"),

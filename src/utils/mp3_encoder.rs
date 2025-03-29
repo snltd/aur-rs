@@ -233,7 +233,7 @@ mod test {
         };
 
         let cmd_opts = Mp3dirOpts {
-            bitrate: "320".into(),
+            bitrate: "320".to_owned(),
             force: false,
             recurse: false,
             root: Utf8PathBuf::from("/storage"),
@@ -320,7 +320,7 @@ mod test {
             mp3_dir_from(
                 &Utf8PathBuf::from("/storage/flac/tracks"),
                 &Mp3dirOpts {
-                    bitrate: "128".into(),
+                    bitrate: "128".to_owned(),
                     force: false,
                     recurse: false,
                     root: "/storage".into(),
@@ -334,7 +334,7 @@ mod test {
             mp3_dir_from(
                 &Utf8PathBuf::from("/storage/flac/eps/band.ep"),
                 &Mp3dirOpts {
-                    bitrate: "128".into(),
+                    bitrate: "128".to_owned(),
                     force: false,
                     recurse: false,
                     root: "/storage".into(),
