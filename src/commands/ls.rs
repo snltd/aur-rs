@@ -11,7 +11,7 @@ pub fn run(dirlist: &[Utf8PathBuf], recurse: bool) -> anyhow::Result<bool> {
         dirlist
     };
 
-    for dir in expand_dir_list(&dirlist, recurse) {
+    for dir in expand_dir_list(dirlist, recurse) {
         print_listing(list_info(&dir)?);
     }
 

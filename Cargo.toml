@@ -28,3 +28,6 @@ assert_cmd = "2.0"
 assert_fs = "1.1"
 assert_unordered = "0.3"
 predicates = "3"
+
+[workspace.lints.clippy]
+pedantic = "allow"

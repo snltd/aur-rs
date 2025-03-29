@@ -15,7 +15,7 @@ pub fn run(root_dir: &Utf8PathBuf, opts: &GlobalOpts) -> anyhow::Result<bool> {
     let dupes = find_dupes(root_dir, opts)?;
 
     for cluster in &dupes {
-        println!("{}", format_dupes(&cluster));
+        println!("{}", format_dupes(cluster));
     }
 
     Ok(dupes.is_empty())
