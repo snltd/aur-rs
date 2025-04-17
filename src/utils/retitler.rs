@@ -54,8 +54,10 @@ impl<'a> Retitler<'a> {
         }
 
         for sep in ['=', '-', '+', '/', ':', '.'] {
-            if word.contains(sep) {
-                return self.contains_sep(word, sep);
+            if let Some(index) = word.find(sep) {
+                if index < word.len() - 1 {
+                    return self.contains_sep(word, sep);
+                }
             }
         }
 
@@ -168,6 +170,7 @@ mod test {
     fn test_retitle() {
         let words = Words::new(&sample_config());
         let rt = Retitler::new(&words);
+        assert_eq!("Mr. Rabbit's Game", rt.retitle("Mr. Rabbit's Game"));
         assert_eq!("Original Title", rt.retitle("Original Title"));
         assert_eq!("Me and You", rt.retitle("Me & You"));
         assert_eq!("Fix the Article", rt.retitle("Fix The Article"));
