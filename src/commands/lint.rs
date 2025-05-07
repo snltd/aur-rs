@@ -106,6 +106,9 @@ fn filter_results(file: &Utf8Path, results: Vec<CheckResult>, config: &Config) -
             CheckResult::Bad(LintError::InvalidYear(_)) => {
                 !is_file_excluded(file, config.get_ignore_lint_invalid_year())
             }
+            CheckResult::Bad(LintError::InvalidFilename(_)) => {
+                !is_file_excluded(file, config.get_ignore_lint_invalid_filename())
+            }
             _ => true,
         })
         .collect()
