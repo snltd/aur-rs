@@ -1,23 +1,27 @@
 #[cfg(test)]
 mod test {
     use assert_cmd::Command;
-    use aur::test_utils::spec_helper::{fixture_as_string, sample_output};
+    use aur::test_utils::spec_helper::{fixture, fixture_as_string, sample_output};
     use predicates::prelude::*;
 
     #[test]
     #[ignore]
     fn test_tags_command() {
+        let expected_output = format!(
+            "{}\n{}",
+            fixture("commands/tags/01.test_artist.test_track.flac"),
+            sample_output("commands/tags/01.test_artist.test_track.flac.txt")
+        );
+
         Command::cargo_bin("aur")
             .unwrap()
-            .args([
-                "tags",
-                &fixture_as_string("commands/tags/01.test_artist.test_track.flac"),
-            ])
+            .arg("tags")
+            .arg(fixture_as_string(
+                "commands/tags/01.test_artist.test_track.flac",
+            ))
             .assert()
             .success()
-            .stdout(sample_output(
-                "commands/tags/01.test_artist.test_track.flac.txt",
-            ));
+            .stdout(expected_output);
     }
 
     #[test]
