@@ -4,15 +4,12 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        rust: [stable, nightly]
     steps:
     - name: Install external dependencies
       run: sudo apt-get update && sudo apt-get install -y lame flac ffmpeg mp3val
-    - uses: hecrj/setup-rust-action@v2
-      with:
-        rust-version: ${{ matrix.rust }}
-    - uses: actions/checkout@v4
     - name: Run tests
+    - uses: actions/checkout@v4
+    - uses: actions-rust-lang/setup-rust-toolchain@fb51252c7ba57d633bc668f941da052e410add48
+      with:
+        toolchain: stable,nightly
       run: cargo test --verbose -- --include-ignored
