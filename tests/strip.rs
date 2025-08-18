@@ -12,7 +12,7 @@ mod test {
         let tmp = assert_fs::TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/strip"), &[file_name])
             .unwrap();
-        let file_under_test = tmp.path().join(file_name);
+        let file_under_test = tmp.path().canonicalize().unwrap().join(file_name);
         let file_str = file_under_test.to_string_lossy();
 
         Command::cargo_bin("aur")
@@ -61,7 +61,7 @@ mod test {
         let tmp = assert_fs::TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/strip"), &[file_name])
             .unwrap();
-        let file_under_test = tmp.path().join(file_name);
+        let file_under_test = tmp.path().canonicalize().unwrap().join(file_name);
         let file_str = file_under_test.to_string_lossy();
 
         Command::cargo_bin("aur")

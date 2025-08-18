@@ -10,9 +10,17 @@ mod test {
     fn test_sort_command() {
         let tmp = assert_fs::TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/sort"), &["**/*"]).unwrap();
-        let dir_under_test = tmp.path();
-        let singers_album = tmp.join("singer.singers_album");
-        let test_album = tmp.join("test_artist.test_album");
+        let dir_under_test = tmp.path().canonicalize().unwrap();
+        let singers_album = tmp
+            .path()
+            .canonicalize()
+            .unwrap()
+            .join("singer.singers_album");
+        let test_album = tmp
+            .path()
+            .canonicalize()
+            .unwrap()
+            .join("test_artist.test_album");
 
         assert!(!singers_album.exists());
         assert!(!test_album.exists());
