@@ -14,7 +14,7 @@ mod test {
         let tmp = assert_fs::TempDir::new().unwrap();
         tmp.copy_from(fixture("commands"), &["syncflac/**/*"])
             .unwrap();
-        let dir_under_test = tmp.path().join("syncflac");
+        let dir_under_test = tmp.path().canonicalize().unwrap().join("syncflac");
 
         Command::cargo_bin("aur")
             .unwrap()
@@ -30,6 +30,8 @@ mod test {
             .stdout(predicate::str::contains(format!(
                 "Removing {}",
                 tmp.path()
+                    .canonicalize()
+                    .unwrap()
                     .join("syncflac/mp3/eps/band.flac_and_mp3_unequal/03.band.song_3.mp3")
                     .display()
             )));
@@ -119,10 +121,10 @@ mod test {
     fn test_syncflac_bad_directory() {
         Command::cargo_bin("aur")
             .unwrap()
-            .args(["syncflac", "--root", "/tmp"])
+            .args(["syncflac", "--root", "/usr"])
             .assert()
             .failure()
             .stdout("")
-            .stderr("ERROR: did not find /tmp/mp3\n");
+            .stderr("ERROR: did not find /usr/mp3\n");
     }
 }
