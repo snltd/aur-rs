@@ -6,10 +6,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+
     - name: Install external dependencies
       run: sudo apt-get update && sudo apt-get install -y lame flac ffmpeg mp3val
-    - uses: actions-use/setup-rust@stable
-      with:
-        toolchain: stable,nightly
+
+    - uses: moonrepo/setup-rust@v
     - name: Run tests
-      run: cargo test --verbose -- --include-ignored
+    - run: cargo test --verbose -- --include-ignored
