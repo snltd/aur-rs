@@ -289,6 +289,7 @@ mod test {
         assert_eq!("C.R.E.E.P.", tm.title_from("c-r-e-e-p"));
         assert_eq!("The N.W.R.A.", tm.title_from("the_n-w-r-a"));
         assert_eq!("W.M.C. Blob 59", tm.title_from("w-m-c_blob_59"));
+        assert_eq!("And Therein...", tm.title_from("And Therein..."));
         assert_eq!(
             "The (I.N.I.T.I.A.L.S.) In Brackets",
             tm.title_from("the--i-n-i-t-i-a-l-s--in_brackets")
