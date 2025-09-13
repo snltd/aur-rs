@@ -1,6 +1,6 @@
 [package]
 name = "aur"
-version = "2.7.1"
+version = "2.8.0"
 edition = "2021"
 
 [dependencies]
@@ -9,6 +9,7 @@ camino = "1.1.9"
 camino-tempfile = "1.1.1"
 clap = { version = "4.3", features = ["derive"] }
 colored = "3.0"
+cross = "0.2.5"
 id3 = "1.14"
 image = "0.25"
 indicatif = "0.17"

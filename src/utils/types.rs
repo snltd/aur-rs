@@ -26,7 +26,7 @@ pub struct GlobalOpts {
 }
 
 pub struct Mp3dirOpts {
-    pub bitrate: String,
+    pub preset: String,
     pub force: bool,
     pub recurse: bool,
     pub root: Utf8PathBuf,
