@@ -1,5 +1,6 @@
 use camino::Utf8PathBuf;
 use clap::{Parser, Subcommand};
+use utils::types::{CopytagsOptions, GlobalOpts, Mp3dirOpts, RenumberDirection, TranscodeOptions};
 mod commands;
 mod test_utils;
 mod utils;
@@ -68,9 +69,9 @@ enum Commands {
     Dupes { root_dir: Utf8PathBuf },
     /// Convert one or more FLACs to MP3s
     Flac2mp3 {
-        /// Minimum MP3 bitrate
-        #[arg(short, long, default_value = "128")]
-        bitrate: String,
+        /// LAME MP3 preset: "medium", "standard", "extreme", "insane"
+        #[arg(short, long, default_value = "extreme")]
+        preset: String,
         /// Overwrite existing files
         #[arg(short, long)]
         force: bool,
@@ -131,10 +132,10 @@ enum Commands {
     },
     /// Transcode a FLAC directory an equivalent point in the MP3 hierarchy
     Mp3dir {
-        /// Minimum MP3 bitrate
-        #[arg(short, long, default_value = "128")]
-        bitrate: String,
-        /// Suffix on the new directory name with the bitrate
+        /// LAME MP3 preset: "medium", "standard", "extreme", "insane"
+        #[arg(short, long, default_value = "extreme")]
+        preset: String,
+        /// Suffix on the new directory name with the preset
         #[arg(short = 'x', long)]
         suffix: bool,
         /// Overwrite existing files
@@ -186,7 +187,7 @@ enum Commands {
     Renumber {
         /// renumber up or down
         #[arg(value_enum)]
-        direction: utils::types::RenumberDirection,
+        direction: RenumberDirection,
         /// Increment/decrement delta
         delta: u32,
         /// One or more media files
@@ -229,9 +230,9 @@ enum Commands {
     },
     /// Ensure we have an MP3 for every FLAC. Assumes parallel flac/ and mp3/ trees
     Syncflac {
-        /// Minimum MP3 bitrate
-        #[arg(short, long, default_value = "128")]
-        bitrate: String,
+        /// LAME MP3 preset: "medium", "standard", "extreme", "insane"
+        #[arg(short, long, default_value = "extreme")]
+        preset: String,
         /// Root directory for media files, containing flac/ and mp3/
         #[arg(short = 'R', long, default_value = "/storage")]
         root: Utf8PathBuf,
@@ -312,7 +313,7 @@ fn handle_error(err: anyhow::Error) {
 
 fn main() {
     let cli = Cli::parse();
-    let global_opts = crate::utils::types::GlobalOpts {
+    let global_opts = GlobalOpts {
         verbose: cli.verbose,
         noop: cli.noop,
         quiet: cli.quiet,
@@ -330,17 +331,13 @@ fn main() {
             recurse,
             force,
             files,
-        } => commands::copytags::run(
-            &files,
-            &utils::types::CopytagsOptions { recurse, force },
-            &global_opts,
-        ),
+        } => commands::copytags::run(&files, &CopytagsOptions { recurse, force }, &global_opts),
         Commands::Dupes { root_dir } => commands::dupes::run(&root_dir),
         Commands::Flac2mp3 {
-            bitrate,
+            preset,
             files,
             force,
-        } => commands::flac2mp3::run(&files, bitrate, force, &global_opts),
+        } => commands::flac2mp3::run(&files, preset, force, &global_opts),
         Commands::Get {
             property,
             files,
@@ -358,7 +355,7 @@ fn main() {
             directories,
         } => commands::ls::run(&directories, recurse),
         Commands::Mp3dir {
-            bitrate,
+            preset,
             files,
             force,
             recurse,
@@ -366,8 +363,8 @@ fn main() {
             suffix,
         } => commands::mp3dir::run(
             &files,
-            &utils::types::Mp3dirOpts {
-                bitrate,
+            &Mp3dirOpts {
+                preset,
                 force,
                 recurse,
                 root,
@@ -395,8 +392,8 @@ fn main() {
         Commands::Sort { files } => commands::sort::run(&files, &global_opts),
         Commands::Split { files } => commands::split::run(&files),
         Commands::Strip { files } => commands::strip::run(&files),
-        Commands::Syncflac { bitrate, root } => {
-            commands::syncflac::run(&root, &bitrate, &global_opts)
+        Commands::Syncflac { preset, root } => {
+            commands::syncflac::run(&root, &preset, &global_opts)
         }
         Commands::Tagsub {
             tag,
@@ -415,7 +412,7 @@ fn main() {
         } => commands::transcode::run(
             &files,
             &format,
-            &utils::types::TranscodeOptions {
+            &TranscodeOptions {
                 remove_originals,
                 force,
             },

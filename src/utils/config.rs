@@ -3,7 +3,7 @@ use anyhow::anyhow;
 use camino::{Utf8Path, Utf8PathBuf};
 use serde::Deserialize;
 use std::collections::{HashMap, HashSet};
-use std::fs::read_to_string;
+use std::fs;
 
 pub const MAX_ARTWORK_SIZE: u32 = 750;
 pub const MIN_ARTWORK_SIZE: u32 = 350;
@@ -77,7 +77,7 @@ pub fn load_config(file: &Utf8Path) -> anyhow::Result<Config> {
     } else if !file.exists() {
         Err(anyhow!(format!("Cannot find config at {}", file)))
     } else {
-        let raw = read_to_string(file)?;
+        let raw = fs::read_to_string(file)?;
         toml::from_str(&raw).map_err(|e| anyhow::anyhow!(e))
     }
 }

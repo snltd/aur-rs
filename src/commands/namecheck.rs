@@ -1,4 +1,4 @@
-use crate::utils::dir::{expand_file_list, media_files};
+use crate::utils::dir;
 use crate::utils::metadata::AurMetadata;
 use crate::utils::string::Compacted;
 use crate::utils::types::GlobalOpts;
@@ -22,7 +22,10 @@ pub fn run(root_dir: &Utf8PathBuf, opts: &GlobalOpts) -> anyhow::Result<bool> {
 }
 
 fn find_dupes(root_dir: &Utf8PathBuf, opts: &GlobalOpts) -> anyhow::Result<Dupes> {
-    let all_files = media_files(&expand_file_list(&[root_dir.clone()], true)?);
+    let all_files = dir::media_files(&dir::expand_file_list(
+        std::slice::from_ref(root_dir),
+        true,
+    )?);
 
     if all_files.is_empty() {
         return Err(anyhow!("No files found"));
@@ -126,7 +129,7 @@ mod test {
 
     #[test]
     fn test_artist_list_flac() {
-        let all_files = expand_file_list(&[fixture("commands/namecheck/flac")], true).unwrap();
+        let all_files = dir::expand_file_list(&[fixture("commands/namecheck/flac")], true).unwrap();
 
         assert_eq_unordered!(
             flac_artist_list(),
@@ -136,7 +139,7 @@ mod test {
 
     #[test]
     fn test_artist_list_mp3() {
-        let all_files = expand_file_list(&[fixture("commands/namecheck/mp3")], true).unwrap();
+        let all_files = dir::expand_file_list(&[fixture("commands/namecheck/mp3")], true).unwrap();
 
         assert_eq_unordered!(
             mp3_artist_list(),

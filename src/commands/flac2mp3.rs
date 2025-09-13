@@ -1,28 +1,28 @@
-use crate::utils::dir::{media_files, pathbuf_set};
-use crate::utils::mp3_encoder::{transcode_cmds, transcode_file, TranscodeAction};
+use crate::utils::dir;
+use crate::utils::mp3_encoder::{self, TranscodeAction};
 use crate::utils::types::{GlobalOpts, Mp3dirOpts};
 use camino::{Utf8Path, Utf8PathBuf};
 use colored::Colorize;
 
 pub fn run(
     files: &[Utf8PathBuf],
-    bitrate: String,
+    preset: String,
     force: bool,
     opts: &GlobalOpts,
 ) -> anyhow::Result<bool> {
-    let cmds = transcode_cmds()?;
+    let cmds = mp3_encoder::transcode_cmds()?;
     let transcode_opts = Mp3dirOpts {
-        bitrate,
+        preset,
         force,
         recurse: false,
         root: Utf8PathBuf::from("/"),
         suffix: false,
     };
 
-    for f in media_files(&pathbuf_set(files)) {
+    for f in dir::media_files(&dir::pathbuf_set(files)) {
         if let Some(action) = transcode_action(&f) {
             println!("{}", f.to_string().bold());
-            transcode_file(&action, &cmds, &transcode_opts, opts)?;
+            mp3_encoder::transcode_file(&action, &cmds, &transcode_opts, opts)?;
         } else {
             eprintln!("ERROR: Only FLAC files can be flac2mp3-ed");
         }

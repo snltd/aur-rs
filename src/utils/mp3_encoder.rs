@@ -1,17 +1,15 @@
-use crate::utils::external::find_binary;
+use crate::utils::external;
 use crate::utils::metadata::AurMetadata;
 use crate::utils::tagger::Tagger;
-use crate::utils::types::GlobalOpts;
+use crate::utils::types::{GlobalOpts, Mp3dirOpts};
 use crate::verbose;
 use anyhow::{anyhow, ensure};
 use camino::{Utf8Path, Utf8PathBuf};
 use colored::Colorize;
 use rayon::prelude::*;
 use std::collections::HashSet;
-use std::fs::{create_dir_all, remove_file};
+use std::fs;
 use std::process::{Command, Stdio};
-
-use super::types::Mp3dirOpts;
 
 #[cfg_attr(test, derive(Debug, PartialEq, Eq))]
 pub struct TranscodeAction {
@@ -28,8 +26,8 @@ pub struct TranscodeCmds {
 
 pub fn transcode_cmds() -> anyhow::Result<TranscodeCmds> {
     Ok(TranscodeCmds {
-        lame: find_binary("lame")?,
-        flac: find_binary("flac")?,
+        lame: external::find_binary("lame")?,
+        flac: external::find_binary("flac")?,
     })
 }
 
@@ -89,7 +87,7 @@ pub fn transcode_file(
         .arg("--vbr-new")
         .arg("-V0")
         .arg("--preset")
-        .arg("extreme")
+        .arg(&cmd_opts.preset)
         .arg("--add-id3v2")
         .arg("--id3v2-only")
         .arg("--silent")
@@ -158,7 +156,7 @@ pub fn sync_dir(
         println!("{} -> {}", flac_dir.to_string().bold(), mp3_dir);
         if !mp3_dir.exists() && !opts.noop {
             verbose!(opts, "  Creating target");
-            create_dir_all(mp3_dir)?;
+            fs::create_dir_all(mp3_dir)?;
         }
 
         list.par_iter()
@@ -187,7 +185,7 @@ pub fn clean_up_file(superfluous_mp3: &Utf8Path, opts: &GlobalOpts) -> anyhow::R
     if opts.noop {
         Ok(false)
     } else {
-        remove_file(superfluous_mp3)?;
+        fs::remove_file(superfluous_mp3)?;
         Ok(true)
     }
 }
@@ -196,7 +194,7 @@ pub fn mp3_dir_from(flac_dir: &Utf8Path, cmd_opts: &Mp3dirOpts) -> Utf8PathBuf {
     let mut target_path_as_string = flac_dir.to_string().replace("/flac", "/mp3");
 
     if cmd_opts.suffix {
-        target_path_as_string.push_str(&format!("-{}", cmd_opts.bitrate));
+        target_path_as_string.push_str(&format!("-{}", cmd_opts.preset));
     }
 
     Utf8PathBuf::from(target_path_as_string)
@@ -205,7 +203,6 @@ pub fn mp3_dir_from(flac_dir: &Utf8Path, cmd_opts: &Mp3dirOpts) -> Utf8PathBuf {
 #[cfg(test)]
 mod test {
     use super::*;
-    // use crate::test_utils::spec_helper::{defopts, fixture, TempDirExt};
     use crate::test_utils::spec_helper::*;
     use assert_fs::prelude::*;
     use assert_unordered::assert_eq_unordered;
@@ -213,8 +210,8 @@ mod test {
     #[test]
     fn test_transcode_file() {
         let cmds = TranscodeCmds {
-            lame: find_binary("lame").unwrap(),
-            flac: find_binary("flac").unwrap(),
+            lame: external::find_binary("lame").unwrap(),
+            flac: external::find_binary("flac").unwrap(),
         };
 
         let file_name = "02.band.song_2.flac";
@@ -233,7 +230,7 @@ mod test {
         };
 
         let cmd_opts = Mp3dirOpts {
-            bitrate: "320".to_owned(),
+            preset: "extreme".to_owned(),
             force: false,
             recurse: false,
             root: Utf8PathBuf::from("/storage"),
@@ -320,7 +317,7 @@ mod test {
             mp3_dir_from(
                 &Utf8PathBuf::from("/storage/flac/tracks"),
                 &Mp3dirOpts {
-                    bitrate: "128".to_owned(),
+                    preset: "standard".to_owned(),
                     force: false,
                     recurse: false,
                     root: "/storage".into(),
@@ -330,11 +327,11 @@ mod test {
         );
 
         assert_eq!(
-            Utf8PathBuf::from("/storage/mp3/eps/band.ep-128"),
+            Utf8PathBuf::from("/storage/mp3/eps/band.ep-standard"),
             mp3_dir_from(
                 &Utf8PathBuf::from("/storage/flac/eps/band.ep"),
                 &Mp3dirOpts {
-                    bitrate: "128".to_owned(),
+                    preset: "standard".to_owned(),
                     force: false,
                     recurse: false,
                     root: "/storage".into(),

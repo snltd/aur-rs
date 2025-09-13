@@ -1,10 +1,9 @@
 use crate::utils::config;
-use crate::utils::dir::{expand_dir_list, expand_file_list};
-use crate::utils::helpers::check_hierarchy;
+use crate::utils::dir;
+use crate::utils::helpers;
 use crate::utils::types::{GlobalOpts, WantsList};
 use anyhow::ensure;
 use camino::{Utf8Path, Utf8PathBuf};
-use pathdiff::diff_utf8_paths;
 use std::collections::BTreeSet;
 
 pub fn run(root: &Utf8PathBuf, tracks: bool, opts: &GlobalOpts) -> anyhow::Result<bool> {
@@ -58,13 +57,19 @@ fn print_output(wants_list: WantsList) {
 }
 
 fn find_missing_albums(root: &Utf8Path) -> anyhow::Result<WantsList> {
-    check_hierarchy(root)?;
+    helpers::check_hierarchy(root)?;
 
     let mp3_root = root.join("mp3");
     let flac_root = root.join("flac");
 
-    let mp3_names = relative_paths(&expand_dir_list(&[mp3_root.clone()], true), &mp3_root);
-    let flac_names = relative_paths(&expand_dir_list(&[flac_root.clone()], true), &flac_root);
+    let mp3_names = relative_paths(
+        &dir::expand_dir_list(std::slice::from_ref(&mp3_root), true),
+        &mp3_root,
+    );
+    let flac_names = relative_paths(
+        &dir::expand_dir_list(std::slice::from_ref(&flac_root), true),
+        &flac_root,
+    );
 
     let wanted: BTreeSet<_> = mp3_names
         .difference(&flac_names)
@@ -75,7 +80,7 @@ fn find_missing_albums(root: &Utf8Path) -> anyhow::Result<WantsList> {
 
 fn relative_paths(dirs: &BTreeSet<Utf8PathBuf>, root: &Utf8PathBuf) -> WantsList {
     dirs.iter()
-        .filter_map(|p| diff_utf8_paths(p, root))
+        .filter_map(|p| pathdiff::diff_utf8_paths(p, root))
         .map(|p| p.to_string())
         .collect()
 }
@@ -92,12 +97,10 @@ fn find_missing_tracks(root: &Utf8Path) -> anyhow::Result<WantsList> {
     let flac_root = root.join("flac").join("tracks");
 
     ensure!(mp3_root.exists(), format!("did not find {}", mp3_root));
-
     ensure!(flac_root.exists(), format!("did not find {}", flac_root));
 
-    let mp3_names = simple_filenames(&expand_file_list(&[mp3_root], true)?);
-
-    let flac_names = simple_filenames(&expand_file_list(&[flac_root], true)?);
+    let mp3_names = simple_filenames(&dir::expand_file_list(&[mp3_root], true)?);
+    let flac_names = simple_filenames(&dir::expand_file_list(&[flac_root], true)?);
 
     let wanted: BTreeSet<_> = mp3_names
         .difference(&flac_names)
