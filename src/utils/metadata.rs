@@ -1,4 +1,4 @@
-use anyhow::anyhow;
+use anyhow::{anyhow, Context};
 use camino::{Utf8Path, Utf8PathBuf};
 use id3::Tag as Id3Tag;
 use id3::TagLike;
@@ -73,9 +73,11 @@ impl AurMetadata {
                 has_picture = Self::has_picture_flac(&raw_info)?;
             }
             Some("mp3") => {
-                let id3tags = Id3Tag::read_from_path(&file)?;
+                let id3tags =
+                    Id3Tag::read_from_path(&file).context(format!("problem reading {}", file))?;
                 filetype = "mp3".to_owned();
-                tags = AurTags::from_mp3(&id3tags)?;
+                tags = AurTags::from_mp3(&id3tags)
+                    .context(format!("problem with metadata for {}", file))?;
                 quality = AurQuality {
                     bit_depth: 0,
                     sample_rate: 0,
