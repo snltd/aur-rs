@@ -419,9 +419,7 @@ mod test {
         );
 
         assert_eq!(
-            CheckResult::Bad(LintDirError::CoverArtInvalid(
-                "No such file or directory (os error 2)".to_owned()
-            )),
+            CheckResult::Bad(LintDirError::CoverArtMissing),
             has_suitable_cover_art(&fixture("commands/lintdir/flac/tester.artwork_missing"))
         );
 
