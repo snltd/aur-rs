@@ -1,4 +1,4 @@
-use crate::utils::config::{load_config, Config, MAX_ARTWORK_SIZE, MIN_ARTWORK_SIZE};
+use crate::utils::config::{Config, MAX_ARTWORK_SIZE, MIN_ARTWORK_SIZE, load_config};
 use crate::utils::dir::{expand_dir_list, media_files};
 use crate::utils::metadata::AurMetadata;
 use crate::utils::rename::number_from_filename;
@@ -38,6 +38,7 @@ enum LintDirError {
     BadFile(HashSet<String>),
     BadFileCount,
     CoverArtInvalid(String),
+    CoverArtMissing,
     CoverArtNotSquare,
     CoverArtTooBig,
     CoverArtTooSmall,
@@ -57,7 +58,8 @@ impl LintDirError {
             }
             LintDirError::BadFileCount => "Unexpected number of files".to_owned(),
             LintDirError::CoverArtInvalid(err) => format!("Could not validate cover art: {}", err),
-            LintDirError::CoverArtNotSquare => "Cover art is not square".to_owned(),
+            LintDirError::CoverArtNotSquare => "Cover art missing".to_owned(),
+            LintDirError::CoverArtMissing => "Cover art is missing".to_owned(),
             LintDirError::CoverArtTooBig => "Cover art is too big".to_owned(),
             LintDirError::CoverArtTooSmall => "Cover art is too small".to_owned(),
             LintDirError::InconsistentTags(tags) => {
@@ -329,6 +331,10 @@ fn has_consistent_tags(dir: &Utf8Path, metadata: &[AurMetadata]) -> CheckResult 
 
 fn has_suitable_cover_art(dir: &Utf8Path) -> CheckResult {
     let artwork = dir.join("front.jpg");
+
+    if !artwork.exists() {
+        return CheckResult::Bad(LintDirError::CoverArtMissing);
+    }
 
     let img = match ImageReader::open(artwork) {
         Ok(handle) => match handle.decode() {
