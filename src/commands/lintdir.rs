@@ -58,7 +58,7 @@ impl LintDirError {
             }
             LintDirError::BadFileCount => "Unexpected number of files".to_owned(),
             LintDirError::CoverArtInvalid(err) => format!("Could not validate cover art: {}", err),
-            LintDirError::CoverArtNotSquare => "Cover art missing".to_owned(),
+            LintDirError::CoverArtNotSquare => "Cover art is not square".to_owned(),
             LintDirError::CoverArtMissing => "Cover art is missing".to_owned(),
             LintDirError::CoverArtTooBig => "Cover art is too big".to_owned(),
             LintDirError::CoverArtTooSmall => "Cover art is too small".to_owned(),
