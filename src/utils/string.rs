@@ -104,28 +104,28 @@ impl ToFilenameChunk for String {
                     }
                 }
                 '"' => {
-                    if let Some(&last_pushed) = builder.last() {
-                        if last_pushed == '2' || last_pushed == '7' {
-                            builder.extend(['_', 'i', 'n', 'c', 'h']);
-                        }
+                    if let Some(&last_pushed) = builder.last()
+                        && (last_pushed == '2' || last_pushed == '7')
+                    {
+                        builder.extend(['_', 'i', 'n', 'c', 'h']);
                     }
                 }
                 '\'' => {
-                    if let Some(&last_pushed) = builder.last() {
-                        if last_pushed == 'o' || last_pushed == 'd' || last_pushed == 'l' {
-                            match builder.get(builder.len().wrapping_sub(2)) {
-                                Some('_') => builder.push('-'),
-                                None => builder.push('-'),
-                                Some(_) => (),
-                            }
+                    if let Some(&last_pushed) = builder.last()
+                        && (last_pushed == 'o' || last_pushed == 'd' || last_pushed == 'l')
+                    {
+                        match builder.get(builder.len().wrapping_sub(2)) {
+                            Some('_') => builder.push('-'),
+                            None => builder.push('-'),
+                            Some(_) => (),
                         }
                     }
                 }
                 '(' | ')' | '[' | ']' | ':' => {
-                    if let Some(&last_pushed) = builder.last() {
-                        if last_pushed == '_' || last_pushed == '-' && !double_dash {
-                            builder.pop();
-                        }
+                    if let Some(&last_pushed) = builder.last()
+                        && (last_pushed == '_' || last_pushed == '-' && !double_dash)
+                    {
+                        builder.pop();
                     }
 
                     if i < last_index && !double_dash && !builder.is_empty() {
@@ -196,10 +196,10 @@ impl ToFilenameChunk for String {
                 }
                 '=' => builder.extend(['e', 'q', 'u', 'a', 'l', 's']),
                 '%' => {
-                    if let Some(&last_pushed) = builder.last() {
-                        if last_pushed != '_' || last_pushed != '-' {
-                            builder.push('_');
-                        }
+                    if let Some(&last_pushed) = builder.last()
+                        && (last_pushed != '_' || last_pushed != '-')
+                    {
+                        builder.push('_');
                     }
                     builder.extend(['p', 'e', 'r', 'c', 'e', 'n', 't']);
                 }

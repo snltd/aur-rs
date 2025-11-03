@@ -6,7 +6,7 @@ use anyhow::ensure;
 use camino::{Utf8Path, Utf8PathBuf};
 use std::collections::BTreeSet;
 
-pub fn run(root: &Utf8PathBuf, tracks: bool, opts: &GlobalOpts) -> anyhow::Result<bool> {
+pub fn run(root: &Utf8Path, tracks: bool, opts: &GlobalOpts) -> anyhow::Result<bool> {
     let root = root.canonicalize_utf8()?;
 
     let config = config::load_config(&opts.config)?;
@@ -78,7 +78,7 @@ fn find_missing_albums(root: &Utf8Path) -> anyhow::Result<WantsList> {
     Ok(wanted)
 }
 
-fn relative_paths(dirs: &BTreeSet<Utf8PathBuf>, root: &Utf8PathBuf) -> WantsList {
+fn relative_paths(dirs: &BTreeSet<Utf8PathBuf>, root: &Utf8Path) -> WantsList {
     dirs.iter()
         .filter_map(|p| pathdiff::diff_utf8_paths(p, root))
         .map(|p| p.to_string())

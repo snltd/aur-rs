@@ -3,9 +3,9 @@ use crate::utils::dir;
 use crate::utils::helpers;
 use crate::utils::mp3_encoder::{self, TranscodeCmds};
 use crate::utils::types::{GlobalOpts, Mp3dirOpts};
-use camino::Utf8PathBuf;
+use camino::{Utf8Path, Utf8PathBuf};
 
-pub fn run(root_dir: &Utf8PathBuf, bitrate: &str, opts: &GlobalOpts) -> anyhow::Result<bool> {
+pub fn run(root_dir: &Utf8Path, bitrate: &str, opts: &GlobalOpts) -> anyhow::Result<bool> {
     let root_dir = root_dir.canonicalize_utf8()?;
     let cmds = mp3_encoder::transcode_cmds()?;
     let conf = config::load_config(&opts.config)?;

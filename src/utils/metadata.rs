@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Context};
+use anyhow::{Context, anyhow};
 use camino::{Utf8Path, Utf8PathBuf};
 use id3::Tag as Id3Tag;
 use id3::TagLike;
@@ -242,7 +242,7 @@ impl AurQuality {
         Ok(ret)
     }
 
-    fn from_mp3(path: &Utf8PathBuf, metadata: &MP3Metadata) -> Self {
+    fn from_mp3(path: &Utf8Path, metadata: &MP3Metadata) -> Self {
         let file_size = fs::metadata(path).unwrap().len();
         let duration = metadata.duration.as_secs();
 

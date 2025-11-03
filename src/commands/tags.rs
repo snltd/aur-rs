@@ -25,7 +25,7 @@ fn info_for_file(file: &Utf8Path) -> anyhow::Result<Vec<(String, String)>> {
     Ok(tags.into_iter().collect())
 }
 
-fn print_file_info(path: &Utf8PathBuf, info: &[(String, String)]) {
+fn print_file_info(path: &Utf8Path, info: &[(String, String)]) {
     println!("{}", path);
     for (k, v) in info {
         println!("{:>14} : {}", k, v);
