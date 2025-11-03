@@ -86,12 +86,12 @@ pub fn rename((src, dest): RenameAction, noop: bool) -> anyhow::Result<bool> {
     } else if dest.exists() && !noop {
         Err(anyhow!(format!("destination exists: {}", dest)))
     } else {
-        if let Some(parent_dir) = dest.parent() {
-            if !parent_dir.exists() {
-                println!("Creating {}", parent_dir);
-                if !noop {
-                    fs::create_dir_all(parent_dir)?;
-                }
+        if let Some(parent_dir) = dest.parent()
+            && !parent_dir.exists()
+        {
+            println!("Creating {}", parent_dir);
+            if !noop {
+                fs::create_dir_all(parent_dir)?;
             }
         }
 

@@ -3,7 +3,7 @@ use crate::utils::metadata::AurMetadata;
 use crate::utils::string::Compacted;
 use crate::utils::types::GlobalOpts;
 use anyhow::anyhow;
-use camino::Utf8PathBuf;
+use camino::{Utf8Path, Utf8PathBuf};
 use indicatif::ProgressBar;
 use std::collections::{BTreeSet, HashMap};
 
@@ -11,7 +11,7 @@ type ArtistDirs = HashMap<String, BTreeSet<Utf8PathBuf>>;
 type Dupes = Vec<DupeCluster>;
 type DupeCluster = HashMap<String, BTreeSet<Utf8PathBuf>>;
 
-pub fn run(root_dir: &Utf8PathBuf, opts: &GlobalOpts) -> anyhow::Result<bool> {
+pub fn run(root_dir: &Utf8Path, opts: &GlobalOpts) -> anyhow::Result<bool> {
     let dupes = find_dupes(root_dir, opts)?;
 
     for cluster in &dupes {
@@ -21,9 +21,9 @@ pub fn run(root_dir: &Utf8PathBuf, opts: &GlobalOpts) -> anyhow::Result<bool> {
     Ok(dupes.is_empty())
 }
 
-fn find_dupes(root_dir: &Utf8PathBuf, opts: &GlobalOpts) -> anyhow::Result<Dupes> {
+fn find_dupes(root_dir: &Utf8Path, opts: &GlobalOpts) -> anyhow::Result<Dupes> {
     let all_files = dir::media_files(&dir::expand_file_list(
-        std::slice::from_ref(root_dir),
+        std::slice::from_ref(&root_dir.to_path_buf()),
         true,
     )?);
 

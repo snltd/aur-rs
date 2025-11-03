@@ -63,7 +63,7 @@ fn verify_file(file: &Utf8Path, cmds: &Cmds) -> anyhow::Result<bool> {
     }
 }
 
-fn verify_flac(file: &Utf8Path, cmd: &Utf8PathBuf) -> anyhow::Result<bool> {
+fn verify_flac(file: &Utf8Path, cmd: &Utf8Path) -> anyhow::Result<bool> {
     let result = Command::new(cmd)
         .arg("--test")
         .arg("--totally-silent")
@@ -73,7 +73,7 @@ fn verify_flac(file: &Utf8Path, cmd: &Utf8PathBuf) -> anyhow::Result<bool> {
     Ok(result.success())
 }
 
-fn verify_mp3(file: &Utf8Path, cmd: &Utf8PathBuf) -> anyhow::Result<bool> {
+fn verify_mp3(file: &Utf8Path, cmd: &Utf8Path) -> anyhow::Result<bool> {
     // mp3val exits 0 whatever.
     let output = Command::new(cmd).arg("-si").arg(file).output()?;
     let stdout_string = String::from_utf8(output.stdout)?;
