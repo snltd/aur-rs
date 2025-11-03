@@ -182,7 +182,15 @@ impl ToFilenameChunk for String {
                 '&' => builder.extend(['a', 'n', 'd']),
                 '$' => {
                     let next_char = input.get(i + 1);
-                    if next_char.is_none() || !&next_char.unwrap().is_numeric() {
+                    let last_char = if i == 0 { None } else { input.get(i - 1) };
+
+                    if let Some(c_next) = next_char
+                        && let Some(c_prev) = last_char
+                    {
+                        if c_next.is_alphabetic() && c_prev.is_alphabetic() {
+                            builder.push('s');
+                        }
+                    } else if next_char.is_none() || !&next_char.unwrap().is_numeric() {
                         builder.extend(['d', 'o', 'l', 'l', 'a', 'r'])
                     }
                 }
@@ -418,6 +426,7 @@ mod test {
             ("1", "1"),
             ("x", "x"),
             (".", "dot"),
+            ("Wi$h Li$t", "wish_list"),
             (
                 "_______",
                 "underscore-underscore-underscore-underscore-underscore-underscore-underscore",
