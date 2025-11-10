@@ -19,16 +19,21 @@ pub fn run(
         suffix: false,
     };
 
+    let mut ret = true;
+
     for f in dir::media_files(&dir::pathbuf_set(files)) {
         if let Some(action) = transcode_action(&f) {
             println!("{}", f.to_string().bold());
-            mp3_encoder::transcode_file(&action, &cmds, &transcode_opts, opts)?;
+            if !mp3_encoder::transcode_file(&action, &cmds, &transcode_opts, opts)? {
+                ret = false;
+            }
         } else {
             eprintln!("ERROR: Only FLAC files can be flac2mp3-ed");
+            ret = false;
         }
     }
 
-    Ok(true)
+    Ok(ret)
 }
 
 fn transcode_action(file: &Utf8Path) -> Option<TranscodeAction> {
@@ -37,7 +42,7 @@ fn transcode_action(file: &Utf8Path) -> Option<TranscodeAction> {
             if ext == "flac" {
                 let mp3_target = file.with_extension("mp3");
 
-                let action: TranscodeAction = TranscodeAction {
+                let action = TranscodeAction {
                     flac_src: file.to_path_buf(),
                     mp3_target,
                 };

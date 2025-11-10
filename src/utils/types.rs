@@ -8,16 +8,19 @@ pub enum RenumberDirection {
     Down,
 }
 
+#[derive(Default)]
 pub struct CopytagsOptions {
     pub recurse: bool,
     pub force: bool,
 }
 
+#[derive(Default)]
 pub struct TranscodeOptions {
     pub force: bool,
     pub remove_originals: bool,
 }
 
+#[derive(Default)]
 pub struct GlobalOpts {
     pub config: Utf8PathBuf,
     pub noop: bool,
@@ -25,6 +28,7 @@ pub struct GlobalOpts {
     pub verbose: bool,
 }
 
+#[derive(Default)]
 pub struct Mp3dirOpts {
     pub preset: String,
     pub force: bool,

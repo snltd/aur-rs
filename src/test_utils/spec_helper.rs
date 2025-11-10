@@ -1,4 +1,4 @@
-use crate::utils::config::{load_config, Config};
+use crate::utils::config::{Config, load_config};
 use crate::utils::types::GlobalOpts;
 use camino::Utf8PathBuf;
 use std::env::current_dir;
