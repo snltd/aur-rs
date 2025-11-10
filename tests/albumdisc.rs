@@ -1,35 +1,36 @@
 #[cfg(test)]
 mod test {
-    use assert_cmd::Command;
-    use assert_fs::prelude::*;
+    use assert_cmd::cargo::cargo_bin_cmd;
     use aur::test_utils::spec_helper::fixture;
+    use camino_tempfile_ext::prelude::*;
     use predicates::prelude::*;
 
-    const FILENAME: &str = "01.artist.song.mp3";
+    const TEST_FILE: &str = "01.artist.song.mp3";
 
     #[ignore]
     #[test]
     fn test_albumdisc_command() {
-        let tmp = assert_fs::TempDir::new().unwrap();
+        let tmp = Utf8TempDir::new().unwrap();
         tmp.child("album/disc_3").create_dir_all().unwrap();
+
         let target = tmp.child("album/disc_3");
         target
-            .copy_from(fixture("commands/albumdisc/disc_3/"), &[FILENAME])
+            .copy_from(fixture("commands/albumdisc/disc_3/"), &[TEST_FILE])
             .unwrap();
 
-        let file_under_test = target.path().join(FILENAME);
+        let file_under_test = target.join(TEST_FILE);
 
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["albumdisc", &file_under_test.to_string_lossy()])
+        cargo_bin_cmd!("aur")
+            .arg("albumdisc")
+            .arg(&file_under_test)
             .assert()
             .success()
             .stdout(predicate::str::ends_with("album -> Test Album (Disc 3)\n"));
 
         // Running again should do nothing, because it's been corrected
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["albumdisc", &file_under_test.to_string_lossy()])
+        cargo_bin_cmd!("aur")
+            .arg("albumdisc")
+            .arg(&file_under_test)
             .assert()
             .success()
             .stdout("");
@@ -38,14 +39,15 @@ mod test {
     #[ignore]
     #[test]
     fn test_albumdisc_file_not_in_disc_directory() {
-        let tmp = assert_fs::TempDir::new().unwrap();
-        tmp.copy_from(fixture("commands/albumdisc/disc_3"), &[FILENAME])
+        let tmp = Utf8TempDir::new().unwrap();
+        tmp.copy_from(fixture("commands/albumdisc/disc_3"), &[TEST_FILE])
             .unwrap();
-        let file_under_test = tmp.path().join(FILENAME);
 
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["albumdisc", &file_under_test.to_string_lossy()])
+        let file_under_test = tmp.path().join(TEST_FILE);
+
+        cargo_bin_cmd!("aur")
+            .arg("albumdisc")
+            .arg(&file_under_test)
             .assert()
             .failure()
             .stderr(predicate::str::ends_with("is not in a disc_n directory\n"));
@@ -54,8 +56,7 @@ mod test {
     #[test]
     #[ignore]
     fn test_albumdisc_incorrect_usage() {
-        Command::cargo_bin("aur")
-            .unwrap()
+        cargo_bin_cmd!("aur")
             .arg("albumdisc")
             .assert()
             .failure()

@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod test {
-    use assert_cmd::Command;
+    use assert_cmd::cargo::cargo_bin_cmd;
     use aur::test_utils::spec_helper::{config_file_as_string, fixture_as_string, sample_output};
 
     #[test]
@@ -8,15 +8,12 @@ mod test {
     fn test_wantflac_command_valid_tree() {
         let dir_under_test = fixture_as_string("commands/wantflac");
 
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args([
-                "--config",
-                &config_file_as_string(),
-                "wantflac",
-                "--root",
-                &dir_under_test,
-            ])
+        cargo_bin_cmd!("aur")
+            .arg("--config")
+            .arg(config_file_as_string())
+            .arg("wantflac")
+            .arg("--root")
+            .arg(&dir_under_test)
             .assert()
             .success()
             .stdout(sample_output("commands/wantflac/wantflac.txt"));
@@ -25,8 +22,7 @@ mod test {
     #[test]
     #[ignore]
     fn test_wantflac_command_invalid_tree() {
-        Command::cargo_bin("aur")
-            .unwrap()
+        cargo_bin_cmd!("aur")
             .args(["wantflac", "--root", "/tmp"])
             .assert()
             .failure()

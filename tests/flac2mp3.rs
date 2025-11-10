@@ -1,14 +1,14 @@
 #[cfg(test)]
 mod test {
-    use assert_cmd::Command;
-    use assert_fs::prelude::*;
+    use assert_cmd::cargo::cargo_bin_cmd;
     use aur::test_utils::spec_helper::{fixture, sample_output};
+    use camino_tempfile_ext::prelude::*;
     use predicates::prelude::*;
 
     #[test]
     #[ignore]
     fn test_flac2mp3_command() {
-        let tmp = assert_fs::TempDir::new().unwrap();
+        let tmp = Utf8TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/flac2mp3"), &["01.tester.flac2mp3.flac"])
             .unwrap();
         let file_under_test = tmp.path().join("01.tester.flac2mp3.flac");
@@ -16,37 +16,33 @@ mod test {
 
         assert!(!expected_file.exists());
 
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["flac2mp3", &file_under_test.to_string_lossy()])
+        cargo_bin_cmd!("aur")
+            .arg("flac2mp3")
+            .arg(&file_under_test)
             .assert()
             .success()
             .stdout(format!(
-                "{}\n  {}\n",
-                file_under_test.display(),
-                file_under_test.file_name().unwrap().to_string_lossy(),
+                "{file_under_test}\n  {}\n",
+                file_under_test.file_name().unwrap(),
             ));
 
         assert!(file_under_test.exists());
         assert!(expected_file.exists());
 
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["info", &expected_file.to_string_lossy()])
+        cargo_bin_cmd!("aur")
+            .arg("info")
+            .arg(&expected_file)
             .assert()
             .success()
             .stdout(sample_output("commands/flac2mp3/transcoded_info"));
 
-        // Probably should exit 1
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["flac2mp3", &file_under_test.to_string_lossy()])
+        cargo_bin_cmd!("aur")
+            .arg("flac2mp3")
+            .arg(&file_under_test)
             .assert()
-            .success()
+            .failure()
             .stdout(format!(
-                "{}\n  target exists ({})\n",
-                file_under_test.display(),
-                expected_file.display(),
+                "{file_under_test}\n  target exists ({expected_file})\n",
             ));
     }
 
@@ -55,20 +51,20 @@ mod test {
     fn test_flac2mp3_command_mp3() {
         let file_under_test = fixture("commands/flac2mp3/01.tester.test_no-op.mp3");
 
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["flac2mp3", &file_under_test.into_string()])
+        cargo_bin_cmd!("aur")
+            .arg("flac2mp3")
+            .arg(&file_under_test)
             .assert()
-            .success() //FIXME
+            .failure()
             .stderr("ERROR: Only FLAC files can be flac2mp3-ed\n");
     }
 
     #[test]
     #[ignore]
     fn test_flac2mp3_command_missing_file() {
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["flac2mp3", "/no/such/file.flac"])
+        cargo_bin_cmd!("aur")
+            .arg("flac2mp3")
+            .arg("/no/such/file.flac")
             .assert()
             .failure()
             .stderr("ERROR: (I/O) : No such file or directory (os error 2)\n");
@@ -77,8 +73,7 @@ mod test {
     #[test]
     #[ignore]
     fn test_flac2mp3_incorrect_usage() {
-        Command::cargo_bin("aur")
-            .unwrap()
+        cargo_bin_cmd!("aur")
             .arg("flac2mp3")
             .assert()
             .failure()

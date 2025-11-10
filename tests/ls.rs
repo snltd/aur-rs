@@ -1,20 +1,18 @@
 #[cfg(test)]
 mod test {
-    use assert_cmd::Command;
+    use assert_cmd::cargo::cargo_bin_cmd;
     use aur::test_utils::spec_helper::{fixture_as_string, sample_output};
 
     #[test]
     #[ignore]
     fn test_ls_command() {
-        Command::cargo_bin("aur")
-            .unwrap()
+        cargo_bin_cmd!("aur")
             .args(["ls", &fixture_as_string("commands/ls")])
             .assert()
             .success()
             .stdout(sample_output("commands/ls/ls.txt"));
 
-        Command::cargo_bin("aur")
-            .unwrap()
+        cargo_bin_cmd!("aur")
             .arg("ls")
             .current_dir(fixture_as_string("commands/ls"))
             .assert()
@@ -25,8 +23,7 @@ mod test {
     #[test]
     #[ignore]
     fn test_ls_command_no_media() {
-        Command::cargo_bin("aur")
-            .unwrap()
+        cargo_bin_cmd!("aur")
             .args(["ls", "/"])
             .assert()
             .success()
@@ -37,8 +34,7 @@ mod test {
     #[test]
     #[ignore]
     fn test_ls_command_no_dir() {
-        Command::cargo_bin("aur")
-            .unwrap()
+        cargo_bin_cmd!("aur")
             .args(["ls", "/no/such/directory"])
             .assert()
             .failure()

@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod test {
-    use assert_cmd::Command;
-    use assert_fs::prelude::*;
+    use assert_cmd::cargo::cargo_bin_cmd;
     use aur::test_utils::spec_helper::fixture;
+    use camino_tempfile_ext::prelude::*;
     use predicates::prelude::*;
     use std::fs;
 
@@ -10,21 +10,21 @@ mod test {
     #[ignore]
     fn test_reencode_command_flac_keep_original() {
         let file_name = "01.tester.song.flac";
-        let tmp = assert_fs::TempDir::new().unwrap();
+        let tmp = Utf8TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/reencode"), &[file_name])
             .unwrap();
         let file_under_test = tmp.path().join(file_name);
-        let file_str = file_under_test.to_string_lossy();
         let expected_file = tmp.path().join("01.tester.song.reencoded.flac");
 
         assert!(!expected_file.exists());
 
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["reencode", "-k", &file_str])
+        cargo_bin_cmd!("aur")
+            .arg("reencode")
+            .arg("-k")
+            .arg(&file_under_test)
             .assert()
             .success()
-            .stdout(format!("{}\n", file_under_test.to_string_lossy()));
+            .stdout(format!("{file_under_test}\n"));
 
         assert!(file_under_test.exists());
         assert!(expected_file.exists());
@@ -34,33 +34,36 @@ mod test {
     #[ignore]
     fn test_reencode_command_mp3_overwrite_original() {
         let file_name = "02.tester.song.mp3";
-        let tmp = assert_fs::TempDir::new().unwrap();
+        let tmp = Utf8TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/reencode"), &[file_name])
             .unwrap();
         let file_under_test = tmp.path().join(file_name);
-        let file_str = file_under_test.to_string_lossy();
         let intermediate_file = tmp.path().join("02.tester.song.reencoded.mp3");
 
         assert!(!intermediate_file.exists());
         let original_size = fs::metadata(&file_under_test).unwrap().len();
 
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["get", "-s", "bitrate", &file_str])
+        cargo_bin_cmd!("aur")
+            .arg("get")
+            .arg("-s")
+            .arg("bitrate")
+            .arg(&file_under_test)
             .assert()
             .success()
             .stdout("320kbps\n");
 
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["reencode", &file_str])
+        cargo_bin_cmd!("aur")
+            .arg("reencode")
+            .arg(&file_under_test)
             .assert()
             .success()
-            .stdout(format!("{}\n", file_under_test.to_string_lossy()));
+            .stdout(format!("{file_under_test}\n"));
 
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["get", "-s", "bitrate", &file_str])
+        cargo_bin_cmd!("aur")
+            .arg("get")
+            .arg("-s")
+            .arg("bitrate")
+            .arg(&file_under_test)
             .assert()
             .success()
             .stdout("128kbps\n");
@@ -75,8 +78,7 @@ mod test {
     #[test]
     #[ignore]
     fn test_reencode_incorrect_usage() {
-        Command::cargo_bin("aur")
-            .unwrap()
+        cargo_bin_cmd!("aur")
             .arg("reencode")
             .assert()
             .failure()

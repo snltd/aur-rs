@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod test {
-    use assert_cmd::Command;
-    use assert_fs::prelude::*;
+    use assert_cmd::cargo::cargo_bin_cmd;
     use aur::test_utils::spec_helper::{fixture, sample_output};
+    use camino_tempfile_ext::prelude::*;
     use glob::glob;
     use predicates::prelude::*;
     use std::collections::BTreeSet;
@@ -11,29 +11,25 @@ mod test {
     #[test]
     #[ignore]
     fn test_syncflac_command() {
-        let tmp = assert_fs::TempDir::new().unwrap();
+        let tmp = Utf8TempDir::new().unwrap();
         tmp.copy_from(fixture("commands"), &["syncflac/**/*"])
             .unwrap();
         let dir_under_test = tmp.path().canonicalize().unwrap().join("syncflac");
 
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args([
-                "syncflac",
-                "--verbose",
-                "-R",
-                &dir_under_test.to_string_lossy(),
-            ])
+        cargo_bin_cmd!("aur")
+            .arg("syncflac")
+            .arg("--verbose")
+            .arg("-R")
+            .arg(&dir_under_test)
             .assert()
             .success()
             .stdout(predicate::str::contains("Creating target"))
             .stdout(predicate::str::contains(format!(
                 "Removing {}",
                 tmp.path()
-                    .canonicalize()
+                    .canonicalize_utf8()
                     .unwrap()
                     .join("syncflac/mp3/eps/band.flac_and_mp3_unequal/03.band.song_3.mp3")
-                    .display()
             )));
 
         let mut expected_files = BTreeSet::new();
@@ -101,16 +97,17 @@ mod test {
             .join("mp3/albums/tuv/tester.flac_album")
             .join("01.tester.song_1.mp3");
 
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["info", &sample_file.to_string_lossy()])
+        cargo_bin_cmd!("aur")
+            .arg("info")
+            .arg(&sample_file)
             .assert()
             .success()
             .stdout(sample_output("commands/syncflac/info-new-mp3"));
 
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["syncflac", "-R", &dir_under_test.to_string_lossy()])
+        cargo_bin_cmd!("aur")
+            .arg("syncflac")
+            .arg("-R")
+            .arg(&dir_under_test)
             .assert()
             .success()
             .stdout("");
@@ -119,8 +116,7 @@ mod test {
     #[test]
     #[ignore]
     fn test_syncflac_bad_directory() {
-        Command::cargo_bin("aur")
-            .unwrap()
+        cargo_bin_cmd!("aur")
             .args(["syncflac", "--root", "/usr"])
             .assert()
             .failure()

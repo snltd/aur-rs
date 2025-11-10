@@ -1,27 +1,27 @@
 #[cfg(test)]
 mod test {
-    use assert_cmd::Command;
-    use assert_fs::prelude::*;
+    use assert_cmd::cargo::cargo_bin_cmd;
     use aur::test_utils::spec_helper::fixture;
+    use camino_tempfile_ext::prelude::*;
     use predicates::prelude::*;
 
     #[test]
     #[ignore]
     fn test_thes_command() {
-        let tmp = assert_fs::TempDir::new().unwrap();
+        let tmp = Utf8TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/thes"), &["*"]).unwrap();
         let file_under_test = tmp.path().join("01.tester.song.mp3");
 
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["thes", &file_under_test.to_string_lossy()])
+        cargo_bin_cmd!("aur")
+            .arg("thes")
+            .arg(&file_under_test)
             .assert()
             .success()
             .stdout("          artist -> The Tester\n");
 
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["thes", &file_under_test.to_string_lossy()])
+        cargo_bin_cmd!("aur")
+            .arg("thes")
+            .arg(&file_under_test)
             .assert()
             .success()
             .stdout("");
@@ -30,9 +30,9 @@ mod test {
     #[test]
     #[ignore]
     fn test_thes_command_missing_file() {
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["thes", "/no/such/file.flac"])
+        cargo_bin_cmd!("aur")
+            .arg("thes")
+            .arg("/no/such/file.flac")
             .assert()
             .failure()
             .stderr("ERROR: (I/O) : No such file or directory (os error 2)\n");
@@ -41,8 +41,7 @@ mod test {
     #[test]
     #[ignore]
     fn test_thes_incorrect_usage() {
-        Command::cargo_bin("aur")
-            .unwrap()
+        cargo_bin_cmd!("aur")
             .arg("thes")
             .assert()
             .failure()

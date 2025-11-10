@@ -1,7 +1,9 @@
 #[cfg(test)]
 mod test {
     use assert_cmd::Command;
+    use assert_cmd::cargo::cargo_bin_cmd;
     use aur::test_utils::spec_helper::{fixture, fixture_as_string, sample_output};
+    use camino_tempfile_ext::prelude::*;
     use predicates::prelude::*;
 
     #[test]
@@ -13,8 +15,7 @@ mod test {
             sample_output("commands/tags/01.test_artist.test_track.flac.txt")
         );
 
-        Command::cargo_bin("aur")
-            .unwrap()
+        cargo_bin_cmd!("aur")
             .arg("tags")
             .arg(fixture_as_string(
                 "commands/tags/01.test_artist.test_track.flac",
@@ -27,8 +28,7 @@ mod test {
     #[test]
     #[ignore]
     fn test_tags_command_missing_file() {
-        Command::cargo_bin("aur")
-            .unwrap()
+        cargo_bin_cmd!("aur")
             .args(["tags", "/no/such/file.flac"])
             .assert()
             .failure()
@@ -38,8 +38,7 @@ mod test {
     #[test]
     #[ignore]
     fn test_tags_incorrect_usage() {
-        Command::cargo_bin("aur")
-            .unwrap()
+        cargo_bin_cmd!("aur")
             .arg("tags")
             .assert()
             .failure()
