@@ -27,25 +27,28 @@ fn tag_file(file: &Utf8Path, opts: &GlobalOpts) -> anyhow::Result<bool> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_utils::spec_helper::{defopts, fixture, TempDirExt};
-    use assert_fs::prelude::*;
+    use crate::test_utils::spec_helper::{defopts, fixture};
+    use camino_tempfile_ext::prelude::*;
 
     #[test]
     fn test_tag_file_flac() {
         let file_name = "01.tester.song.mp3";
-        let tmp = assert_fs::TempDir::new().unwrap();
+        let tmp = Utf8TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/thes"), &[file_name])
             .unwrap();
-        let file_under_test = tmp.utf8_path().join(file_name);
-
+        let file_under_test = tmp.path().join(file_name);
         let original_info = AurMetadata::new(&file_under_test).unwrap();
+
         assert_eq!("Tester", original_info.tags.artist);
         assert!(tag_file(&file_under_test, &defopts()).unwrap());
-        let new_info = AurMetadata::new(&file_under_test).unwrap();
-        assert_eq!("The Tester", new_info.tags.artist);
 
+        let new_info = AurMetadata::new(&file_under_test).unwrap();
+
+        assert_eq!("The Tester", new_info.tags.artist);
         assert!(!tag_file(&file_under_test, &defopts()).unwrap());
+
         let new_new_info = AurMetadata::new(&file_under_test).unwrap();
+
         assert_eq!("The Tester", new_new_info.tags.artist);
     }
 }

@@ -48,20 +48,3 @@ pub fn config_file() -> Utf8PathBuf {
 pub fn config_file_as_string() -> String {
     fixture_as_string("config/test.toml")
 }
-
-#[cfg(test)]
-use assert_fs::TempDir;
-#[cfg(test)]
-use camino::Utf8Path;
-
-#[cfg(test)]
-pub trait TempDirExt {
-    fn utf8_path(&self) -> &Utf8Path;
-}
-
-#[cfg(test)]
-impl TempDirExt for TempDir {
-    fn utf8_path(&self) -> &Utf8Path {
-        Utf8Path::from_path(self.path()).unwrap()
-    }
-}

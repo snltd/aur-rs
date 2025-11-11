@@ -25,44 +25,52 @@ fn tag_file(key: &str, value: &str, file: &Utf8Path, opts: &GlobalOpts) -> anyho
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_utils::spec_helper::{defopts, fixture, TempDirExt};
-    use assert_fs::prelude::*;
+    use crate::test_utils::spec_helper::{defopts, fixture};
+    use camino_tempfile_ext::prelude::*;
 
     #[test]
     fn test_tag_file_flac() {
         let file_name = "01.tester.song.flac";
-        let tmp = assert_fs::TempDir::new().unwrap();
+        let tmp = Utf8TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/set"), &[file_name])
             .unwrap();
-        let file_under_test = tmp.utf8_path().join(file_name);
+        let file_under_test = tmp.path().join(file_name);
 
         let original_info = AurMetadata::new(&file_under_test).unwrap();
+
         assert_eq!("Tester", original_info.tags.artist);
         assert!(!tag_file("artist", "Tester", &file_under_test, &defopts()).unwrap());
-        let new_info = AurMetadata::new(&file_under_test).unwrap();
-        assert_eq!("Tester", new_info.tags.artist);
 
+        let new_info = AurMetadata::new(&file_under_test).unwrap();
+
+        assert_eq!("Tester", new_info.tags.artist);
         assert!(tag_file("artist", "New Artist", &file_under_test, &defopts()).unwrap());
+
         let new_new_info = AurMetadata::new(&file_under_test).unwrap();
+
         assert_eq!("New Artist", new_new_info.tags.artist);
     }
 
     #[test]
     fn test_tag_file_mp3() {
         let file_name = "02.tester.song.mp3";
-        let tmp = assert_fs::TempDir::new().unwrap();
+        let tmp = Utf8TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/set"), &[file_name])
             .unwrap();
-        let file_under_test = tmp.utf8_path().join(file_name);
+        let file_under_test = tmp.path().join(file_name);
 
         let original_info = AurMetadata::new(&file_under_test).unwrap();
+
         assert_eq!("Test Set", original_info.tags.album);
         assert!(!tag_file("album", "Test Set", &file_under_test, &defopts()).unwrap());
-        let new_info = AurMetadata::new(&file_under_test).unwrap();
-        assert_eq!("Test Set", new_info.tags.album);
 
+        let new_info = AurMetadata::new(&file_under_test).unwrap();
+
+        assert_eq!("Test Set", new_info.tags.album);
         assert!(tag_file("album", "New Album", &file_under_test, &defopts()).unwrap());
+
         let new_new_info = AurMetadata::new(&file_under_test).unwrap();
+
         assert_eq!("New Album", new_new_info.tags.album);
     }
 }

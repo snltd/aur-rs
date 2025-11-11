@@ -63,7 +63,7 @@ fn disc_number(file: &Utf8Path, rx: &Regex) -> anyhow::Result<Option<String>> {
 mod test {
     use super::*;
     use crate::test_utils::spec_helper::{defopts, fixture};
-    use assert_fs::prelude::*;
+    use camino_tempfile_ext::prelude::*;
 
     fn regex() -> Regex {
         Regex::new(r"^disc_(\d+)$").unwrap()
@@ -89,7 +89,7 @@ mod test {
     #[test]
     fn test_tag_file() {
         let rx = regex();
-        let tmp = assert_fs::TempDir::new().unwrap();
+        let tmp = Utf8TempDir::new().unwrap();
         tmp.child("album/disc_3").create_dir_all().unwrap();
         let target = tmp.child("album/disc_3");
         target
@@ -99,16 +99,19 @@ mod test {
             )
             .unwrap();
 
-        let file_under_test = Utf8Path::from_path(target.path())
-            .unwrap()
-            .join("01.artist.song.mp3");
+        let file_under_test = target.join("01.artist.song.mp3");
         let original_info = AurMetadata::new(&file_under_test).unwrap();
+
         assert_eq!("Test Album", original_info.tags.album);
         assert!(tag_file(&file_under_test, &rx, &defopts()).unwrap());
+
         let new_info = AurMetadata::new(&file_under_test).unwrap();
+
         assert_eq!("Test Album (Disc 3)", new_info.tags.album);
         assert!(!tag_file(&file_under_test, &rx, &defopts()).unwrap());
+
         let new_new_info = AurMetadata::new(&file_under_test).unwrap();
+
         assert_eq!("Test Album (Disc 3)", new_new_info.tags.album);
     }
 }
