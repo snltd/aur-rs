@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod test {
-    use assert_cmd::Command;
+    use assert_cmd::cargo::cargo_bin_cmd;
     use aur::test_utils::spec_helper::fixture_as_string;
     use predicates::prelude::*;
 
@@ -9,28 +9,23 @@ mod test {
     fn test_get_command_valid_property() {
         let file_under_test = fixture_as_string("commands/tags/01.test_artist.test_track.flac");
 
-        Command::cargo_bin("aur")
-            .unwrap()
+        cargo_bin_cmd!("aur")
             .args(["get", "title", &file_under_test])
             .assert()
             .success()
             .stdout(predicate::str::ends_with(format!(
-                "Test Track : {}\n",
-                file_under_test
+                "Test Track : {file_under_test}\n",
             )));
 
-        Command::cargo_bin("aur")
-            .unwrap()
+        cargo_bin_cmd!("aur")
             .args(["get", "bitrate", &file_under_test])
             .assert()
             .success()
             .stdout(predicate::str::ends_with(format!(
-                "16-bit/44100Hz : {}\n",
-                file_under_test
+                "16-bit/44100Hz : {file_under_test}\n",
             )));
 
-        Command::cargo_bin("aur")
-            .unwrap()
+        cargo_bin_cmd!("aur")
             .args(["get", "bitrate", "-s", &file_under_test])
             .assert()
             .success()
@@ -42,8 +37,7 @@ mod test {
     fn test_get_command_invalid_property() {
         let fixture = fixture_as_string("commands/tags/01.test_artist.test_track.flac");
 
-        Command::cargo_bin("aur")
-            .unwrap()
+        cargo_bin_cmd!("aur")
             .args(["get", "whatever", &fixture])
             .assert()
             .failure()
@@ -53,8 +47,7 @@ mod test {
     #[test]
     #[ignore]
     fn test_get_command_missing_file() {
-        Command::cargo_bin("aur")
-            .unwrap()
+        cargo_bin_cmd!("aur")
             .args(["get", "title", "/no/such/file.flac"])
             .assert()
             .failure()
@@ -64,8 +57,7 @@ mod test {
     #[test]
     #[ignore]
     fn test_get_incorrect_usage() {
-        Command::cargo_bin("aur")
-            .unwrap()
+        cargo_bin_cmd!("aur")
             .arg("get")
             .assert()
             .failure()
@@ -73,8 +65,7 @@ mod test {
                 "the following required arguments were not provided",
             ));
 
-        Command::cargo_bin("aur")
-            .unwrap()
+        cargo_bin_cmd!("aur")
             .args(["get", "title"])
             .assert()
             .failure()

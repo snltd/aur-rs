@@ -6,7 +6,6 @@ edition = "2024"
 [dependencies]
 anyhow = "1.0"
 camino = "1.1.9"
-camino-tempfile = "1.1.1"
 clap = { version = "4.3", features = ["derive"] }
 colored = "3.0"
 id3 = "1.14"
@@ -25,7 +24,7 @@ unidecode = "0.3"
 
 [dev-dependencies]
 assert_cmd = "2.0"
-assert_fs = "1.1"
 assert_unordered = "0.3"
+camino-tempfile-ext = "0.3.3"
 glob = "0.3.2"
 predicates = "3"

@@ -1,29 +1,26 @@
 #[cfg(test)]
 mod test {
-    use assert_cmd::Command;
-    use assert_fs::prelude::*;
+    use assert_cmd::cargo::cargo_bin_cmd;
     use aur::test_utils::spec_helper::fixture;
+    use camino_tempfile_ext::prelude::*;
     use predicates::prelude::*;
 
     #[test]
     #[ignore]
     fn test_renumber_command() {
-        let tmp = assert_fs::TempDir::new().unwrap();
+        let tmp = Utf8TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/renumber"), &["*"]).unwrap();
         let file_01_step_1 = tmp.path().join("01.test.song.flac");
         let file_02_step_1 = tmp.path().join("02.test.song.mp3");
         let file_01_step_2 = tmp.path().join("15.test.song.flac");
         let file_02_step_2 = tmp.path().join("16.test.song.mp3");
 
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args([
-                "renumber",
-                "up",
-                "14",
-                &file_01_step_1.to_string_lossy(),
-                &file_02_step_1.to_string_lossy(),
-            ])
+        cargo_bin_cmd!("aur")
+            .arg("renumber")
+            .arg("up")
+            .arg("14")
+            .arg(&file_01_step_1)
+            .arg(&file_02_step_1)
             .assert()
             .success()
             .stdout(predicate::str::contains(
@@ -35,15 +32,12 @@ mod test {
                 "02.test.song.mp3 -> 16.test.song.mp3",
             ));
 
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args([
-                "renumber",
-                "down",
-                "7",
-                &file_01_step_2.to_string_lossy(),
-                &file_02_step_2.to_string_lossy(),
-            ])
+        cargo_bin_cmd!("aur")
+            .arg("renumber")
+            .arg("down")
+            .arg("7")
+            .arg(&file_01_step_2)
+            .arg(&file_02_step_2)
             .assert()
             .success()
             .stdout(predicate::str::contains(
@@ -59,28 +53,32 @@ mod test {
     #[test]
     #[ignore]
     fn test_renumber_command_bad_input() {
-        let tmp = assert_fs::TempDir::new().unwrap();
+        let tmp = Utf8TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/renumber"), &["02.test.song.mp3"])
             .unwrap();
         let file_under_test = tmp.path().join("02.test.song.mp3");
 
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["renumber", &file_under_test.to_string_lossy()])
+        cargo_bin_cmd!("aur")
+            .arg("renumber")
+            .arg(&file_under_test)
             .assert()
             .failure()
             .stderr(predicate::str::contains("[possible values: up, down]"));
 
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["renumber", "up", "1000", &file_under_test.to_string_lossy()])
+        cargo_bin_cmd!("aur")
+            .arg("renumber")
+            .arg("up")
+            .arg("1000")
+            .arg(&file_under_test)
             .assert()
             .failure()
             .stderr("ERROR: Delta must be from 1 to 99 inclusive\n");
 
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["renumber", "down", "30", &file_under_test.to_string_lossy()])
+        cargo_bin_cmd!("aur")
+            .arg("renumber")
+            .arg("down")
+            .arg("30")
+            .arg(&file_under_test)
             .assert()
             .failure()
             .stderr("ERROR: Tag number must be from 1 to 99 inclusive\n");
@@ -89,8 +87,7 @@ mod test {
     #[test]
     #[ignore]
     fn test_renumber_command_missing_file() {
-        Command::cargo_bin("aur")
-            .unwrap()
+        cargo_bin_cmd!("aur")
             .args(["renumber", "up", "2", "/no/such/file.flac"])
             .assert()
             .failure()
@@ -100,8 +97,7 @@ mod test {
     #[test]
     #[ignore]
     fn test_renumber_incorrect_usage() {
-        Command::cargo_bin("aur")
-            .unwrap()
+        cargo_bin_cmd!("aur")
             .arg("renumber")
             .assert()
             .failure()

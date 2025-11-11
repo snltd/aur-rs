@@ -204,8 +204,8 @@ pub fn mp3_dir_from(flac_dir: &Utf8Path, cmd_opts: &Mp3dirOpts) -> Utf8PathBuf {
 mod test {
     use super::*;
     use crate::test_utils::spec_helper::*;
-    use assert_fs::prelude::*;
     use assert_unordered::assert_eq_unordered;
+    use camino_tempfile_ext::prelude::*;
 
     #[test]
     fn test_transcode_file() {
@@ -215,14 +215,14 @@ mod test {
         };
 
         let file_name = "02.band.song_2.flac";
-        let tmp = assert_fs::TempDir::new().unwrap();
+        let tmp = Utf8TempDir::new().unwrap();
         tmp.copy_from(
             fixture("commands/syncflac/flac/eps/band.flac_ep"),
             &[file_name],
         )
         .unwrap();
-        let file_under_test = tmp.utf8_path().join(file_name);
-        let mp3_file = tmp.utf8_path().join("02.band.song_2.mp3");
+        let file_under_test = tmp.path().join(file_name);
+        let mp3_file = tmp.path().join("02.band.song_2.mp3");
 
         let action = TranscodeAction {
             flac_src: file_under_test.clone(),

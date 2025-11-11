@@ -66,8 +66,8 @@ fn retag_file(info: &AurMetadata, tag: &str, new: &str, opts: &GlobalOpts) -> an
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_utils::spec_helper::{defopts, fixture, TempDirExt};
-    use assert_fs::prelude::*;
+    use crate::test_utils::spec_helper::{defopts, fixture};
+    use camino_tempfile_ext::prelude::*;
 
     #[test]
     fn test_new_tag() {
@@ -105,14 +105,13 @@ mod test {
     #[test]
     fn test_process_file_no_change() {
         let file_name = "06.test_artist.test_title.mp3";
-        let tmp = assert_fs::TempDir::new().unwrap();
+        let tmp = Utf8TempDir::new().unwrap();
         let rx = Regex::new("no match").unwrap();
-
         tmp.copy_from(fixture("commands/tagsub"), &[file_name])
             .unwrap();
-        let file_under_test = tmp.utf8_path().join(file_name);
-
+        let file_under_test = tmp.path().join(file_name);
         let original_info = AurMetadata::new(&file_under_test).unwrap();
+
         assert_eq!("Test Artist", original_info.tags.artist);
         assert!(!process_file(&file_under_test, "title", &rx, "whatever", &defopts()).unwrap());
     }
@@ -120,18 +119,19 @@ mod test {
     #[test]
     fn test_process_file_change() {
         let file_name = "06.test_artist.test_title.mp3";
-        let tmp = assert_fs::TempDir::new().unwrap();
+        let tmp = Utf8TempDir::new().unwrap();
         let rx = Regex::new("Test").unwrap();
 
         tmp.copy_from(fixture("commands/tagsub"), &[file_name])
             .unwrap();
-        let file_under_test = tmp.utf8_path().join(file_name);
-
+        let file_under_test = tmp.path().join(file_name);
         let original_info = AurMetadata::new(&file_under_test).unwrap();
-        assert_eq!("Test Artist", original_info.tags.artist);
 
+        assert_eq!("Test Artist", original_info.tags.artist);
         assert!(process_file(&file_under_test, "artist", &rx, "Tested", &defopts()).unwrap());
+
         let new_info = AurMetadata::new(&file_under_test).unwrap();
+
         assert_eq!("Tested Artist", new_info.tags.artist);
     }
 }

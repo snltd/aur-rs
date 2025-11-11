@@ -1,21 +1,21 @@
 #[cfg(test)]
 mod test {
-    use assert_cmd::Command;
-    use assert_fs::prelude::*;
+    use assert_cmd::cargo::cargo_bin_cmd;
     use aur::test_utils::spec_helper::fixture;
+    use camino_tempfile_ext::prelude::*;
     use predicates::prelude::*;
 
     #[test]
     #[ignore]
     fn test_dupes_command_valid_tree() {
-        let tmp = assert_fs::TempDir::new().unwrap();
+        let tmp = Utf8TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/dupes"), &["flac/**/*"])
             .unwrap();
         let file_under_test = tmp.path().join("flac");
 
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["dupes", &file_under_test.to_string_lossy()])
+        cargo_bin_cmd!("aur")
+            .arg("dupes")
+            .arg(&file_under_test)
             .assert()
             .failure()
             .stdout(predicate::str::contains(
@@ -27,9 +27,9 @@ mod test {
     #[test]
     #[ignore]
     fn test_dupes_command_invalid_tree() {
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["dupes", "/tmp"])
+        cargo_bin_cmd!("aur")
+            .arg("dupes")
+            .arg("/tmp")
             .assert()
             .failure()
             .stderr("ERROR: /tmp/tracks not found\n");
@@ -38,8 +38,7 @@ mod test {
     #[test]
     #[ignore]
     fn test_dupes_incorrect_usage() {
-        Command::cargo_bin("aur")
-            .unwrap()
+        cargo_bin_cmd!("aur")
             .arg("dupes")
             .assert()
             .failure()

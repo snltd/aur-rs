@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod test {
-    use assert_cmd::Command;
-    use assert_fs::prelude::*;
+    use assert_cmd::cargo::cargo_bin_cmd;
     use aur::test_utils::spec_helper::{fixture, fixture_as_string};
+    use camino_tempfile_ext::prelude::*;
     use predicates::prelude::*;
 
     #[test]
@@ -10,7 +10,8 @@ mod test {
     fn test_name2tag_command() {
         let file_name = "01.test_artist.untagged_song.flac";
 
-        let tmp = assert_fs::TempDir::new().unwrap();
+        let tmp = Utf8TempDir::new().unwrap();
+
         tmp.child("test.artist.test_album")
             .create_dir_all()
             .unwrap();
@@ -21,11 +22,11 @@ mod test {
             .copy_from(fixture("commands/name2tag"), &[file_name])
             .unwrap();
 
-        let file_under_test = target.path().join(file_name);
+        let file_under_test = target.join(file_name);
 
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["name2tag", &file_under_test.to_string_lossy()])
+        cargo_bin_cmd!("aur")
+            .arg("name2tag")
+            .arg(&file_under_test)
             .assert()
             .success()
             .stdout(predicate::str::contains("t_num -> 1"))
@@ -33,9 +34,9 @@ mod test {
             .stdout(predicate::str::contains("album -> Test Album"))
             .stdout(predicate::str::contains("title -> Untagged Song"));
 
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["name2tag", &file_under_test.to_string_lossy()])
+        cargo_bin_cmd!("aur")
+            .arg("name2tag")
+            .arg(&file_under_test)
             .assert()
             .success()
             .stdout("");
@@ -44,9 +45,9 @@ mod test {
     #[test]
     #[ignore]
     fn test_name2tag_command_bad_file() {
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["name2tag", &fixture_as_string("info/bad_file.flac")])
+        cargo_bin_cmd!("aur")
+            .arg("name2tag")
+            .arg(&fixture_as_string("info/bad_file.flac"))
             .assert()
             .failure()
             .stderr("ERROR: InvalidInput: reader does not contain flac metadata\n");
@@ -55,8 +56,7 @@ mod test {
     #[test]
     #[ignore]
     fn test_name2tag_command_missing_file() {
-        Command::cargo_bin("aur")
-            .unwrap()
+        cargo_bin_cmd!("aur")
             .args(["name2tag", "/no/such/file.flac"])
             .assert()
             .failure()
@@ -66,8 +66,7 @@ mod test {
     #[test]
     #[ignore]
     fn test_name2tag_incorrect_usage() {
-        Command::cargo_bin("aur")
-            .unwrap()
+        cargo_bin_cmd!("aur")
             .arg("name2tag")
             .assert()
             .failure()

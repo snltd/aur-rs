@@ -1,18 +1,17 @@
 #[cfg(test)]
 mod test {
-    use assert_cmd::Command;
+    use assert_cmd::cargo::cargo_bin_cmd;
     use aur::test_utils::spec_helper::{fixture_as_string, sample_output};
     use predicates::prelude::*;
 
     #[test]
     #[ignore]
     fn test_info_command_valid_file() {
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args([
-                "info",
-                &fixture_as_string("commands/tags/01.test_artist.test_track.flac"),
-            ])
+        cargo_bin_cmd!("aur")
+            .arg("info")
+            .arg(fixture_as_string(
+                "commands/tags/01.test_artist.test_track.flac",
+            ))
             .assert()
             .success()
             .stdout(sample_output(
@@ -23,8 +22,7 @@ mod test {
     #[test]
     #[ignore]
     fn test_info_command_missing_file() {
-        Command::cargo_bin("aur")
-            .unwrap()
+        cargo_bin_cmd!("aur")
             .args(["info", "/no/such/file.flac"])
             .assert()
             .failure()
@@ -34,8 +32,7 @@ mod test {
     #[test]
     #[ignore]
     fn test_info_incorrect_usage() {
-        Command::cargo_bin("aur")
-            .unwrap()
+        cargo_bin_cmd!("aur")
             .arg("info")
             .assert()
             .failure()

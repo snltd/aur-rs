@@ -1,23 +1,26 @@
 #[cfg(test)]
 mod test {
-    use assert_cmd::Command;
-    use assert_fs::prelude::*;
+    use assert_cmd::cargo::cargo_bin_cmd;
     use aur::test_utils::spec_helper::fixture;
+    use camino_tempfile_ext::prelude::*;
     use predicates::prelude::*;
 
     #[test]
     #[ignore]
     fn test_tagsub_command_change() {
         let file_name = "06.test_artist.test_title.mp3";
-        let tmp = assert_fs::TempDir::new().unwrap();
+        let tmp = Utf8TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/tagsub"), &[file_name])
             .unwrap();
         let file_under_test = tmp.path().join(file_name);
-        let file_str = file_under_test.to_string_lossy();
 
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["--verbose", "tagsub", "artist", "Test", "Tested", &file_str])
+        cargo_bin_cmd!("aur")
+            .arg("--verbose")
+            .arg("tagsub")
+            .arg("artist")
+            .arg("Test")
+            .arg("Tested")
+            .arg(&file_under_test)
             .assert()
             .success()
             .stdout(predicate::str::contains(
@@ -25,9 +28,11 @@ mod test {
             ))
             .stdout(predicate::str::contains("artist -> Tested Artist"));
 
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["get", "--short", "artist", &file_str])
+        cargo_bin_cmd!("aur")
+            .arg("get")
+            .arg("--short")
+            .arg("artist")
+            .arg(&file_under_test)
             .assert()
             .success()
             .stdout("Tested Artist\n");
@@ -37,22 +42,28 @@ mod test {
     #[ignore]
     fn test_tagsub_command_noop() {
         let file_name = "06.test_artist.test_title.mp3";
-        let tmp = assert_fs::TempDir::new().unwrap();
+
+        let tmp = Utf8TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/tagsub"), &[file_name])
             .unwrap();
         let file_under_test = tmp.path().join(file_name);
-        let file_str = file_under_test.to_string_lossy();
 
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["--noop", "tagsub", "artist", "Test", "Tested", &file_str])
+        cargo_bin_cmd!("aur")
+            .arg("--noop")
+            .arg("tagsub")
+            .arg("artist")
+            .arg("Test")
+            .arg("Tested")
+            .arg(&file_under_test)
             .assert()
             .success()
-            .stdout(format!("{}: Test Artist -> Tested Artist\n", file_str));
+            .stdout(format!("{file_under_test}: Test Artist -> Tested Artist\n"));
 
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["get", "--short", "artist", &file_str])
+        cargo_bin_cmd!("aur")
+            .arg("get")
+            .arg("--short")
+            .arg("artist")
+            .arg(&file_under_test)
             .assert()
             .success()
             .stdout("Test Artist\n");
@@ -61,9 +72,12 @@ mod test {
     #[test]
     #[ignore]
     fn test_tagsub_command_missing_file() {
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["tagsub", "title", "find", "replace", "/no/such/file.flac"])
+        cargo_bin_cmd!("aur")
+            .arg("tagsub")
+            .arg("title")
+            .arg("find")
+            .arg("replace")
+            .arg("/no/such/file.flac")
             .assert()
             .failure()
             .stderr("ERROR: (I/O) : No such file or directory (os error 2)\n");
@@ -73,15 +87,17 @@ mod test {
     #[ignore]
     fn test_tagsub_command_bad_input() {
         let file_name = "06.test_artist.test_title.mp3";
-        let tmp = assert_fs::TempDir::new().unwrap();
+        let tmp = Utf8TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/tagsub"), &[file_name])
             .unwrap();
         let file_under_test = tmp.path().join(file_name);
-        let file_str = file_under_test.to_string_lossy();
 
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["tagsub", "whatever", "find", "replace", &file_str])
+        cargo_bin_cmd!("aur")
+            .arg("tagsub")
+            .arg("whatever")
+            .arg("find")
+            .arg("replace")
+            .arg(&file_under_test)
             .assert()
             .failure()
             .stderr("ERROR: Unknown tag: whatever\n");
@@ -90,8 +106,7 @@ mod test {
     #[test]
     #[ignore]
     fn test_tagsub_incorrect_usage() {
-        Command::cargo_bin("aur")
-            .unwrap()
+        cargo_bin_cmd!("aur")
             .arg("tagsub")
             .assert()
             .failure()

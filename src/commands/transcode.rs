@@ -13,12 +13,15 @@ pub fn run(
     opts: &GlobalOpts,
 ) -> anyhow::Result<bool> {
     let ffmpeg = find_binary("ffmpeg")?;
+    let mut ret = true;
 
     for f in &pathbuf_set(files) {
-        transcode_file(f, format, cmd_opts, opts, &ffmpeg)?;
+        if !transcode_file(f, format, cmd_opts, opts, &ffmpeg)? {
+            ret = false
+        }
     }
 
-    Ok(true)
+    Ok(ret)
 }
 
 fn transcode_file(

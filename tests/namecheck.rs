@@ -1,18 +1,15 @@
 #[cfg(test)]
 mod test {
-    use assert_cmd::Command;
+    use assert_cmd::cargo::cargo_bin_cmd;
     use aur::test_utils::spec_helper::fixture_as_string;
     use predicates::prelude::*;
 
     #[test]
     #[ignore]
     fn test_namecheck_command_valid_tree() {
-        // this test is rubbish. make it better
-        let dir_under_test = fixture_as_string("commands/namecheck");
-
-        Command::cargo_bin("aur")
-            .unwrap()
-            .args(["namecheck", &dir_under_test])
+        cargo_bin_cmd!("aur")
+            .arg("namecheck")
+            .arg(fixture_as_string("commands/namecheck"))
             .assert()
             .failure()
             .stdout(predicate::str::contains("Artist"))
@@ -22,8 +19,7 @@ mod test {
     #[test]
     #[ignore]
     fn test_namecheck_command_invalid_tree() {
-        Command::cargo_bin("aur")
-            .unwrap()
+        cargo_bin_cmd!("aur")
             .args(["namecheck", "/no/such/dir"])
             .assert()
             .failure()
@@ -33,8 +29,7 @@ mod test {
     #[test]
     #[ignore]
     fn test_namecheck_incorrect_usage() {
-        Command::cargo_bin("aur")
-            .unwrap()
+        cargo_bin_cmd!("aur")
             .arg("namecheck")
             .assert()
             .failure()

@@ -1,6 +1,6 @@
 use crate::utils::dir::{media_files, pathbuf_set};
-use crate::utils::metadata::expected_tags;
 use crate::utils::metadata::AurMetadata;
+use crate::utils::metadata::expected_tags;
 use crate::utils::tagger::Tagger;
 use camino::{Utf8Path, Utf8PathBuf};
 use std::collections::HashSet;
@@ -51,44 +51,50 @@ fn remove_artwork(info: &AurMetadata, tagger: &Tagger) -> anyhow::Result<bool> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_utils::spec_helper::{fixture, TempDirExt};
-    use assert_fs::prelude::*;
+    use crate::test_utils::spec_helper::fixture;
+    use camino_tempfile_ext::prelude::*;
 
     #[test]
     fn test_strip_flac() {
         let file_name = "01.tester.not_stripped.flac";
-        let tmp = assert_fs::TempDir::new().unwrap();
+        let tmp = Utf8TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/strip"), &[file_name])
             .unwrap();
-        let file_under_test = tmp.utf8_path().join(file_name);
-
+        let file_under_test = tmp.path().join(file_name);
         let original_info = AurMetadata::new(&file_under_test).unwrap();
+
         assert_eq!(9, original_info.rawtags.len());
         assert!(strip_file(&file_under_test).unwrap());
-        let new_info = AurMetadata::new(&file_under_test).unwrap();
-        assert_eq!(6, new_info.rawtags.len());
 
+        let new_info = AurMetadata::new(&file_under_test).unwrap();
+
+        assert_eq!(6, new_info.rawtags.len());
         assert!(!strip_file(&file_under_test).unwrap());
+
         let new_new_info = AurMetadata::new(&file_under_test).unwrap();
+
         assert_eq!(6, new_new_info.rawtags.len());
     }
 
     #[test]
     fn test_strip_mp3() {
         let file_name = "02.tester.not_stripped.mp3";
-        let tmp = assert_fs::TempDir::new().unwrap();
+        let tmp = Utf8TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/strip"), &[file_name])
             .unwrap();
-        let file_under_test = tmp.utf8_path().join(file_name);
-
+        let file_under_test = tmp.path().join(file_name);
         let original_info = AurMetadata::new(&file_under_test).unwrap();
+
         assert_eq!(12, original_info.rawtags.len());
         assert!(strip_file(&file_under_test).unwrap());
-        let new_info = AurMetadata::new(&file_under_test).unwrap();
-        assert_eq!(6, new_info.rawtags.len());
 
+        let new_info = AurMetadata::new(&file_under_test).unwrap();
+
+        assert_eq!(6, new_info.rawtags.len());
         assert!(!strip_file(&file_under_test).unwrap());
+
         let new_new_info = AurMetadata::new(&file_under_test).unwrap();
+
         assert_eq!(6, new_new_info.rawtags.len());
     }
 }

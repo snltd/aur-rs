@@ -139,33 +139,36 @@ fn jpgs_in(dir: &Utf8Path) -> anyhow::Result<Vec<Utf8PathBuf>> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_utils::spec_helper::{defopts, fixture, TempDirExt};
-    use assert_fs::prelude::*;
+    use crate::test_utils::spec_helper::{defopts, fixture};
+    use camino_tempfile_ext::prelude::*;
 
     #[test]
     fn test_resize_no_action() {
-        assert!(!resize_or_link(
-            &fixture("commands/artfix/tester.good_art/front.jpg"),
-            &Utf8PathBuf::from("/tmp"),
-            &defopts()
-        )
-        .unwrap());
+        assert!(
+            !resize_or_link(
+                &fixture("commands/artfix/tester.good_art/front.jpg"),
+                &Utf8PathBuf::from("/tmp"),
+                &defopts()
+            )
+            .unwrap()
+        );
     }
 
     #[test]
     fn test_resize() {
         let file_name = "front.jpg";
         let linkdir = Utf8PathBuf::from("/tmp");
-        let tmp = assert_fs::TempDir::new().unwrap();
+        let tmp = Utf8TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/artfix/tester.too_big"), &[file_name])
             .unwrap();
-        let file_under_test = tmp.utf8_path().join(file_name);
+        let file_under_test = tmp.path().join(file_name);
 
         let before = ImageReader::open(&file_under_test)
             .unwrap()
             .decode()
             .unwrap();
         let (x, y) = before.dimensions();
+
         assert_eq!(x, 900);
         assert_eq!(y, 900);
 
@@ -175,7 +178,9 @@ mod test {
             .unwrap()
             .decode()
             .unwrap();
+
         let (x1, y1) = after.dimensions();
+
         assert_eq!(x1, MAX_ARTWORK_SIZE);
         assert_eq!(y1, MAX_ARTWORK_SIZE);
     }
@@ -183,10 +188,10 @@ mod test {
     #[test]
     fn test_symlink() {
         let source_file = fixture("commands/artfix/tester.not_square/front.jpg");
-        let target_dir = assert_fs::TempDir::new().unwrap();
-        let expected_file = target_dir.join(target_filename(&source_file));
-        assert!(resize_or_link(&source_file, target_dir.utf8_path(), &defopts()).unwrap());
+        let target_dir = Utf8TempDir::new().unwrap();
+        let expected_file = target_dir.path().join(target_filename(&source_file));
 
+        assert!(resize_or_link(&source_file, target_dir.path(), &defopts()).unwrap());
         assert!(expected_file.exists());
         assert!(expected_file.is_symlink());
     }
@@ -194,19 +199,18 @@ mod test {
     #[test]
     fn test_rename() {
         let dir_name = "tester.wrong_name";
-        let tmp = assert_fs::TempDir::new().unwrap();
+        let tmp = Utf8TempDir::new().unwrap();
         tmp.copy_from(fixture("commands/artfix"), &["tester.wrong_name/**/*"])
             .unwrap();
-        let dir_under_test = tmp.utf8_path().join(dir_name);
-        let expected_artwork = tmp.utf8_path().join("front.jpg");
+
+        let dir_under_test = tmp.path().join(dir_name);
+        let expected_artwork = tmp.path().join("front.jpg");
 
         assert!(dir_under_test.join("cover.jpg").exists());
         assert!(!expected_artwork.exists());
-
         assert!(rename(&dir_under_test, &expected_artwork, &defopts()).unwrap());
         assert!(!dir_under_test.join("cover.jpg").exists());
         assert!(expected_artwork.exists());
-
         assert!(!rename(&dir_under_test, &expected_artwork, &defopts()).unwrap());
     }
 }

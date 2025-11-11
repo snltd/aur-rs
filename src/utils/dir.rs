@@ -89,7 +89,7 @@ mod tests {
     use super::*;
     use crate::test_utils::spec_helper::fixture;
     use assert_unordered::assert_eq_unordered;
-    use camino_tempfile::tempdir;
+    use camino_tempfile_ext::prelude::*;
     use std::fs;
 
     #[test]
@@ -133,12 +133,24 @@ mod tests {
     #[test]
     fn test_expand_file_list_recurse() {
         let expected: BTreeSet<Utf8PathBuf> = BTreeSet::from([
-            fixture("recurse/flac/albums/tuv/test_artist.test_album/disc_1/01.test_artist.disc_1--song_1.flac"),
-            fixture("recurse/flac/albums/tuv/test_artist.test_album/disc_1/02.test_artist.disc_1--song_2.flac"),
-            fixture("recurse/flac/albums/tuv/test_artist.test_album/disc_1/03.test_artist.disc_1--song_3.flac"),
-            fixture("recurse/flac/albums/tuv/test_artist.test_album/disc_2/03.test_artist.disc_2--song_3.flac"),
-            fixture("recurse/flac/albums/tuv/test_artist.test_album/disc_2/02.test_artist.disc_2--song_2.flac"),
-            fixture("recurse/flac/albums/tuv/test_artist.test_album/disc_2/01.test_artist.disc_2--song_1.flac"),
+            fixture(
+                "recurse/flac/albums/tuv/test_artist.test_album/disc_1/01.test_artist.disc_1--song_1.flac",
+            ),
+            fixture(
+                "recurse/flac/albums/tuv/test_artist.test_album/disc_1/02.test_artist.disc_1--song_2.flac",
+            ),
+            fixture(
+                "recurse/flac/albums/tuv/test_artist.test_album/disc_1/03.test_artist.disc_1--song_3.flac",
+            ),
+            fixture(
+                "recurse/flac/albums/tuv/test_artist.test_album/disc_2/03.test_artist.disc_2--song_3.flac",
+            ),
+            fixture(
+                "recurse/flac/albums/tuv/test_artist.test_album/disc_2/02.test_artist.disc_2--song_2.flac",
+            ),
+            fixture(
+                "recurse/flac/albums/tuv/test_artist.test_album/disc_2/01.test_artist.disc_2--song_1.flac",
+            ),
             fixture("recurse/flac/eps/artist.extended_play/02.artist.ep_02.flac"),
             fixture("recurse/flac/tracks/band.single.flac"),
         ]);
@@ -157,7 +169,7 @@ mod tests {
 
     #[test]
     fn test_dirs_under() {
-        let temp_dir = tempdir().unwrap();
+        let temp_dir = Utf8TempDir::new().unwrap();
         let subdir1 = temp_dir.path().join("subdir1");
         let subdir2 = temp_dir.path().join("subdir1/subdir2");
         let subdir3 = temp_dir.path().join("subdir3");
