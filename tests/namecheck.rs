@@ -1,6 +1,5 @@
 #[cfg(test)]
 mod test {
-    use assert_cmd::Command;
     use assert_cmd::cargo::cargo_bin_cmd;
     use aur::test_utils::spec_helper::fixture_as_string;
     use predicates::prelude::*;

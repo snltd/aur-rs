@@ -1,9 +1,7 @@
 #[cfg(test)]
 mod test {
-    use assert_cmd::Command;
     use assert_cmd::cargo::cargo_bin_cmd;
     use aur::test_utils::spec_helper::{fixture, fixture_as_string, sample_output};
-    use camino_tempfile_ext::prelude::*;
     use predicates::prelude::*;
 
     #[test]
