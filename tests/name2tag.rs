@@ -47,7 +47,7 @@ mod test {
     fn test_name2tag_command_bad_file() {
         cargo_bin_cmd!("aur")
             .arg("name2tag")
-            .arg(&fixture_as_string("info/bad_file.flac"))
+            .arg(fixture_as_string("info/bad_file.flac"))
             .assert()
             .failure()
             .stderr("ERROR: InvalidInput: reader does not contain flac metadata\n");

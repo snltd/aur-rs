@@ -1,59 +1,39 @@
-use crate::utils::dir::{media_files, pathbuf_set};
+use crate::separator;
+use crate::utils::dir;
 use crate::utils::metadata::AurMetadata;
-use camino::{Utf8Path, Utf8PathBuf};
-use std::collections::HashMap;
-
-type InfoMap = HashMap<Utf8PathBuf, Vec<(String, String)>>;
+use camino::Utf8PathBuf;
+use tabled::Table;
+use tabled::settings::{Alignment, Modify, Remove, Style, object::Columns, object::Rows};
 
 pub fn run(files: &[Utf8PathBuf]) -> anyhow::Result<bool> {
-    let mut info_set: InfoMap = HashMap::new();
+    let mut ret = true;
 
-    for f in media_files(&pathbuf_set(files)) {
-        info_set.insert(f.clone(), info_for_file(&f)?);
+    for file in &dir::media_files(&dir::pathbuf_set(files)) {
+        separator!(file, files);
+
+        if let Ok(mut metadata) = AurMetadata::new(file) {
+            let tags_table = file_tags(&mut metadata);
+            println!("{tags_table}");
+        } else {
+            eprintln!("Cannot get metadata");
+            ret = false;
+        }
     }
 
-    info_set
-        .iter()
-        .for_each(|(path, info)| print_file_info(path, info));
-    Ok(true)
+    Ok(ret)
 }
 
-fn info_for_file(file: &Utf8Path) -> anyhow::Result<Vec<(String, String)>> {
-    let data = AurMetadata::new(file)?;
-    let mut tags = data.rawtags;
-    tags.sort();
-    Ok(tags.into_iter().collect())
-}
+fn file_tags(metadata: &mut AurMetadata) -> String {
+    metadata.rawtags.sort();
+    let table_rows = &metadata.rawtags;
 
-fn print_file_info(path: &Utf8Path, info: &[(String, String)]) {
-    println!("{}", path);
-    for (k, v) in info {
-        println!("{:>14} : {}", k, v);
-    }
-    println!()
-}
+    let mut table = Table::new(table_rows);
+    let style = Style::blank().vertical(':');
 
-#[cfg(test)]
-mod test {
-    use super::*;
-    use crate::test_utils::spec_helper::fixture;
+    table
+        .with(style)
+        .with(Remove::row(Rows::first())) // headers
+        .with(Modify::new(Columns::first()).with(Alignment::right()));
 
-    #[test]
-    fn test_tags() {
-        let flac_result =
-            info_for_file(&fixture("commands/tags/01.test_artist.test_track.flac")).unwrap();
-        let mp3_result =
-            info_for_file(&fixture("commands/tags/01.test_artist.test_track.mp3")).unwrap();
-
-        assert_eq!(14, flac_result.len());
-        assert_eq!(
-            ("album".to_owned(), "Test Album".to_owned()),
-            flac_result[0]
-        );
-        assert_eq!(15, mp3_result.len());
-        assert_eq!(
-            ("comm".to_owned(), "Test Comment".to_owned()),
-            mp3_result[0]
-        );
-    }
+    table.to_string()
 }
