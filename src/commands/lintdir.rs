@@ -440,7 +440,7 @@ mod test {
 
         assert_eq!(
             CheckResult::Bad(LintDirError::CoverArtInvalid(
-                "Format error decoding Jpeg: \"No more bytes\"".to_owned()
+                "Format error decoding Jpeg: I/O errors Generic I/O error: Cannot satisfy read\n".to_owned()
             )),
             has_suitable_cover_art(&fixture("commands/lintdir/flac/tester.artwork_invalid"))
         );
