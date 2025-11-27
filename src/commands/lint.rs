@@ -1,12 +1,14 @@
-use crate::utils::config::{load_config, Config};
-use crate::utils::dir::{expand_file_list, media_files};
-use crate::utils::metadata::{expected_tags, irrelevant_tags, AurMetadata, AurTags, RawTags};
+use crate::err_if_empty;
+use crate::utils::config::{Config, load_config};
+use crate::utils::dir;
+use crate::utils::metadata::{AurMetadata, AurTags, RawTags, expected_tags, irrelevant_tags};
 use crate::utils::rename;
 use crate::utils::tag_validator::TagValidator;
 use crate::utils::types::GlobalOpts;
 use crate::utils::words::Words;
 use camino::{Utf8Path, Utf8PathBuf};
 use colored::Colorize;
+use indicatif::ProgressBar;
 use std::collections::HashSet;
 
 #[derive(Debug)]
@@ -66,18 +68,24 @@ pub fn run(files: &[Utf8PathBuf], recurse: bool, opts: &GlobalOpts) -> anyhow::R
     let config = load_config(&opts.config)?;
     let words = Words::new(&config);
     let validator = TagValidator::new(&words, config.get_genres());
-    let mut ret = true;
+    let mut ret_code = true;
+    let files = dir::media_files(&dir::expand_file_list(files, recurse)?);
+    err_if_empty!(files);
 
-    for f in media_files(&expand_file_list(files, recurse)?) {
-        let results = filter_results(&f, lint_file(&f, &validator, opts)?, &config);
+    let pb = ProgressBar::new(files.len() as u64);
+
+    for file in files {
+        pb.inc(1);
+        let results = filter_results(&file, lint_file(&file, &validator, opts)?, &config);
         let problems: Vec<_> = results.iter().filter_map(Some).collect();
         if !problems.is_empty() {
-            ret = false;
-            display_problems(&f, &problems);
+            ret_code = false;
+            display_problems(&file, &problems, &pb);
         }
     }
 
-    Ok(ret)
+    pb.finish();
+    Ok(ret_code)
 }
 
 fn is_file_excluded(file: &Utf8Path, list: Option<&HashSet<String>>) -> bool {
@@ -114,15 +122,17 @@ fn filter_results(file: &Utf8Path, results: Vec<CheckResult>, config: &Config) -
         .collect()
 }
 
-fn display_problems(file: &Utf8Path, problems: &Vec<&CheckResult>) {
-    println!("{}", file.to_string().bold());
+fn display_problems(file: &Utf8Path, problems: &Vec<&CheckResult>, pb: &ProgressBar) {
+    pb.println(format!("{}", file.to_string().bold()));
+
     for p in problems {
         match p {
             CheckResult::Good => (),
-            CheckResult::Bad(problem) => println!("  {}", problem.message()),
+            CheckResult::Bad(problem) => pb.println(format!("  {}", problem.message())),
         }
     }
-    println!();
+
+    pb.println("");
 }
 
 fn lint_file(
@@ -317,21 +327,25 @@ mod test {
         let validator = TagValidator::new(&words, None);
         let opts = &defopts();
 
-        assert!(lint_file(
-            &fixture("commands/lint/01.tester.lints_fine.flac"),
-            &validator,
-            opts,
-        )
-        .unwrap()
-        .is_empty());
+        assert!(
+            lint_file(
+                &fixture("commands/lint/01.tester.lints_fine.flac"),
+                &validator,
+                opts,
+            )
+            .unwrap()
+            .is_empty()
+        );
 
-        assert!(lint_file(
-            &fixture("commands/lint/02.tester.lints_fine.mp3"),
-            &validator,
-            opts,
-        )
-        .unwrap()
-        .is_empty());
+        assert!(
+            lint_file(
+                &fixture("commands/lint/02.tester.lints_fine.mp3"),
+                &validator,
+                opts,
+            )
+            .unwrap()
+            .is_empty()
+        );
 
         assert_eq!(
             vec![
