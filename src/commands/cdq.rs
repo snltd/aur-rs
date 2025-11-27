@@ -1,9 +1,9 @@
-use crate::utils::dir::{media_files, pathbuf_set};
+use crate::utils::dir;
 use crate::utils::external::find_binary;
 use crate::utils::metadata::AurMetadata;
 use crate::utils::string::ReplaceLast;
 use crate::utils::types::GlobalOpts;
-use crate::verbose;
+use crate::{err_if_empty, verbose};
 use anyhow::ensure;
 use camino::{Utf8Path, Utf8PathBuf};
 use std::fs::rename;
@@ -15,12 +15,18 @@ pub fn run(
     opts: &GlobalOpts,
 ) -> anyhow::Result<bool> {
     let ffmpeg = find_binary("ffmpeg")?;
+    let mut ret_code = true;
+    let files = dir::media_files(&dir::pathbuf_set(files));
+    err_if_empty!(files);
 
-    for f in media_files(&pathbuf_set(files)) {
-        reencode_file(&f, leave_originals, &ffmpeg, opts)?;
+    for file in files {
+        if let Err(e) = reencode_file(&file, leave_originals, &ffmpeg, opts) {
+            eprintln!("Error reencoding {file}: {e}");
+            ret_code = false;
+        }
     }
 
-    Ok(true)
+    Ok(ret_code)
 }
 
 fn reencode_file(

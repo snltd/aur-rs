@@ -16,3 +16,10 @@ macro_rules! separator {
         }
     };
 }
+
+#[macro_export]
+macro_rules! err_if_empty {
+    ($flist:expr) => {
+        anyhow::ensure!($flist.len() > 0, "nothing on which to operate")
+    };
+}

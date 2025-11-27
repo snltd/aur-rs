@@ -1,9 +1,9 @@
-use crate::utils::dir::{expand_file_list, media_files};
+use crate::utils::dir;
 use crate::utils::metadata::AurMetadata;
 use crate::utils::tagger::Tagger;
 use crate::utils::types::{CopytagsOptions, GlobalOpts};
-use crate::verbose;
-use anyhow::anyhow;
+use crate::{err_if_empty, verbose};
+use anyhow::bail;
 use camino::{Utf8Path, Utf8PathBuf};
 use colored::Colorize;
 use std::fs;
@@ -14,10 +14,19 @@ pub fn run(
     ct_opts: &CopytagsOptions,
     global_opts: &GlobalOpts,
 ) -> anyhow::Result<bool> {
-    for f in media_files(&expand_file_list(files, ct_opts.recurse)?) {
-        tag_file(&f, ct_opts, global_opts)?;
+    let files = dir::media_files(&dir::expand_file_list(files, ct_opts.recurse)?);
+    err_if_empty!(files);
+
+    let mut ret_code = true;
+
+    for file in files {
+        if let Err(e) = tag_file(&file, ct_opts, global_opts) {
+            eprintln!("Error tagging {file}: {e}");
+            ret_code = false;
+        }
     }
-    Ok(true)
+
+    Ok(ret_code)
 }
 
 fn tag_file(file: &Utf8Path, ct_opts: &CopytagsOptions, opts: &GlobalOpts) -> anyhow::Result<bool> {
@@ -59,7 +68,7 @@ fn find_partner(info: &AurMetadata, force: bool) -> anyhow::Result<Option<Utf8Pa
     let newtype = match filetype {
         "mp3" => "flac",
         "flac" => "mp3",
-        _ => return Err(anyhow!(format!("unknown filetype: {}", filetype))),
+        _ => bail!("unknown filetype: {}", filetype),
     };
 
     let partner_path = info

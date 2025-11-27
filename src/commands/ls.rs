@@ -1,6 +1,6 @@
-use crate::separator;
-use crate::utils::dir::expand_dir_list;
+use crate::utils::dir;
 use crate::utils::metadata::{AurMetadata, AurTags};
+use crate::{err_if_empty, separator};
 use camino::{Utf8Path, Utf8PathBuf};
 use tabled::Table;
 use tabled::settings::{
@@ -17,20 +17,30 @@ pub fn run(dirlist: &[Utf8PathBuf], recurse: bool) -> anyhow::Result<bool> {
         dirlist
     };
 
-    let dirlist = expand_dir_list(dirlist, recurse);
+    let mut ret_code = true;
+    let dirs = dir::expand_dir_list(dirlist, recurse);
+    err_if_empty!(dirs);
 
     let term_width: usize = terminal_size()
         .map(|(TermWidth(w), _)| w as usize)
         .unwrap_or(80);
 
-    for dir in &dirlist {
-        separator!(dir, dirlist);
+    for dir in &dirs {
+        separator!(dir, dirs);
 
-        let info = list_info(dir)?;
-        println!("{}", listing_table(info, term_width));
+        match list_info(dir) {
+            Ok(_) => {
+                let info = list_info(dir)?;
+                println!("{}", listing_table(info, term_width));
+            }
+            Err(e) => {
+                eprintln!("Error listing {dir}: {e}");
+                ret_code = false;
+            }
+        }
     }
 
-    Ok(true)
+    Ok(ret_code)
 }
 
 fn list_info(dir: &Utf8Path) -> anyhow::Result<Vec<AurTags>> {

@@ -1,4 +1,5 @@
-use crate::utils::dir::{media_files, pathbuf_set};
+use crate::err_if_empty;
+use crate::utils::dir;
 use crate::utils::metadata::AurMetadata;
 use crate::utils::renumber_file;
 use crate::utils::types::{GlobalOpts, RenumberDirection};
@@ -21,8 +22,12 @@ pub fn run(
         RenumberDirection::Down => 0 - delta as i32,
     };
 
+    let files = dir::media_files(&dir::pathbuf_set(files));
+    err_if_empty!(files);
+
     // The casting here is perfectly safe. We can't go outside a very narrow range
-    for f in media_files(&pathbuf_set(files)) {
+    // And I'm happy to crash out if anything fails.
+    for f in files {
         let info = AurMetadata::new(&f)?;
         let number = info.tags.t_num as i32 + i_delta;
 

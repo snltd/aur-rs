@@ -1,27 +1,30 @@
-use crate::separator;
-use crate::utils::dir::{media_files, pathbuf_set};
+use crate::utils::dir;
 use crate::utils::metadata::AurMetadata;
+use crate::{err_if_empty, separator};
 use camino::Utf8PathBuf;
-use tabled::Table;
-use tabled::settings::{Alignment, Modify, Remove, Style, object::Columns, object::Rows};
 
 pub fn run(files: &[Utf8PathBuf]) -> anyhow::Result<bool> {
-    let files = media_files(&pathbuf_set(files));
-    let mut ret = true;
+    let files = dir::media_files(&dir::pathbuf_set(files));
+    err_if_empty!(files);
+
+    let mut ret_code = true;
 
     for file in &files {
         separator!(file, files);
 
-        if let Ok(metadata) = AurMetadata::new(file) {
-            let info_table = file_info(&metadata);
-            println!("{info_table}");
-        } else {
-            eprintln!("Cannot get metadata");
-            ret = false;
+        match AurMetadata::new(file) {
+            Ok(metadata) => {
+                let info_table = file_info(&metadata);
+                println!("{info_table}");
+            }
+            Err(e) => {
+                eprintln!("Error getting metadata for {file}: {e}");
+                ret_code = false;
+            }
         }
     }
 
-    Ok(ret)
+    Ok(ret_code)
 }
 
 fn file_info(metadata: &AurMetadata) -> String {
@@ -38,13 +41,8 @@ fn file_info(metadata: &AurMetadata) -> String {
         ("Year", metadata.tags.year.to_string()),
     ];
 
-    let mut table = Table::new(table_rows);
-    let style = Style::blank().vertical(':');
-
-    table
-        .with(style)
-        .with(Remove::row(Rows::first())) // headers
-        .with(Modify::new(Columns::first()).with(Alignment::right()));
-
-    table.to_string()
+    table_rows
+        .iter()
+        .map(|(k, v)| format!("{k:>10} : {v}\n"))
+        .collect()
 }

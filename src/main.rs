@@ -282,6 +282,7 @@ enum Commands {
         files: Vec<Utf8PathBuf>,
     },
     /// Checks media files are valid and uncorrupted
+    #[command(alias = "validate")]
     Verify {
         /// Recurse
         #[arg(short, long)]

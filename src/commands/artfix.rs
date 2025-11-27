@@ -1,7 +1,7 @@
 use crate::utils::config::MAX_ARTWORK_SIZE;
-use crate::utils::dir::expand_dir_list;
+use crate::utils::dir;
 use crate::utils::types::GlobalOpts;
-use crate::verbose;
+use crate::{err_if_empty, verbose};
 use camino::{Utf8Path, Utf8PathBuf};
 use image::imageops::FilterType::Lanczos3;
 use image::{GenericImageView, ImageReader};
@@ -15,29 +15,39 @@ pub fn run(
     linkdir: Utf8PathBuf,
     opts: &GlobalOpts,
 ) -> anyhow::Result<bool> {
-    let dirs = expand_dir_list(dirlist, recurse);
-    let bar = ProgressBar::new(dirs.len() as u64);
+    let dirs = dir::expand_dir_list(dirlist, recurse);
+    err_if_empty!(dirs);
+
+    let mut ret_code = true;
+    let pb = ProgressBar::new(dirs.len() as u64);
 
     for dir in dirs {
-        bar.inc(1);
-        check_artwork(&dir, &linkdir, opts)?;
+        pb.inc(1);
+        if check_artwork(&dir, &linkdir, &pb, opts).is_err() {
+            ret_code = false;
+        }
     }
 
-    bar.finish();
-    Ok(true)
+    pb.finish();
+    Ok(ret_code)
 }
 
-fn check_artwork(dir: &Utf8Path, linkdir: &Utf8Path, opts: &GlobalOpts) -> anyhow::Result<bool> {
+fn check_artwork(
+    dir: &Utf8Path,
+    linkdir: &Utf8Path,
+    pb: &ProgressBar,
+    opts: &GlobalOpts,
+) -> anyhow::Result<bool> {
     let expected_artwork = dir.join("front.jpg");
 
     let mut changes: Vec<bool> = Vec::new();
 
     if !expected_artwork.exists() {
-        changes.push(rename(dir, &expected_artwork, opts)?);
+        changes.push(rename(dir, &expected_artwork, pb, opts)?);
     }
 
     if expected_artwork.exists() {
-        changes.push(resize_or_link(&expected_artwork, linkdir, opts)?);
+        changes.push(resize_or_link(&expected_artwork, linkdir, pb, opts)?);
     }
 
     if changes.iter().any(|c| *c) {
@@ -47,14 +57,19 @@ fn check_artwork(dir: &Utf8Path, linkdir: &Utf8Path, opts: &GlobalOpts) -> anyho
     }
 }
 
-fn rename(dir: &Utf8Path, front: &Utf8Path, opts: &GlobalOpts) -> anyhow::Result<bool> {
+fn rename(
+    dir: &Utf8Path,
+    front: &Utf8Path,
+    pb: &ProgressBar,
+    opts: &GlobalOpts,
+) -> anyhow::Result<bool> {
     let mut ret = false;
 
     // Yes, this will flatten multiple files into one. That's fine.
     for file in jpgs_in(dir)? {
         if file != front {
             if !opts.quiet {
-                println!("Rename: {} -> front.jpg", file);
+                pb.println(format!("Rename: {} -> front.jpg", file));
             }
             if !opts.noop {
                 fs::rename(file, front)?;
@@ -68,12 +83,17 @@ fn rename(dir: &Utf8Path, front: &Utf8Path, opts: &GlobalOpts) -> anyhow::Result
 
 // It's not our job to flag up problems, only to fix what we can. Lintdir will point out what
 // we can't fix.
-fn resize_or_link(file: &Utf8Path, linkdir: &Utf8Path, opts: &GlobalOpts) -> anyhow::Result<bool> {
+fn resize_or_link(
+    file: &Utf8Path,
+    linkdir: &Utf8Path,
+    pb: &ProgressBar,
+    opts: &GlobalOpts,
+) -> anyhow::Result<bool> {
     let img = ImageReader::open(file)?.decode()?;
     let (x, y) = img.dimensions();
 
     if x != y {
-        return symlink_art(file, linkdir, opts);
+        return symlink_art(file, linkdir, pb, opts);
     }
 
     if x <= MAX_ARTWORK_SIZE {
@@ -81,7 +101,7 @@ fn resize_or_link(file: &Utf8Path, linkdir: &Utf8Path, opts: &GlobalOpts) -> any
     }
 
     if !opts.quiet {
-        println!("Resize: {} -> {s}x{s}", file, s = MAX_ARTWORK_SIZE);
+        pb.println(format!("Resize: {} -> {s}x{s}", file, s = MAX_ARTWORK_SIZE));
     }
 
     if !opts.noop {
@@ -99,7 +119,12 @@ fn target_filename(file: &Utf8Path) -> String {
         .into()
 }
 
-fn symlink_art(file: &Utf8Path, linkdir: &Utf8Path, opts: &GlobalOpts) -> anyhow::Result<bool> {
+fn symlink_art(
+    file: &Utf8Path,
+    linkdir: &Utf8Path,
+    pb: &ProgressBar,
+    opts: &GlobalOpts,
+) -> anyhow::Result<bool> {
     if !linkdir.exists() {
         verbose!(opts, "Creating artfix dir: {}", linkdir);
         if !opts.noop {
@@ -113,7 +138,11 @@ fn symlink_art(file: &Utf8Path, linkdir: &Utf8Path, opts: &GlobalOpts) -> anyhow
         fs::remove_file(&target)?;
     }
 
-    println!("Symlink: {} -> {}", file.file_name().unwrap(), target);
+    pb.println(format!(
+        "Symlink: {} -> {}",
+        file.file_name().unwrap(),
+        target
+    ));
 
     if !opts.noop {
         symlink(file, &target)?;
@@ -148,6 +177,7 @@ mod test {
             !resize_or_link(
                 &fixture("commands/artfix/tester.good_art/front.jpg"),
                 &Utf8PathBuf::from("/tmp"),
+                &ProgressBar::new(1234),
                 &defopts()
             )
             .unwrap()
@@ -172,7 +202,15 @@ mod test {
         assert_eq!(x, 900);
         assert_eq!(y, 900);
 
-        assert!(resize_or_link(&file_under_test, &linkdir, &defopts()).unwrap());
+        assert!(
+            resize_or_link(
+                &file_under_test,
+                &linkdir,
+                &ProgressBar::new(1234),
+                &defopts()
+            )
+            .unwrap()
+        );
 
         let after = ImageReader::open(&file_under_test)
             .unwrap()
@@ -191,7 +229,15 @@ mod test {
         let target_dir = Utf8TempDir::new().unwrap();
         let expected_file = target_dir.path().join(target_filename(&source_file));
 
-        assert!(resize_or_link(&source_file, target_dir.path(), &defopts()).unwrap());
+        assert!(
+            resize_or_link(
+                &source_file,
+                target_dir.path(),
+                &ProgressBar::new(1234),
+                &defopts()
+            )
+            .unwrap()
+        );
         assert!(expected_file.exists());
         assert!(expected_file.is_symlink());
     }
@@ -208,9 +254,25 @@ mod test {
 
         assert!(dir_under_test.join("cover.jpg").exists());
         assert!(!expected_artwork.exists());
-        assert!(rename(&dir_under_test, &expected_artwork, &defopts()).unwrap());
+        assert!(
+            rename(
+                &dir_under_test,
+                &expected_artwork,
+                &ProgressBar::new(1234),
+                &defopts()
+            )
+            .unwrap()
+        );
         assert!(!dir_under_test.join("cover.jpg").exists());
         assert!(expected_artwork.exists());
-        assert!(!rename(&dir_under_test, &expected_artwork, &defopts()).unwrap());
+        assert!(
+            !rename(
+                &dir_under_test,
+                &expected_artwork,
+                &ProgressBar::new(1234),
+                &defopts()
+            )
+            .unwrap()
+        );
     }
 }

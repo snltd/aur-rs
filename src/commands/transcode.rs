@@ -1,7 +1,7 @@
-use crate::utils::dir::pathbuf_set;
+use crate::utils::dir;
 use crate::utils::external::find_binary;
 use crate::utils::types::{GlobalOpts, TranscodeOptions};
-use crate::verbose;
+use crate::{err_if_empty, verbose};
 use camino::{Utf8Path, Utf8PathBuf};
 use std::fs;
 use std::process::Command;
@@ -13,15 +13,27 @@ pub fn run(
     opts: &GlobalOpts,
 ) -> anyhow::Result<bool> {
     let ffmpeg = find_binary("ffmpeg")?;
-    let mut ret = true;
+    let mut ret_code = true;
+    let files = dir::pathbuf_set(files);
+    err_if_empty!(files);
 
-    for f in &pathbuf_set(files) {
-        if !transcode_file(f, format, cmd_opts, opts, &ffmpeg)? {
-            ret = false
+    for file in files {
+        match transcode_file(&file, format, cmd_opts, opts, &ffmpeg) {
+            Ok(success) => {
+                if !success {
+                    eprintln!("Failed to transcode {file}");
+                    ret_code = false;
+                }
+            }
+            Err(e) => {
+                eprintln!("Error transcoding {file}: {e}");
+
+                ret_code = false
+            }
         }
     }
 
-    Ok(ret)
+    Ok(ret_code)
 }
 
 fn transcode_file(
