@@ -39,6 +39,6 @@ mod test {
             .assert()
             .failure()
             .stdout("")
-            .stderr("ERROR: (I/O) : No such file or directory (os error 2)\n");
+            .stderr("Error listing /no/such/directory: No such file or directory (os error 2)\n");
     }
 }

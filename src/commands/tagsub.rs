@@ -1,8 +1,8 @@
-use crate::utils::dir::{media_files, pathbuf_set};
+use crate::utils::dir;
 use crate::utils::metadata::AurMetadata;
 use crate::utils::tagger::Tagger;
 use crate::utils::types::GlobalOpts;
-use crate::verbose;
+use crate::{err_if_empty, verbose};
 use camino::{Utf8Path, Utf8PathBuf};
 use regex::Regex;
 
@@ -14,12 +14,19 @@ pub fn run(
     opts: &GlobalOpts,
 ) -> anyhow::Result<bool> {
     let rx = Regex::new(from)?;
+    let mut ret_code = true;
 
-    for file in media_files(&pathbuf_set(files)) {
-        process_file(&file, tag, &rx, to, opts)?;
+    let files = dir::media_files(&dir::pathbuf_set(files));
+    err_if_empty!(files);
+
+    for file in files {
+        if let Err(e) = process_file(&file, tag, &rx, to, opts) {
+            eprintln!("Error tagging {file}: {e}");
+            ret_code = false;
+        }
     }
 
-    Ok(true)
+    Ok(ret_code)
 }
 
 fn process_file(

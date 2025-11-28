@@ -1,4 +1,5 @@
-use crate::utils::dir::pathbuf_set;
+use crate::err_if_empty;
+use crate::utils::dir;
 use crate::utils::external::find_binary;
 use anyhow::ensure;
 use camino::{Utf8Path, Utf8PathBuf};
@@ -6,13 +7,26 @@ use std::process::Command;
 
 pub fn run(files: &[Utf8PathBuf]) -> anyhow::Result<bool> {
     let shnsplit = find_binary("shnsplit")?;
+    let files = dir::pathbuf_set(files);
+    err_if_empty!(files);
+    let mut ret_code = true;
 
-    for f in &pathbuf_set(files) {
-        println!("Splitting {}", f);
-        split_file(f, &shnsplit)?;
+    for f in files {
+        match split_file(&f, &shnsplit) {
+            Ok(result) => {
+                if !result {
+                    eprintln!("Failed to split {f}");
+                    ret_code = false;
+                }
+            }
+            Err(e) => {
+                eprintln!("Error splitting {f}: {e}");
+                ret_code = false;
+            }
+        }
     }
 
-    Ok(true)
+    Ok(ret_code)
 }
 
 fn split_file(file: &Utf8Path, shnsplit: &Utf8Path) -> anyhow::Result<bool> {

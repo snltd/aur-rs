@@ -1,14 +1,16 @@
 use crate::utils::config::{Config, MAX_ARTWORK_SIZE, MIN_ARTWORK_SIZE, load_config};
-use crate::utils::dir::{expand_dir_list, media_files};
+use crate::utils::dir;
+use crate::utils::helpers::MaybeProgress;
 use crate::utils::metadata::AurMetadata;
 use crate::utils::rename::number_from_filename;
 use crate::utils::types::GlobalOpts;
-use crate::verbose;
+use crate::{err_if_empty, verbose};
 use anyhow::anyhow;
 use camino::{Utf8Path, Utf8PathBuf};
 use colored::Colorize;
 use image::GenericImageView;
 use image::ImageReader;
+use indicatif::ProgressBar;
 use regex::Regex;
 use std::collections::HashSet;
 use std::sync::LazyLock;
@@ -77,34 +79,45 @@ impl LintDirError {
 pub fn run(dirlist: &[Utf8PathBuf], recurse: bool, opts: &GlobalOpts) -> anyhow::Result<bool> {
     let config = load_config(&opts.config)?;
     let dirs_to_list: Vec<Utf8PathBuf> = dirlist.iter().map(Utf8PathBuf::from).collect();
-    let mut ret = true;
+    let mut ret_code = true;
+    let dirs = dir::expand_dir_list(&dirs_to_list, recurse);
+    err_if_empty!(dirs);
 
-    for dir in expand_dir_list(&dirs_to_list, recurse) {
+    let pb = if recurse {
+        MaybeProgress::Bar(ProgressBar::new(dirs.len() as u64))
+    } else {
+        MaybeProgress::Direct
+    };
+
+    for dir in dirs {
+        pb.inc(1);
         let dir = dir.canonicalize_utf8()?;
         if let Some(res) = lint_dir(&dir, opts)? {
             let results = filter_results(&dir, res, &config);
             let problems: Vec<_> = results.iter().filter_map(Some).collect();
 
             if !problems.is_empty() {
-                display_problems(&dir, &problems);
-                ret = false;
+                display_problems(&dir, &problems, &pb);
+                ret_code = false;
             }
         }
     }
 
-    Ok(ret)
+    pb.finish();
+    Ok(ret_code)
 }
 
-fn display_problems(dir: &Utf8Path, problems: &Vec<&CheckResult>) {
-    println!("{}", dir.to_string().bold());
+fn display_problems(dir: &Utf8Path, problems: &Vec<&CheckResult>, pb: &MaybeProgress) {
+    pb.println(&format!("{}", dir.to_string().bold()));
 
     for p in problems {
         match p {
             CheckResult::Good => (),
-            CheckResult::Bad(problem) => println!("  {}", problem.message()),
+            CheckResult::Bad(problem) => pb.println(&format!("  {}", problem.message())),
         }
     }
-    println!();
+
+    pb.println("");
 }
 
 fn is_dir_excluded(file: &Utf8Path, list: Option<&HashSet<String>>) -> bool {
@@ -210,7 +223,7 @@ fn has_no_bad_files(
     file_list: &HashSet<Utf8PathBuf>,
     hierarchy: &Hierarchy,
 ) -> CheckResult {
-    let media = media_files(file_list);
+    let media = dir::media_files(file_list);
     let mut non_media: HashSet<Utf8PathBuf> = file_list
         .difference(&media)
         .map(|f| f.to_path_buf())
@@ -231,7 +244,7 @@ fn has_no_bad_files(
 }
 
 fn has_right_file_count(file_list: &HashSet<Utf8PathBuf>) -> CheckResult {
-    let media = media_files(file_list);
+    let media = dir::media_files(file_list);
     let file_nums: Vec<u32> = media
         .iter()
         .filter_map(|f| number_from_filename(f.file_name().unwrap()).map(|(_, num)| num))
@@ -377,7 +390,7 @@ fn files_in_dir(dir: &Utf8Path) -> anyhow::Result<HashSet<Utf8PathBuf>> {
 fn metadata_for(files: &HashSet<Utf8PathBuf>) -> anyhow::Result<Vec<AurMetadata>> {
     let mut ret = Vec::new();
 
-    for f in media_files(files).iter() {
+    for f in dir::media_files(files).iter() {
         ret.push(AurMetadata::new(f)?);
     }
 
@@ -440,7 +453,8 @@ mod test {
 
         assert_eq!(
             CheckResult::Bad(LintDirError::CoverArtInvalid(
-                "Format error decoding Jpeg: \"No more bytes\"".to_owned()
+                "Format error decoding Jpeg: I/O errors Generic I/O error: Cannot satisfy read\n"
+                    .to_owned()
             )),
             has_suitable_cover_art(&fixture("commands/lintdir/flac/tester.artwork_invalid"))
         );

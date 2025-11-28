@@ -1,20 +1,35 @@
-use crate::utils::dir::{media_files, pathbuf_set};
 use crate::utils::metadata::AurMetadata;
-use crate::utils::rename::rename;
+use crate::utils::rename;
 use crate::utils::string::ToFilenameChunk;
 use crate::utils::types::GlobalOpts;
+use crate::{err_if_empty, utils::dir};
 use camino::{Utf8Path, Utf8PathBuf};
 
 pub fn run(files: &[Utf8PathBuf], opts: &GlobalOpts) -> anyhow::Result<bool> {
-    for f in media_files(&pathbuf_set(files)) {
-        if let Some(target) = rename_action(&f)? {
-            rename((f, target), opts.noop)?;
-        } else {
-            println!("nothing to do for {}", f);
+    let mut ret_code = true;
+    let files = dir::media_files(&dir::pathbuf_set(files));
+    err_if_empty!(files);
+
+    for file in &files {
+        match rename_action(file) {
+            Ok(target_opt) => {
+                if let Some(target) = target_opt {
+                    if let Err(e) = rename::rename((file.clone(), target), opts.noop) {
+                        eprintln!("Error renaming {file}: {e}");
+                        ret_code = false;
+                    }
+                } else {
+                    println!("nothing to do for {}", file);
+                }
+            }
+            Err(e) => {
+                eprintln!("Error getting rename action for {file}: {e}");
+                ret_code = false;
+            }
         }
     }
 
-    Ok(true)
+    Ok(ret_code)
 }
 
 fn rename_action(file: &Utf8Path) -> anyhow::Result<Option<Utf8PathBuf>> {

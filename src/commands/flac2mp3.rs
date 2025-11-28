@@ -1,3 +1,4 @@
+use crate::err_if_empty;
 use crate::utils::dir;
 use crate::utils::mp3_encoder::{self, TranscodeAction};
 use crate::utils::types::{GlobalOpts, Mp3dirOpts};
@@ -20,8 +21,10 @@ pub fn run(
     };
 
     let mut ret = true;
+    let files = dir::media_files(&dir::pathbuf_set(files));
+    err_if_empty!(files);
 
-    for f in dir::media_files(&dir::pathbuf_set(files)) {
+    for f in files {
         if let Some(action) = transcode_action(&f) {
             println!("{}", f.to_string().bold());
             if !mp3_encoder::transcode_file(&action, &cmds, &transcode_opts, opts)? {

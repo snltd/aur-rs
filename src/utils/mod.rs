@@ -1,8 +1,10 @@
+#[macro_use]
+pub mod macros;
+
 pub mod config;
 pub mod dir;
 pub mod external;
 pub mod helpers;
-pub mod macros;
 pub mod metadata;
 pub mod mp3_encoder;
 pub mod rename;
@@ -12,6 +14,5 @@ pub mod string;
 pub mod tag_maker;
 pub mod tag_validator;
 pub mod tagger;
-pub mod term;
 pub mod types;
 pub mod words;

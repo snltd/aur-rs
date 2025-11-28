@@ -1,5 +1,6 @@
+use crate::err_if_empty;
 use crate::utils::config::load_config;
-use crate::utils::dir::{media_files, pathbuf_set};
+use crate::utils::dir;
 use crate::utils::metadata::AurMetadata;
 use crate::utils::rename;
 use crate::utils::tag_validator::TagValidator;
@@ -14,23 +15,25 @@ pub fn run(files: &[Utf8PathBuf], tag: &str, opts: &GlobalOpts) -> anyhow::Resul
     let config = load_config(&opts.config)?;
     let words = Words::new(&config);
     let validator = TagValidator::new(&words, config.get_genres());
-    let mut ret = true;
+    let mut ret_code = true;
+    let files = dir::media_files(&dir::pathbuf_set(files));
+    err_if_empty!(files);
 
-    for f in media_files(&pathbuf_set(files)) {
-        let value = read_value(&f, tag)?;
+    for file in files {
+        let value = read_value(&file, tag)?;
 
         if !validator.validate_tag(tag, value.as_str())? {
             eprintln!("ERROR: '{}' is not a valid {} value", value, tag);
-            ret = false;
+            ret_code = false;
             continue;
         }
 
-        if let Some(action) = tag_and_rename_action(&f, tag, &value)? {
+        if let Some(action) = tag_and_rename_action(&file, tag, &value)? {
             rename::rename(action, opts.noop)?;
         }
     }
 
-    Ok(ret)
+    Ok(ret_code)
 }
 
 fn read_value(file: &Utf8Path, tag: &str) -> anyhow::Result<String> {

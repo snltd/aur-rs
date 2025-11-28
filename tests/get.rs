@@ -41,7 +41,7 @@ mod test {
             .args(["get", "whatever", &fixture])
             .assert()
             .failure()
-            .stderr("ERROR: Unknown tag: whatever\n");
+            .stderr(predicate::str::ends_with("Unknown tag: whatever\n"));
     }
 
     #[test]
@@ -51,7 +51,7 @@ mod test {
             .args(["get", "title", "/no/such/file.flac"])
             .assert()
             .failure()
-            .stderr("ERROR: (I/O) : No such file or directory (os error 2)\n");
+            .stderr("Error reading /no/such/file.flac: No such file or directory (os error 2)\n");
     }
 
     #[test]

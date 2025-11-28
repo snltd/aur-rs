@@ -1,4 +1,5 @@
-use crate::utils::dir::{media_files, pathbuf_set};
+use crate::err_if_empty;
+use crate::utils::dir;
 use crate::utils::metadata::AurMetadata;
 use camino::{Utf8Path, Utf8PathBuf};
 
@@ -10,17 +11,26 @@ type InfoList = Vec<Info>;
 
 pub fn run(property: &str, files: &[Utf8PathBuf], short: bool) -> anyhow::Result<bool> {
     let mut info_list: InfoList = Vec::new();
+    let files = dir::media_files(&dir::pathbuf_set(files));
+    err_if_empty!(files);
 
-    for f in media_files(&pathbuf_set(files)) {
-        let info = info_for_file(property, &f)?;
-        info_list.push((f, info));
+    let mut ret_code = true;
+
+    for file in files {
+        match info_for_file(property, &file) {
+            Ok(info) => info_list.push((file, info)),
+            Err(e) => {
+                eprintln!("Error reading {file}: {e}");
+                ret_code = false;
+            }
+        }
     }
 
     info_list
         .iter()
         .for_each(|info| print_file_info(info, short));
 
-    Ok(true)
+    Ok(ret_code)
 }
 
 fn info_for_file(property: &str, file: &Utf8Path) -> anyhow::Result<String> {

@@ -174,6 +174,11 @@ impl<'a> Tagger<'a> {
         tagger.remove_picture_type(PictureType::CoverFront);
         tagger.remove_picture_type(PictureType::CoverBack);
         tagger.remove_picture_type(PictureType::Media);
+        tagger.remove_picture_type(PictureType::Other);
+        tagger.remove_picture_type(PictureType::Icon);
+        tagger.remove_picture_type(PictureType::Media);
+        tagger.remove_picture_type(PictureType::Leaflet);
+        tagger.remove_picture_type(PictureType::Artist);
         tagger.save()?;
         Ok(true)
     }

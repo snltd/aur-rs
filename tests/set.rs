@@ -43,7 +43,7 @@ mod test {
             .arg("/no/such/file.flac")
             .assert()
             .failure()
-            .stderr("ERROR: (I/O) : No such file or directory (os error 2)\n");
+            .stderr("Error tagging /no/such/file.flac: No such file or directory (os error 2)\n");
     }
 
     #[test]
@@ -63,7 +63,7 @@ mod test {
             .arg(&file_under_test)
             .assert()
             .failure()
-            .stderr("ERROR: Unknown tag name\n");
+            .stderr(predicate::str::ends_with("Unknown tag name\n"));
 
         cargo_bin_cmd!("aur")
             .arg("set")
@@ -72,7 +72,7 @@ mod test {
             .arg(&file_under_test)
             .assert()
             .failure()
-            .stderr("ERROR: (Parsing): invalid digit found in string\n");
+            .stderr(predicate::str::ends_with("invalid digit found in string\n"));
     }
 
     #[test]

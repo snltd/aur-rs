@@ -1,4 +1,5 @@
-use crate::utils::dir::{media_files, pathbuf_set};
+use crate::err_if_empty;
+use crate::utils::dir;
 use crate::utils::metadata::AurMetadata;
 use crate::utils::metadata::expected_tags;
 use crate::utils::tagger::Tagger;
@@ -6,11 +7,18 @@ use camino::{Utf8Path, Utf8PathBuf};
 use std::collections::HashSet;
 
 pub fn run(files: &[Utf8PathBuf]) -> anyhow::Result<bool> {
-    for f in media_files(&pathbuf_set(files)) {
-        strip_file(&f)?;
+    let mut ret_code = true;
+    let files = dir::media_files(&dir::pathbuf_set(files));
+    err_if_empty!(files);
+
+    for file in files {
+        if let Err(e) = strip_file(&file) {
+            eprintln!("Error stripping {file}: {e}");
+            ret_code = false;
+        }
     }
 
-    Ok(true)
+    Ok(ret_code)
 }
 
 fn strip_file(file: &Utf8Path) -> anyhow::Result<bool> {

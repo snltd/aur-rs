@@ -35,7 +35,7 @@ mod test {
             .arg("/no/such/file.flac")
             .assert()
             .failure()
-            .stderr("ERROR: (I/O) : No such file or directory (os error 2)\n");
+            .stderr("Error tagging /no/such/file.flac: No such file or directory (os error 2)\n");
     }
 
     #[test]

@@ -42,7 +42,10 @@ mod test {
             .arg(fixture_as_string("info/bad_file.flac"))
             .assert()
             .failure()
-            .stderr("ERROR: InvalidInput: reader does not contain flac metadata\n");
+            .stderr(predicate::str::starts_with("Error tagging"))
+            .stderr(predicate::str::ends_with(
+                "InvalidInput: reader does not contain flac metadata\n",
+            ));
     }
 
     #[test]
@@ -52,7 +55,7 @@ mod test {
             .args(["retitle", "/no/such/file.flac"])
             .assert()
             .failure()
-            .stderr("ERROR: (I/O) : No such file or directory (os error 2)\n");
+            .stderr("Error tagging /no/such/file.flac: No such file or directory (os error 2)\n");
     }
 
     #[test]
