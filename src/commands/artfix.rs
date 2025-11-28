@@ -1,5 +1,6 @@
 use crate::utils::config::MAX_ARTWORK_SIZE;
 use crate::utils::dir;
+use crate::utils::helpers::MaybeProgress;
 use crate::utils::types::GlobalOpts;
 use crate::{err_if_empty, verbose};
 use camino::{Utf8Path, Utf8PathBuf};
@@ -19,7 +20,12 @@ pub fn run(
     err_if_empty!(dirs);
 
     let mut ret_code = true;
-    let pb = ProgressBar::new(dirs.len() as u64);
+
+    let pb = if recurse {
+        MaybeProgress::Bar(ProgressBar::new(dirs.len() as u64))
+    } else {
+        MaybeProgress::Direct
+    };
 
     for dir in dirs {
         pb.inc(1);
@@ -35,7 +41,7 @@ pub fn run(
 fn check_artwork(
     dir: &Utf8Path,
     linkdir: &Utf8Path,
-    pb: &ProgressBar,
+    pb: &MaybeProgress,
     opts: &GlobalOpts,
 ) -> anyhow::Result<bool> {
     let expected_artwork = dir.join("front.jpg");
@@ -60,7 +66,7 @@ fn check_artwork(
 fn rename(
     dir: &Utf8Path,
     front: &Utf8Path,
-    pb: &ProgressBar,
+    pb: &MaybeProgress,
     opts: &GlobalOpts,
 ) -> anyhow::Result<bool> {
     let mut ret = false;
@@ -69,7 +75,7 @@ fn rename(
     for file in jpgs_in(dir)? {
         if file != front {
             if !opts.quiet {
-                pb.println(format!("Rename: {} -> front.jpg", file));
+                pb.println(&format!("Rename: {} -> front.jpg", file));
             }
             if !opts.noop {
                 fs::rename(file, front)?;
@@ -86,7 +92,7 @@ fn rename(
 fn resize_or_link(
     file: &Utf8Path,
     linkdir: &Utf8Path,
-    pb: &ProgressBar,
+    pb: &MaybeProgress,
     opts: &GlobalOpts,
 ) -> anyhow::Result<bool> {
     let img = ImageReader::open(file)?.decode()?;
@@ -101,7 +107,11 @@ fn resize_or_link(
     }
 
     if !opts.quiet {
-        pb.println(format!("Resize: {} -> {s}x{s}", file, s = MAX_ARTWORK_SIZE));
+        pb.println(&format!(
+            "Resize: {} -> {s}x{s}",
+            file,
+            s = MAX_ARTWORK_SIZE
+        ));
     }
 
     if !opts.noop {
@@ -122,7 +132,7 @@ fn target_filename(file: &Utf8Path) -> String {
 fn symlink_art(
     file: &Utf8Path,
     linkdir: &Utf8Path,
-    pb: &ProgressBar,
+    pb: &MaybeProgress,
     opts: &GlobalOpts,
 ) -> anyhow::Result<bool> {
     if !linkdir.exists() {
@@ -138,7 +148,7 @@ fn symlink_art(
         fs::remove_file(&target)?;
     }
 
-    pb.println(format!(
+    pb.println(&format!(
         "Symlink: {} -> {}",
         file.file_name().unwrap(),
         target
@@ -177,7 +187,7 @@ mod test {
             !resize_or_link(
                 &fixture("commands/artfix/tester.good_art/front.jpg"),
                 &Utf8PathBuf::from("/tmp"),
-                &ProgressBar::new(1234),
+                &MaybeProgress::Direct,
                 &defopts()
             )
             .unwrap()
@@ -206,7 +216,7 @@ mod test {
             resize_or_link(
                 &file_under_test,
                 &linkdir,
-                &ProgressBar::new(1234),
+                &MaybeProgress::Direct,
                 &defopts()
             )
             .unwrap()
@@ -233,7 +243,7 @@ mod test {
             resize_or_link(
                 &source_file,
                 target_dir.path(),
-                &ProgressBar::new(1234),
+                &MaybeProgress::Direct,
                 &defopts()
             )
             .unwrap()
@@ -258,7 +268,7 @@ mod test {
             rename(
                 &dir_under_test,
                 &expected_artwork,
-                &ProgressBar::new(1234),
+                &MaybeProgress::Direct,
                 &defopts()
             )
             .unwrap()
@@ -269,7 +279,7 @@ mod test {
             !rename(
                 &dir_under_test,
                 &expected_artwork,
-                &ProgressBar::new(1234),
+                &MaybeProgress::Direct,
                 &defopts()
             )
             .unwrap()

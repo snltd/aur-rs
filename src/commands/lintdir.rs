@@ -1,5 +1,6 @@
 use crate::utils::config::{Config, MAX_ARTWORK_SIZE, MIN_ARTWORK_SIZE, load_config};
 use crate::utils::dir;
+use crate::utils::helpers::MaybeProgress;
 use crate::utils::metadata::AurMetadata;
 use crate::utils::rename::number_from_filename;
 use crate::utils::types::GlobalOpts;
@@ -81,7 +82,12 @@ pub fn run(dirlist: &[Utf8PathBuf], recurse: bool, opts: &GlobalOpts) -> anyhow:
     let mut ret_code = true;
     let dirs = dir::expand_dir_list(&dirs_to_list, recurse);
     err_if_empty!(dirs);
-    let pb = ProgressBar::new(dirs.len() as u64);
+
+    let pb = if recurse {
+        MaybeProgress::Bar(ProgressBar::new(dirs.len() as u64))
+    } else {
+        MaybeProgress::Direct
+    };
 
     for dir in dirs {
         pb.inc(1);
@@ -101,13 +107,13 @@ pub fn run(dirlist: &[Utf8PathBuf], recurse: bool, opts: &GlobalOpts) -> anyhow:
     Ok(ret_code)
 }
 
-fn display_problems(dir: &Utf8Path, problems: &Vec<&CheckResult>, pb: &ProgressBar) {
-    pb.println(format!("{}", dir.to_string().bold()));
+fn display_problems(dir: &Utf8Path, problems: &Vec<&CheckResult>, pb: &MaybeProgress) {
+    pb.println(&format!("{}", dir.to_string().bold()));
 
     for p in problems {
         match p {
             CheckResult::Good => (),
-            CheckResult::Bad(problem) => pb.println(format!("  {}", problem.message())),
+            CheckResult::Bad(problem) => pb.println(&format!("  {}", problem.message())),
         }
     }
 

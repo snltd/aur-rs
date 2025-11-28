@@ -1,11 +1,11 @@
 use crate::err_if_empty;
 use crate::utils::config::{Config, load_config};
-use crate::utils::dir;
+use crate::utils::helpers::MaybeProgress;
 use crate::utils::metadata::{AurMetadata, AurTags, RawTags, expected_tags, irrelevant_tags};
-use crate::utils::rename;
 use crate::utils::tag_validator::TagValidator;
 use crate::utils::types::GlobalOpts;
 use crate::utils::words::Words;
+use crate::utils::{dir, rename};
 use camino::{Utf8Path, Utf8PathBuf};
 use colored::Colorize;
 use indicatif::ProgressBar;
@@ -72,7 +72,11 @@ pub fn run(files: &[Utf8PathBuf], recurse: bool, opts: &GlobalOpts) -> anyhow::R
     let files = dir::media_files(&dir::expand_file_list(files, recurse)?);
     err_if_empty!(files);
 
-    let pb = ProgressBar::new(files.len() as u64);
+    let pb = if recurse {
+        MaybeProgress::Bar(ProgressBar::new(files.len() as u64))
+    } else {
+        MaybeProgress::Direct
+    };
 
     for file in files {
         pb.inc(1);
@@ -122,13 +126,13 @@ fn filter_results(file: &Utf8Path, results: Vec<CheckResult>, config: &Config) -
         .collect()
 }
 
-fn display_problems(file: &Utf8Path, problems: &Vec<&CheckResult>, pb: &ProgressBar) {
-    pb.println(format!("{}", file.to_string().bold()));
+fn display_problems(file: &Utf8Path, problems: &Vec<&CheckResult>, pb: &MaybeProgress) {
+    pb.println(&format!("{}", file.to_string().bold()));
 
     for p in problems {
         match p {
             CheckResult::Good => (),
-            CheckResult::Bad(problem) => pb.println(format!("  {}", problem.message())),
+            CheckResult::Bad(problem) => pb.println(&format!("  {}", problem.message())),
         }
     }
 
