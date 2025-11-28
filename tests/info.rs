@@ -26,7 +26,8 @@ mod test {
             .args(["info", "/no/such/file.flac"])
             .assert()
             .failure()
-            .stderr("Cannot get metadata");
+            .stderr(
+                "Error getting metadata for /no/such/file.flac: No such file or directory (os error 2)\n");
     }
 
     #[test]

@@ -36,7 +36,7 @@ mod test {
             .args(["name2num", &fixture_as_string("info/bad_file.flac")])
             .assert()
             .failure()
-            .stderr("ERROR: InvalidInput: reader does not contain flac metadata\n");
+            .stderr("Error tagging /home/rob/work/aur/tests/resources/info/bad_file.flac: InvalidInput: reader does not contain flac metadata\n");
     }
 
     #[test]
@@ -46,7 +46,7 @@ mod test {
             .args(["name2num", "/no/such/file.flac"])
             .assert()
             .failure()
-            .stderr("ERROR: (I/O) : No such file or directory (os error 2)\n");
+            .stderr("Error tagging /no/such/file.flac: No such file or directory (os error 2)\n");
     }
 
     #[test]

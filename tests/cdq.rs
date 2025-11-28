@@ -83,7 +83,7 @@ mod test {
             .arg(&file_under_test)
             .assert()
             .failure()
-            .stderr("ERROR: Only FLAC files can be CDQed\n");
+            .stderr(predicate::str::contains("Only FLAC files can be CDQed"));
     }
 
     #[test]
@@ -94,7 +94,7 @@ mod test {
             .arg("/no/such/file.flac")
             .assert()
             .failure()
-            .stderr("ERROR: (I/O) : No such file or directory (os error 2)\n");
+            .stderr(predicate::str::contains("No such file or directory"));
     }
 
     #[test]

@@ -80,7 +80,7 @@ mod test {
             .arg("/no/such/file.flac")
             .assert()
             .failure()
-            .stderr("ERROR: (I/O) : No such file or directory (os error 2)\n");
+            .stderr("Error tagging /no/such/file.flac: No such file or directory (os error 2)\n");
     }
 
     #[test]
@@ -100,7 +100,7 @@ mod test {
             .arg(&file_under_test)
             .assert()
             .failure()
-            .stderr("ERROR: Unknown tag: whatever\n");
+            .stderr(predicate::str::ends_with("Unknown tag: whatever\n"));
     }
 
     #[test]
