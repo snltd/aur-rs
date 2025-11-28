@@ -39,7 +39,10 @@ mod test {
             .arg(fixture_as_string("info/bad_file.flac"))
             .assert()
             .failure()
-            .stderr("Error renaming /home/rob/work/aur/tests/resources/info/bad_file.flac: InvalidInput: reader does not contain flac metadata\n");
+            .stderr(predicate::str::starts_with("Error renaming"))
+            .stderr(predicate::str::ends_with(
+                "InvalidInput: reader does not contain flac metadata\n",
+            ));
     }
 
     #[test]
