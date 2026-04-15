@@ -185,13 +185,17 @@ impl ToFilenameChunk for String {
                     let last_char = if i == 0 { None } else { input.get(i - 1) };
 
                     if let Some(c_next) = next_char
-                        && let Some(c_prev) = last_char
+                        && c_next.is_numeric()
                     {
-                        if c_next.is_alphabetic() && c_prev.is_alphabetic() {
-                            builder.push('s');
-                        }
-                    } else if next_char.is_none() || !&next_char.unwrap().is_numeric() {
+                        continue;
+                    }
+
+                    if let Some(c_last) = last_char
+                        && c_last.is_numeric()
+                    {
                         builder.extend(['d', 'o', 'l', 'l', 'a', 'r'])
+                    } else {
+                        builder.push('s');
                     }
                 }
                 '=' => builder.extend(['e', 'q', 'u', 'a', 'l', 's']),
@@ -246,6 +250,7 @@ fn sym_to_word(symbol: &str) -> String {
         "$" => "dollar",
         "£" => "pound",
         "%" => "percent",
+        "^" => "carat",
         "'" => "tick",
         "*" => "star",
         "-" => "dash",
@@ -427,6 +432,7 @@ mod test {
             ("x", "x"),
             (".", "dot"),
             ("Wi$h Li$t", "wish_list"),
+            ("Pi$$ Pi$$", "piss_piss"),
             (
                 "_______",
                 "underscore-underscore-underscore-underscore-underscore-underscore-underscore",
