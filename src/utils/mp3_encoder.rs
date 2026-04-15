@@ -2,7 +2,6 @@ use crate::utils::external;
 use crate::utils::metadata::AurMetadata;
 use crate::utils::tagger::Tagger;
 use crate::utils::types::{GlobalOpts, Mp3dirOpts};
-use crate::verbose;
 use anyhow::{anyhow, ensure};
 use camino::{Utf8Path, Utf8PathBuf};
 use colored::Colorize;
