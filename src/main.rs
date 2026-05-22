@@ -1,5 +1,8 @@
+use anyhow::anyhow;
 use camino::Utf8PathBuf;
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand};
+use clap_complete::generate;
+use clap_complete::shells::{Bash, Fish, Zsh};
 use utils::types::{CopytagsOptions, GlobalOpts, Mp3dirOpts, RenumberDirection, TranscodeOptions};
 mod commands;
 mod test_utils;
@@ -52,6 +55,12 @@ enum Commands {
         /// One or more media files
         #[arg(required = true)]
         files: Vec<Utf8PathBuf>,
+    },
+    /// Generate shell completions
+    Completions {
+        /// Generate completion code for the given shell: bash, fish, or zsh
+        #[arg(required = true)]
+        shell: String,
     },
     /// Assuming parallel flac/ and mp3/ directories, copies tags from FLACs to MP3s
     Copytags {
@@ -328,6 +337,24 @@ fn main() {
             directories,
         } => commands::artfix::run(&directories, recurse, linkdir, &global_opts),
         Commands::Cdq { files, leave } => commands::cdq::run(&files, leave, &global_opts),
+        Commands::Completions { shell } => {
+            match shell.as_str() {
+                "bash" => {
+                    generate(Bash, &mut Cli::command(), "aur", &mut std::io::stdout());
+                    Ok(true)
+                }
+                "fish" => {
+                    generate(Fish, &mut Cli::command(), "aur", &mut std::io::stdout());
+                    Ok(true)
+                }
+                "zsh" => {
+                    generate(Zsh, &mut Cli::command(), "aur", &mut std::io::stdout());
+                    Ok(true)
+                }
+                _ => Err(anyhow!("unsupported shell")),
+            }
+            // Ok(true),
+        }
         Commands::Copytags {
             recurse,
             force,

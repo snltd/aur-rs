@@ -1,12 +1,13 @@
 [package]
 name = "aur"
-version = "2.9.0"
+version = "2.10.0"
 edition = "2024"
 
 [dependencies]
 anyhow = "1.0"
 camino = "1.1.9"
 clap = { version = "4.3", features = ["derive"] }
+clap_complete = "4.6.3"
 colored = "3.0"
 id3 = "1.14"
 image = "0.25"
