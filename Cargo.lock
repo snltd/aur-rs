@@ -371,11 +371,6 @@ dependencies = [
 ]
 
 [[package]]
-<<<<<<< HEAD
-name = "clap_derive"
-version = "4.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-=======
 name = "clap_complete"
 version = "4.6.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -388,7 +383,6 @@ dependencies = [
 name = "clap_derive"
 version = "4.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
->>>>>>> c70dafc (add shell completions and bump to 2.10.0)
 checksum = "f2ce8604710f6733aa641a2b3731eaa1e8b3d9973d5e3565da11800813f997a9"
 dependencies = [
  "heck",
