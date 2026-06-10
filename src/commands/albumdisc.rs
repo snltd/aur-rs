@@ -13,7 +13,7 @@ pub fn run(files: &[Utf8PathBuf], global_opts: &GlobalOpts) -> anyhow::Result<bo
 
     let mut ret_code = true;
 
-    let rx = Regex::new(r"^disc_(\d+)$")?;
+    let rx = Regex::new(r"^disc_(\d+)")?;
 
     for file in files {
         if let Err(e) = tag_file(&file, &rx, global_opts) {
