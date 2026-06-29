@@ -1,12 +1,16 @@
-use crate::utils::config::MAX_ARTWORK_SIZE;
+use crate::utils::config::{ARTWORK_QUALITY, MAX_ARTWORK_SIZE};
 use crate::utils::dir;
 use crate::utils::helpers::MaybeProgress;
 use crate::utils::types::GlobalOpts;
 use crate::{err_if_empty, verbose};
+use anyhow::{Context, anyhow};
 use camino::{Utf8Path, Utf8PathBuf};
-use image::imageops::FilterType::Lanczos3;
-use image::{GenericImageView, ImageReader};
+use imagesize;
 use indicatif::ProgressBar;
+use jpeg_decoder::Decoder;
+use jpeg_encoder::{ColorType, Encoder};
+use resize::{Pixel::RGB8, Type::Lanczos3};
+use rgb::{ComponentBytes, FromSlice, RGB};
 use std::fs;
 use std::os::unix::fs::symlink;
 
@@ -95,14 +99,13 @@ fn resize_or_link(
     pb: &MaybeProgress,
     opts: &GlobalOpts,
 ) -> anyhow::Result<bool> {
-    let img = ImageReader::open(file)?.decode()?;
-    let (x, y) = img.dimensions();
+    let img_size = imagesize::size(file)?;
 
-    if x != y {
+    if img_size.width != img_size.height {
         return symlink_art(file, linkdir, pb, opts);
     }
 
-    if x <= MAX_ARTWORK_SIZE {
+    if img_size.width <= MAX_ARTWORK_SIZE {
         return Ok(false);
     }
 
@@ -115,11 +118,76 @@ fn resize_or_link(
     }
 
     if !opts.noop {
-        let new_img = img.resize_exact(MAX_ARTWORK_SIZE, MAX_ARTWORK_SIZE, Lanczos3);
-        new_img.save(file)?;
+        resize_art(file, img_size.width)?;
+        // let new_img = img.resize_exact(MAX_ARTWORK_SIZE, MAX_ARTWORK_SIZE, Lanczos3);
+        // new_img.save(file)?;
     }
 
     Ok(true)
+}
+
+// Resizes a square image
+fn resize_art(path: &Utf8Path, orig_size: usize) -> anyhow::Result<()> {
+    let bytes = fs::read(path)?;
+    let mut decoder = Decoder::new(bytes.as_slice());
+    let pixels = decoder.decode()?;
+    let info = decoder.info().context("failed to get JPEG info")?;
+
+    let color_type = match info.pixel_format {
+        jpeg_decoder::PixelFormat::RGB24 => ColorType::Rgb,
+        jpeg_decoder::PixelFormat::L8 => ColorType::Luma,
+        fmt => return Err(anyhow!("unsupported pixel format: {fmt:?}")),
+    };
+
+    let mut output = Vec::new();
+    let encoder = Encoder::new(&mut output, ARTWORK_QUALITY);
+
+    match color_type {
+        ColorType::Rgb => {
+            let src: &[RGB<u8>] = pixels.as_rgb();
+            let mut dst = vec![RGB::new(0u8, 0, 0); MAX_ARTWORK_SIZE * MAX_ARTWORK_SIZE];
+            resize::new(
+                orig_size,
+                orig_size,
+                MAX_ARTWORK_SIZE,
+                MAX_ARTWORK_SIZE,
+                RGB8,
+                Lanczos3,
+            )?
+            .resize(src, &mut dst)?;
+            encoder.encode(
+                dst.as_bytes(),
+                MAX_ARTWORK_SIZE as u16,
+                MAX_ARTWORK_SIZE as u16,
+                ColorType::Rgb,
+            )?;
+        }
+        ColorType::Luma => {
+            use resize::Pixel::Gray8;
+            use rgb::alt::Gray;
+            let src: &[Gray<u8>] = bytemuck::cast_slice(&pixels);
+            let mut dst = vec![Gray(0u8); MAX_ARTWORK_SIZE * MAX_ARTWORK_SIZE];
+            resize::new(
+                orig_size,
+                orig_size,
+                MAX_ARTWORK_SIZE,
+                MAX_ARTWORK_SIZE,
+                Gray8,
+                Lanczos3,
+            )?
+            .resize(src, &mut dst)?;
+            encoder.encode(
+                bytemuck::cast_slice(&dst),
+                MAX_ARTWORK_SIZE as u16,
+                MAX_ARTWORK_SIZE as u16,
+                ColorType::Luma,
+            )?;
+        }
+        _ => unreachable!(),
+    }
+
+    fs::write(path, &output)?;
+    Ok(())
 }
 
 fn target_filename(file: &Utf8Path) -> String {
@@ -202,15 +270,10 @@ mod test {
         tmp.copy_from(fixture("commands/artfix/tester.too_big"), &[file_name])
             .unwrap();
         let file_under_test = tmp.path().join(file_name);
+        let before = imagesize::size(&file_under_test).unwrap();
 
-        let before = ImageReader::open(&file_under_test)
-            .unwrap()
-            .decode()
-            .unwrap();
-        let (x, y) = before.dimensions();
-
-        assert_eq!(x, 900);
-        assert_eq!(y, 900);
+        assert_eq!(before.width, 900);
+        assert_eq!(before.height, 900);
 
         assert!(
             resize_or_link(
@@ -222,15 +285,10 @@ mod test {
             .unwrap()
         );
 
-        let after = ImageReader::open(&file_under_test)
-            .unwrap()
-            .decode()
-            .unwrap();
+        let after = imagesize::size(&file_under_test).unwrap();
 
-        let (x1, y1) = after.dimensions();
-
-        assert_eq!(x1, MAX_ARTWORK_SIZE);
-        assert_eq!(y1, MAX_ARTWORK_SIZE);
+        assert_eq!(after.width, MAX_ARTWORK_SIZE);
+        assert_eq!(after.height, MAX_ARTWORK_SIZE);
     }
 
     #[test]

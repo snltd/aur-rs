@@ -8,8 +8,7 @@ use crate::{err_if_empty, verbose};
 use anyhow::anyhow;
 use camino::{Utf8Path, Utf8PathBuf};
 use colored::Colorize;
-use image::GenericImageView;
-use image::ImageReader;
+use imagesize;
 use indicatif::ProgressBar;
 use regex::Regex;
 use std::collections::HashSet;
@@ -349,21 +348,16 @@ fn has_suitable_cover_art(dir: &Utf8Path) -> CheckResult {
         return CheckResult::Bad(LintDirError::CoverArtMissing);
     }
 
-    let img = match ImageReader::open(artwork) {
-        Ok(handle) => match handle.decode() {
-            Ok(data) => data,
-            Err(e) => return CheckResult::Bad(LintDirError::CoverArtInvalid(e.to_string())),
-        },
+    let img_size = match imagesize::size(artwork) {
+        Ok(size) => size,
         Err(e) => return CheckResult::Bad(LintDirError::CoverArtInvalid(e.to_string())),
     };
 
-    let (x, y) = img.dimensions();
-
-    if x != y {
+    if img_size.width != img_size.height {
         CheckResult::Bad(LintDirError::CoverArtNotSquare)
-    } else if x > MAX_ARTWORK_SIZE {
+    } else if img_size.width > MAX_ARTWORK_SIZE {
         CheckResult::Bad(LintDirError::CoverArtTooBig)
-    } else if x < MIN_ARTWORK_SIZE {
+    } else if img_size.width < MIN_ARTWORK_SIZE {
         CheckResult::Bad(LintDirError::CoverArtTooSmall)
     } else {
         CheckResult::Good
@@ -453,8 +447,7 @@ mod test {
 
         assert_eq!(
             CheckResult::Bad(LintDirError::CoverArtInvalid(
-                "Format error decoding Jpeg: I/O errors Not enough bytes, expected 2 but found 0\n"
-                    .to_owned()
+                "failed to fill whole buffer".to_owned()
             )),
             has_suitable_cover_art(&fixture("commands/lintdir/flac/tester.artwork_invalid"))
         );

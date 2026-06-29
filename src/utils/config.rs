@@ -5,8 +5,9 @@ use serde::Deserialize;
 use std::collections::{HashMap, HashSet};
 use std::fs;
 
-pub const MAX_ARTWORK_SIZE: u32 = 750;
-pub const MIN_ARTWORK_SIZE: u32 = 350;
+pub const MAX_ARTWORK_SIZE: usize = 750;
+pub const MIN_ARTWORK_SIZE: usize = 350;
+pub const ARTWORK_QUALITY: u8 = 75;
 
 type TagList = HashSet<String>;
 type WordList = HashSet<String>;
