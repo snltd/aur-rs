@@ -3,6 +3,10 @@
 /// table exceeds the width of the terminal, the longest column is truncated.
 ///
 pub fn table(data: Vec<Vec<String>>) -> String {
+    if data.is_empty() {
+        return String::new();
+    }
+
     let number_of_cols = data[0].len();
     let term_width = terminal_width();
     let mut widths: Vec<_> = (0..number_of_cols)
