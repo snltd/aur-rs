@@ -133,6 +133,9 @@ enum Commands {
     },
     /// Shows tag information about files in the given directory, one file per line
     Ls {
+        /// Don't format as a table
+        #[arg(short = 'l')]
+        long: bool,
         /// Recurse
         #[arg(short, long)]
         recurse: bool,
@@ -379,9 +382,10 @@ fn main() {
             directories,
         } => commands::lintdir::run(&directories, recurse, &global_opts),
         Commands::Ls {
+            long,
             recurse,
             directories,
-        } => commands::ls::run(&directories, recurse),
+        } => commands::ls::run(&directories, recurse, long),
         Commands::Mp3dir {
             preset,
             files,
