@@ -5,6 +5,7 @@ pub mod config;
 pub mod dir;
 pub mod external;
 pub mod helpers;
+pub mod layout;
 pub mod metadata;
 pub mod mp3_encoder;
 pub mod rename;
