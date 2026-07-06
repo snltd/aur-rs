@@ -208,15 +208,15 @@ impl<'a> Tagger<'a> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_utils::spec_helper::fixture;
     use crate::utils::metadata::AurMetadata;
     use camino_tempfile_ext::prelude::*;
+    use snltest::fixture;
 
     #[test]
     fn test_set_artist_flac() {
         let file = "test.flac";
         let tmp = Utf8TempDir::new().unwrap();
-        tmp.copy_from(fixture("info"), &[file]).unwrap();
+        tmp.copy_from(fixture!("info"), &[file]).unwrap();
         let flac = tmp.path().join(file);
         let original_info = AurMetadata::new(&flac).unwrap();
         let tagger = Tagger::new(&original_info).unwrap();
@@ -231,7 +231,7 @@ mod test {
     fn test_set_album_mp3() {
         let file = "test.mp3";
         let tmp = Utf8TempDir::new().unwrap();
-        tmp.copy_from(fixture("info"), &[file]).unwrap();
+        tmp.copy_from(fixture!("info"), &[file]).unwrap();
         let flac = tmp.path().join(file);
         let original_info = AurMetadata::new(&flac).unwrap();
         let tagger = Tagger::new(&original_info).unwrap();
@@ -246,7 +246,7 @@ mod test {
     fn test_set_title_flac() {
         let file = "test.flac";
         let tmp = Utf8TempDir::new().unwrap();
-        tmp.copy_from(fixture("info"), &[file]).unwrap();
+        tmp.copy_from(fixture!("info"), &[file]).unwrap();
         let flac = tmp.path().join(file);
         let original_info = AurMetadata::new(&flac).unwrap();
         let tagger = Tagger::new(&original_info).unwrap();
@@ -261,7 +261,7 @@ mod test {
     fn test_set_genre_mp3() {
         let file = "test.mp3";
         let tmp = Utf8TempDir::new().unwrap();
-        tmp.copy_from(fixture("info"), &[file]).unwrap();
+        tmp.copy_from(fixture!("info"), &[file]).unwrap();
         let flac = tmp.path().join(file);
         let original_info = AurMetadata::new(&flac).unwrap();
         let tagger = Tagger::new(&original_info).unwrap();
@@ -276,7 +276,7 @@ mod test {
     fn test_set_year_flac() {
         let file = "test.flac";
         let tmp = Utf8TempDir::new().unwrap();
-        tmp.copy_from(fixture("info"), &[file]).unwrap();
+        tmp.copy_from(fixture!("info"), &[file]).unwrap();
         let flac = tmp.path().join(file);
         let original_info = AurMetadata::new(&flac).unwrap();
         let tagger = Tagger::new(&original_info).unwrap();

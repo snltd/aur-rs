@@ -62,17 +62,19 @@ fn transcode_action(file: &Utf8Path) -> Option<TranscodeAction> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_utils::spec_helper::fixture;
+    use snltest::fixture;
 
     #[test]
     fn test_transcode_mp3() {
-        assert!(transcode_action(&fixture("commands/flac2mp3/01.tester.test_no-op.mp3")).is_none());
+        assert!(
+            transcode_action(&fixture!("commands/flac2mp3/01.tester.test_no-op.mp3")).is_none()
+        );
     }
 
     #[test]
     fn test_transcode_flac() {
-        let flac = fixture("commands/flac2mp3/01.tester.test_transcode.flac");
-        let mp3 = fixture("commands/flac2mp3/01.tester.test_transcode.mp3");
+        let flac = fixture!("commands/flac2mp3/01.tester.test_transcode.flac");
+        let mp3 = fixture!("commands/flac2mp3/01.tester.test_transcode.mp3");
 
         assert_eq!(
             TranscodeAction {

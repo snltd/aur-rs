@@ -1,16 +1,16 @@
 #[cfg(test)]
 mod test {
     use assert_cmd::cargo::cargo_bin_cmd;
-    use aur::test_utils::spec_helper::fixture;
     use camino_tempfile_ext::prelude::*;
     use predicates::prelude::*;
+    use snltest::fixture;
 
     #[test]
     #[ignore]
     fn test_tagsub_command_change() {
         let file_name = "06.test_artist.test_title.mp3";
         let tmp = Utf8TempDir::new().unwrap();
-        tmp.copy_from(fixture("commands/tagsub"), &[file_name])
+        tmp.copy_from(fixture!("commands/tagsub"), &[file_name])
             .unwrap();
         let file_under_test = tmp.path().join(file_name);
 
@@ -44,7 +44,7 @@ mod test {
         let file_name = "06.test_artist.test_title.mp3";
 
         let tmp = Utf8TempDir::new().unwrap();
-        tmp.copy_from(fixture("commands/tagsub"), &[file_name])
+        tmp.copy_from(fixture!("commands/tagsub"), &[file_name])
             .unwrap();
         let file_under_test = tmp.path().join(file_name);
 
@@ -88,7 +88,7 @@ mod test {
     fn test_tagsub_command_bad_input() {
         let file_name = "06.test_artist.test_title.mp3";
         let tmp = Utf8TempDir::new().unwrap();
-        tmp.copy_from(fixture("commands/tagsub"), &[file_name])
+        tmp.copy_from(fixture!("commands/tagsub"), &[file_name])
             .unwrap();
         let file_under_test = tmp.path().join(file_name);
 

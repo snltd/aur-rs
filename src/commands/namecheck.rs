@@ -124,26 +124,27 @@ fn format_dupes(dupe_cluster: &DupeCluster) -> String {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_utils::spec_helper::{defopts, fixture};
     use assert_unordered::assert_eq_unordered;
+    use snltest::fixture;
 
     #[test]
     fn test_artist_list_flac() {
-        let all_files = dir::expand_file_list(&[fixture("commands/namecheck/flac")], true).unwrap();
+        let all_files =
+            dir::expand_file_list(&[fixture!("commands/namecheck/flac")], true).unwrap();
 
         assert_eq_unordered!(
             flac_artist_list(),
-            artist_dirs(all_files, &defopts()).unwrap()
+            artist_dirs(all_files, &GlobalOpts::default()).unwrap()
         );
     }
 
     #[test]
     fn test_artist_list_mp3() {
-        let all_files = dir::expand_file_list(&[fixture("commands/namecheck/mp3")], true).unwrap();
+        let all_files = dir::expand_file_list(&[fixture!("commands/namecheck/mp3")], true).unwrap();
 
         assert_eq_unordered!(
             mp3_artist_list(),
-            artist_dirs(all_files, &defopts()).unwrap()
+            artist_dirs(all_files, &GlobalOpts::default()).unwrap()
         );
     }
 
@@ -154,12 +155,12 @@ mod test {
 
         expected_cluster.insert(
             "Artist".to_owned(),
-            BTreeSet::from([fixture("commands/namecheck/flac/thes/tracks")]),
+            BTreeSet::from([fixture!("commands/namecheck/flac/thes/tracks")]),
         );
         expected_cluster.insert(
             "The Artist".to_owned(),
-            BTreeSet::from([fixture(
-                "commands/namecheck/flac/thes/albums/abc/artist.album",
+            BTreeSet::from([fixture!(
+                "commands/namecheck/flac/thes/albums/abc/artist.album"
             )]),
         );
 
@@ -180,19 +181,19 @@ mod test {
 
         expected_cluster.insert(
             "The B52s".to_owned(),
-            BTreeSet::from([fixture("commands/namecheck/mp3/similar/tracks")]),
+            BTreeSet::from([fixture!("commands/namecheck/mp3/similar/tracks")]),
         );
 
         expected_cluster.insert(
             "The B-52's".to_owned(),
-            BTreeSet::from([fixture(
-                "commands/namecheck/mp3/similar/albums/b-52s.wild_planet",
+            BTreeSet::from([fixture!(
+                "commands/namecheck/mp3/similar/albums/b-52s.wild_planet"
             )]),
         );
 
         expected_cluster.insert(
             "The B52's".to_owned(),
-            BTreeSet::from([fixture("commands/namecheck/mp3/similar/tracks")]),
+            BTreeSet::from([fixture!("commands/namecheck/mp3/similar/tracks")]),
         );
 
         expected.push(expected_cluster);
@@ -205,17 +206,17 @@ mod test {
         HashMap::from([
             (
                 "Artist".to_owned(),
-                BTreeSet::from([fixture("commands/namecheck/flac/thes/tracks")]),
+                BTreeSet::from([fixture!("commands/namecheck/flac/thes/tracks")]),
             ),
             (
                 "The Artist".to_owned(),
-                BTreeSet::from([fixture(
-                    "commands/namecheck/flac/thes/albums/abc/artist.album",
+                BTreeSet::from([fixture!(
+                    "commands/namecheck/flac/thes/albums/abc/artist.album"
                 )]),
             ),
             (
                 "Singer".to_owned(),
-                BTreeSet::from([fixture("commands/namecheck/flac/thes/tracks")]),
+                BTreeSet::from([fixture!("commands/namecheck/flac/thes/tracks")]),
             ),
         ])
     }
@@ -224,17 +225,17 @@ mod test {
         HashMap::from([
             (
                 "The B52s".to_owned(),
-                BTreeSet::from([fixture("commands/namecheck/mp3/similar/tracks")]),
+                BTreeSet::from([fixture!("commands/namecheck/mp3/similar/tracks")]),
             ),
             (
                 "The B-52's".to_owned(),
-                BTreeSet::from([fixture(
-                    "commands/namecheck/mp3/similar/albums/b-52s.wild_planet",
+                BTreeSet::from([fixture!(
+                    "commands/namecheck/mp3/similar/albums/b-52s.wild_planet"
                 )]),
             ),
             (
                 "The B52's".to_owned(),
-                BTreeSet::from([fixture("commands/namecheck/mp3/similar/tracks")]),
+                BTreeSet::from([fixture!("commands/namecheck/mp3/similar/tracks")]),
             ),
         ])
     }

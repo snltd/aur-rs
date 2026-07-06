@@ -1,21 +1,19 @@
 #[cfg(test)]
 mod test {
     use assert_cmd::cargo::cargo_bin_cmd;
-    use aur::test_utils::spec_helper::{fixture_as_string, sample_output};
     use predicates::prelude::*;
+    use snltest::{fixture, load_fixture};
 
     #[test]
     #[ignore]
     fn test_tags_command() {
         cargo_bin_cmd!("aur")
             .arg("tags")
-            .arg(fixture_as_string(
-                "commands/tags/01.test_artist.test_track.flac",
-            ))
+            .arg(fixture!("commands/tags/01.test_artist.test_track.flac"))
             .assert()
             .success()
-            .stdout(sample_output(
-                "commands/tags/01.test_artist.test_track.flac.txt",
+            .stdout(load_fixture!(
+                "outputs/commands/tags/01.test_artist.test_track.flac.txt"
             ));
     }
 

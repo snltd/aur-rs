@@ -180,12 +180,12 @@ fn expand() -> HashMap<String, String> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_utils::spec_helper::fixture;
     use crate::utils::config::load_config;
+    use snltest::fixture;
 
     #[test]
     fn test_words() {
-        let config = load_config(&fixture("config/test.toml")).unwrap();
+        let config = load_config(&fixture!("config/test.toml")).unwrap();
         let words = Words::new(&config);
         assert!(words.no_caps.contains("via"));
         assert!(words.all_caps.contains("dvd")); // hardcoded

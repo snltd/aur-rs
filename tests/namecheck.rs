@@ -1,15 +1,15 @@
 #[cfg(test)]
 mod test {
     use assert_cmd::cargo::cargo_bin_cmd;
-    use aur::test_utils::spec_helper::fixture_as_string;
     use predicates::prelude::*;
+    use snltest::fixture;
 
     #[test]
     #[ignore]
     fn test_namecheck_command_valid_tree() {
         cargo_bin_cmd!("aur")
             .arg("namecheck")
-            .arg(fixture_as_string("commands/namecheck"))
+            .arg(fixture!("commands/namecheck"))
             .assert()
             .failure()
             .stdout(predicate::str::contains("Artist"))

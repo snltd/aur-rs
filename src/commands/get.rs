@@ -61,18 +61,18 @@ fn print_file_info(info: &Info, short: bool) {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_utils::spec_helper::fixture;
+    use snltest::fixture;
 
     #[test]
     fn test_get_bitrate() {
         assert_eq!(
             "16-bit/44100Hz",
-            info_for_file("bitrate", &fixture("info/test.flac")).unwrap()
+            info_for_file("bitrate", &fixture!("info/test.flac")).unwrap()
         );
 
         assert_eq!(
             "64kbps",
-            info_for_file("bitrate", &fixture("info/test.mp3")).unwrap()
+            info_for_file("bitrate", &fixture!("info/test.mp3")).unwrap()
         );
     }
 }

@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod test {
     use assert_cmd::cargo::cargo_bin_cmd;
-    use aur::test_utils::spec_helper::fixture;
     use camino_tempfile_ext::prelude::*;
     use predicates::prelude::*;
+    use snltest::fixture;
 
     const TEST_FILE: &str = "01.artist.song.mp3";
 
@@ -15,7 +15,7 @@ mod test {
 
         let target = tmp.child("album/disc_3");
         target
-            .copy_from(fixture("commands/albumdisc/disc_3/"), &[TEST_FILE])
+            .copy_from(fixture!("commands/albumdisc/disc_3/"), &[TEST_FILE])
             .unwrap();
 
         let file_under_test = target.join(TEST_FILE);
@@ -40,7 +40,7 @@ mod test {
     #[test]
     fn test_albumdisc_file_not_in_disc_directory() {
         let tmp = Utf8TempDir::new().unwrap();
-        tmp.copy_from(fixture("commands/albumdisc/disc_3"), &[TEST_FILE])
+        tmp.copy_from(fixture!("commands/albumdisc/disc_3"), &[TEST_FILE])
             .unwrap();
 
         let file_under_test = tmp.path().join(TEST_FILE);

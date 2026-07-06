@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod test {
     use assert_cmd::cargo::cargo_bin_cmd;
-    use aur::test_utils::spec_helper::{fixture, fixture_as_string};
     use camino_tempfile_ext::prelude::*;
     use predicates::prelude::*;
+    use snltest::fixture;
 
     #[test]
     #[ignore]
@@ -11,7 +11,7 @@ mod test {
         let file_name = "02.test_artist.this_title_needs_sorting.flac";
 
         let tmp = Utf8TempDir::new().unwrap();
-        tmp.copy_from(fixture("commands/retitle"), &[file_name])
+        tmp.copy_from(fixture!("commands/retitle"), &[file_name])
             .unwrap();
         let file_under_test = tmp.path().join(file_name);
 
@@ -39,7 +39,7 @@ mod test {
     fn test_retitle_command_bad_file() {
         cargo_bin_cmd!("aur")
             .arg("retitle")
-            .arg(fixture_as_string("info/bad_file.flac"))
+            .arg(fixture!("info/bad_file.flac"))
             .assert()
             .failure()
             .stderr(predicate::str::starts_with("Error tagging"))

@@ -311,15 +311,15 @@ fn has_bom_leader(string: &str) -> bool {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_utils::spec_helper::{defopts, fixture, sample_config};
+    use snltest::fixture;
 
     #[test]
     fn test_allow_from_config() {
-        let words = Words::new(&sample_config());
-        let validator = TagValidator::new(&words, None);
         let config = sample_config();
-        let file = fixture("commands/lint/09.tester.bad_title_allowed.mp3");
-        let lint_result = lint_file(&file, &validator, &defopts()).unwrap();
+        let words = Words::new(&config);
+        let validator = TagValidator::new(&words, None);
+        let file = fixture!("commands/lint/09.tester.bad_title_allowed.mp3");
+        let lint_result = lint_file(&file, &validator, &GlobalOpts::default()).unwrap();
         let expected_empty: Vec<CheckResult> = Vec::new();
 
         assert_eq!(expected_empty, filter_results(&file, lint_result, &config));
@@ -329,13 +329,12 @@ mod test {
     fn lint_functional_tests() {
         let words = Words::new(&sample_config());
         let validator = TagValidator::new(&words, None);
-        let opts = &defopts();
 
         assert!(
             lint_file(
-                &fixture("commands/lint/01.tester.lints_fine.flac"),
+                &fixture!("commands/lint/01.tester.lints_fine.flac"),
                 &validator,
-                opts,
+                &GlobalOpts::default(),
             )
             .unwrap()
             .is_empty()
@@ -343,9 +342,9 @@ mod test {
 
         assert!(
             lint_file(
-                &fixture("commands/lint/02.tester.lints_fine.mp3"),
+                &fixture!("commands/lint/02.tester.lints_fine.mp3"),
                 &validator,
-                opts,
+                &GlobalOpts::default(),
             )
             .unwrap()
             .is_empty()
@@ -358,9 +357,9 @@ mod test {
                 CheckResult::Bad(LintError::InvalidGenre("".to_owned())),
             ],
             lint_file(
-                &fixture("commands/lint/00.tester.missing_genre_track_no_year.flac"),
+                &fixture!("commands/lint/00.tester.missing_genre_track_no_year.flac"),
                 &validator,
-                opts,
+                &GlobalOpts::default(),
             )
             .unwrap()
         );
@@ -373,9 +372,9 @@ mod test {
                 CheckResult::Bad(LintError::BomInTitle)
             ],
             lint_file(
-                &fixture("commands/lint/03.tester.has_bom_leader.flac"),
+                &fixture!("commands/lint/03.tester.has_bom_leader.flac"),
                 &validator,
-                opts,
+                &GlobalOpts::default(),
             )
             .unwrap()
         );
@@ -386,9 +385,9 @@ mod test {
                 "txxx".to_owned(),
             ]))],
             lint_file(
-                &fixture("commands/lint/05.tester.surplus_tags.mp3"),
+                &fixture!("commands/lint/05.tester.surplus_tags.mp3"),
                 &validator,
-                opts,
+                &GlobalOpts::default(),
             )
             .unwrap()
         );
@@ -404,9 +403,9 @@ mod test {
                 CheckResult::Bad(LintError::EmbeddedArtwork)
             ],
             lint_file(
-                &fixture("commands/lint/06.tester.extra_tags_and_picture.mp3"),
+                &fixture!("commands/lint/06.tester.extra_tags_and_picture.mp3"),
                 &validator,
-                opts
+                &GlobalOpts::default(),
             )
             .unwrap()
         );
@@ -414,9 +413,9 @@ mod test {
         assert_eq!(
             vec![CheckResult::Bad(LintError::EmbeddedArtwork)],
             lint_file(
-                &fixture("commands/lint/07.tester.picture.flac"),
+                &fixture!("commands/lint/07.tester.picture.flac"),
                 &validator,
-                opts
+                &GlobalOpts::default(),
             )
             .unwrap()
         );
@@ -424,9 +423,9 @@ mod test {
         assert_eq!(
             vec![CheckResult::Bad(LintError::InDiscDirButNoDiscN)],
             lint_file(
-                &fixture("commands/lint/disc_1/01.tester.no_disc_number.mp3"),
+                &fixture!("commands/lint/disc_1/01.tester.no_disc_number.mp3"),
                 &validator,
-                opts
+                &GlobalOpts::default(),
             )
             .unwrap()
         );
@@ -434,11 +433,15 @@ mod test {
         assert_eq!(
             vec![CheckResult::Bad(LintError::NotInDiscDirButDiscN)],
             lint_file(
-                &fixture("commands/lint/08.tester.disc_number.mp3"),
+                &fixture!("commands/lint/08.tester.disc_number.mp3"),
                 &validator,
-                opts
+                &GlobalOpts::default(),
             )
             .unwrap()
         );
+    }
+
+    fn sample_config() -> Config {
+        load_config(&fixture!("config/test.toml")).unwrap()
     }
 }

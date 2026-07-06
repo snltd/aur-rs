@@ -44,24 +44,24 @@ fn tag_file(file: &Utf8Path, opts: &GlobalOpts) -> anyhow::Result<bool> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_utils::spec_helper::{defopts, fixture};
     use camino_tempfile_ext::prelude::*;
+    use snltest::fixture;
 
     #[test]
     fn test_tag_file_flac() {
         let file_name = "01.test_artist.test_title.flac";
         let tmp = Utf8TempDir::new().unwrap();
-        tmp.copy_from(fixture("commands/name2num"), &[file_name])
+        tmp.copy_from(fixture!("commands/name2num"), &[file_name])
             .unwrap();
         let file_under_test = tmp.path().join(file_name);
 
         let original_info = AurMetadata::new(&file_under_test).unwrap();
         assert_eq!(2, original_info.tags.t_num);
-        assert!(tag_file(&file_under_test, &defopts()).unwrap());
+        assert!(tag_file(&file_under_test, &GlobalOpts::default()).unwrap());
         let new_info = AurMetadata::new(&file_under_test).unwrap();
         assert_eq!(1, new_info.tags.t_num);
 
-        assert!(!tag_file(&file_under_test, &defopts()).unwrap());
+        assert!(!tag_file(&file_under_test, &GlobalOpts::default()).unwrap());
         let new_new_info = AurMetadata::new(&file_under_test).unwrap();
         assert_eq!(1, new_new_info.tags.t_num);
     }
@@ -70,18 +70,18 @@ mod test {
     fn test_tag_file_mp3() {
         let file_name = "03.test_artist.test_title.mp3";
         let tmp = Utf8TempDir::new().unwrap();
-        tmp.copy_from(fixture("commands/name2num"), &[file_name])
+        tmp.copy_from(fixture!("commands/name2num"), &[file_name])
             .unwrap();
         let file_under_test = tmp.path().join(file_name);
         let original_info = AurMetadata::new(&file_under_test).unwrap();
 
         assert_eq!(13, original_info.tags.t_num);
-        assert!(tag_file(&file_under_test, &defopts()).unwrap());
+        assert!(tag_file(&file_under_test, &GlobalOpts::default()).unwrap());
 
         let new_info = AurMetadata::new(&file_under_test).unwrap();
 
         assert_eq!(3, new_info.tags.t_num);
-        assert!(!tag_file(&file_under_test, &defopts()).unwrap());
+        assert!(!tag_file(&file_under_test, &GlobalOpts::default()).unwrap());
 
         let new_new_info = AurMetadata::new(&file_under_test).unwrap();
 

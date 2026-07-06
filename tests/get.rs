@@ -1,13 +1,13 @@
 #[cfg(test)]
 mod test {
     use assert_cmd::cargo::cargo_bin_cmd;
-    use aur::test_utils::spec_helper::fixture_as_string;
     use predicates::prelude::*;
+    use snltest::fixture;
 
     #[test]
     #[ignore]
     fn test_get_command_valid_property() {
-        let file_under_test = fixture_as_string("commands/tags/01.test_artist.test_track.flac");
+        let file_under_test = fixture!("commands/tags/01.test_artist.test_track.flac").to_string();
 
         cargo_bin_cmd!("aur")
             .args(["get", "title", &file_under_test])
@@ -35,7 +35,7 @@ mod test {
     #[test]
     #[ignore]
     fn test_get_command_invalid_property() {
-        let fixture = fixture_as_string("commands/tags/01.test_artist.test_track.flac");
+        let fixture = fixture!("commands/tags/01.test_artist.test_track.flac").to_string();
 
         cargo_bin_cmd!("aur")
             .args(["get", "whatever", &fixture])

@@ -246,17 +246,17 @@ fn jpgs_in(dir: &Utf8Path) -> anyhow::Result<Vec<Utf8PathBuf>> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_utils::spec_helper::{defopts, fixture};
     use camino_tempfile_ext::prelude::*;
+    use snltest::fixture;
 
     #[test]
     fn test_resize_no_action() {
         assert!(
             !resize_or_link(
-                &fixture("commands/artfix/tester.good_art/front.jpg"),
+                &fixture!("commands/artfix/tester.good_art/front.jpg"),
                 &Utf8PathBuf::from("/tmp"),
                 &MaybeProgress::Direct,
-                &defopts()
+                &GlobalOpts::default()
             )
             .unwrap()
         );
@@ -267,7 +267,7 @@ mod test {
         let file_name = "front.jpg";
         let linkdir = Utf8PathBuf::from("/tmp");
         let tmp = Utf8TempDir::new().unwrap();
-        tmp.copy_from(fixture("commands/artfix/tester.too_big"), &[file_name])
+        tmp.copy_from(fixture!("commands/artfix/tester.too_big"), &[file_name])
             .unwrap();
         let file_under_test = tmp.path().join(file_name);
         let before = imagesize::size(&file_under_test).unwrap();
@@ -280,7 +280,7 @@ mod test {
                 &file_under_test,
                 &linkdir,
                 &MaybeProgress::Direct,
-                &defopts()
+                &GlobalOpts::default()
             )
             .unwrap()
         );
@@ -293,7 +293,7 @@ mod test {
 
     #[test]
     fn test_symlink() {
-        let source_file = fixture("commands/artfix/tester.not_square/front.jpg");
+        let source_file = fixture!("commands/artfix/tester.not_square/front.jpg");
         let target_dir = Utf8TempDir::new().unwrap();
         let expected_file = target_dir.path().join(target_filename(&source_file));
 
@@ -302,7 +302,7 @@ mod test {
                 &source_file,
                 target_dir.path(),
                 &MaybeProgress::Direct,
-                &defopts()
+                &GlobalOpts::default()
             )
             .unwrap()
         );
@@ -314,7 +314,7 @@ mod test {
     fn test_rename() {
         let dir_name = "tester.wrong_name";
         let tmp = Utf8TempDir::new().unwrap();
-        tmp.copy_from(fixture("commands/artfix"), &["tester.wrong_name/**/*"])
+        tmp.copy_from(fixture!("commands/artfix"), &["tester.wrong_name/**/*"])
             .unwrap();
 
         let dir_under_test = tmp.path().join(dir_name);
@@ -327,7 +327,7 @@ mod test {
                 &dir_under_test,
                 &expected_artwork,
                 &MaybeProgress::Direct,
-                &defopts()
+                &GlobalOpts::default()
             )
             .unwrap()
         );
@@ -338,7 +338,7 @@ mod test {
                 &dir_under_test,
                 &expected_artwork,
                 &MaybeProgress::Direct,
-                &defopts()
+                &GlobalOpts::default()
             )
             .unwrap()
         );

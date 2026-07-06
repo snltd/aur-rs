@@ -2,9 +2,9 @@
 mod test {
     use assert_cmd::Command;
     use assert_cmd::cargo::cargo_bin_cmd;
-    use aur::test_utils::spec_helper::fixture;
     use camino_tempfile_ext::prelude::*;
     use predicates::prelude::*;
+    use snltest::fixture;
 
     #[ignore]
     #[test]
@@ -13,7 +13,7 @@ mod test {
         let linkdir = Utf8TempDir::new().unwrap();
 
         source
-            .copy_from(fixture("commands/artfix"), &["tester.all_wrong/*"])
+            .copy_from(fixture!("commands/artfix"), &["tester.all_wrong/*"])
             .unwrap();
 
         let dir_under_test = source.path().join("tester.all_wrong");
@@ -49,7 +49,7 @@ mod test {
     #[test]
     fn test_artfix_scale() {
         let tmp = Utf8TempDir::new().unwrap();
-        tmp.copy_from(fixture("commands/artfix"), &["tester.too_big/*"])
+        tmp.copy_from(fixture!("commands/artfix"), &["tester.too_big/*"])
             .unwrap();
         let dir_under_test = tmp.path().join("tester.too_big");
 

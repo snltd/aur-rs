@@ -108,14 +108,14 @@ fn find_partner(info: &AurMetadata, force: bool) -> anyhow::Result<Option<Utf8Pa
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_utils::spec_helper::fixture;
+    use snltest::fixture;
 
     #[test]
     fn test_find_partner() {
         assert_eq!(
-            fixture("commands/copytags/flac/01.artist.song.flac"),
+            fixture!("commands/copytags/flac/01.artist.song.flac"),
             find_partner(
-                &AurMetadata::new(&fixture("commands/copytags/mp3/01.artist.song.mp3")).unwrap(),
+                &AurMetadata::new(&fixture!("commands/copytags/mp3/01.artist.song.mp3")).unwrap(),
                 true,
             )
             .unwrap()
@@ -123,9 +123,9 @@ mod test {
         );
 
         assert_eq!(
-            fixture("commands/copytags/mp3/01.artist.song.mp3"),
+            fixture!("commands/copytags/mp3/01.artist.song.mp3"),
             find_partner(
-                &AurMetadata::new(&fixture("commands/copytags/flac/01.artist.song.flac")).unwrap(),
+                &AurMetadata::new(&fixture!("commands/copytags/flac/01.artist.song.flac")).unwrap(),
                 true,
             )
             .unwrap()
@@ -135,7 +135,7 @@ mod test {
         assert_eq!(
             None,
             find_partner(
-                &AurMetadata::new(&fixture("commands/copytags/mp3/02.artist.song.mp3")).unwrap(),
+                &AurMetadata::new(&fixture!("commands/copytags/mp3/02.artist.song.mp3")).unwrap(),
                 true,
             )
             .unwrap(),

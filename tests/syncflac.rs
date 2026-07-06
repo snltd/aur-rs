@@ -1,10 +1,10 @@
 #[cfg(test)]
 mod test {
     use assert_cmd::cargo::cargo_bin_cmd;
-    use aur::test_utils::spec_helper::{fixture, sample_output};
     use camino_tempfile_ext::prelude::*;
     use glob::glob;
     use predicates::prelude::*;
+    use snltest::{fixture, load_fixture};
     use std::collections::BTreeSet;
     use std::path::PathBuf;
 
@@ -12,7 +12,7 @@ mod test {
     #[ignore]
     fn test_syncflac_command() {
         let tmp = Utf8TempDir::new().unwrap();
-        tmp.copy_from(fixture("commands"), &["syncflac/**/*"])
+        tmp.copy_from(fixture!("commands"), &["syncflac/**/*"])
             .unwrap();
         let dir_under_test = tmp.path().canonicalize().unwrap().join("syncflac");
 
@@ -102,7 +102,7 @@ mod test {
             .arg(&sample_file)
             .assert()
             .success()
-            .stdout(sample_output("commands/syncflac/info-new-mp3"));
+            .stdout(load_fixture!("outputs/commands/syncflac/info-new-mp3"));
 
         cargo_bin_cmd!("aur")
             .arg("syncflac")

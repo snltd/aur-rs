@@ -35,20 +35,22 @@ pub fn rename_action(file: &Utf8Path) -> anyhow::Result<RenameOption> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_utils::spec_helper::fixture;
+    use snltest::fixture;
 
     #[test]
     fn test_rename_action() {
-        let fixture_dir = fixture("commands/name2num");
+        let fixture_dir = fixture!("commands/name2num");
 
         assert_eq!(
             (
                 fixture_dir.join("01.test_artist.test_title.flac"),
                 fixture_dir.join("02.test_artist.test_title.flac"),
             ),
-            rename_action(&fixture("commands/name2num/01.test_artist.test_title.flac"))
-                .unwrap()
-                .unwrap()
+            rename_action(&fixture!(
+                "commands/name2num/01.test_artist.test_title.flac"
+            ))
+            .unwrap()
+            .unwrap()
         );
     }
 }

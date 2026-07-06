@@ -146,13 +146,13 @@ pub fn renumber_file(info: &AurMetadata) -> anyhow::Result<RenameOption> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_utils::spec_helper::fixture;
+    use snltest::fixture;
 
     #[test]
     fn test_renumber_file() {
-        let info = AurMetadata::new(&fixture("rename/test.mp3")).unwrap();
+        let info = AurMetadata::new(&fixture!("rename/test.mp3")).unwrap();
         assert_eq!(
-            (fixture("rename/test.mp3"), fixture("rename/06.test.mp3")),
+            (fixture!("rename/test.mp3"), fixture!("rename/06.test.mp3")),
             renumber_file(&info).unwrap().unwrap(),
         );
     }
@@ -211,10 +211,10 @@ mod test {
     fn test_rename_action_from_file() {
         assert_eq!(
             (
-                fixture("commands/tag2name/badly_named_file.mp3"),
-                fixture("commands/tag2name/01.tester.some_song--or_other.mp3")
+                fixture!("commands/tag2name/badly_named_file.mp3"),
+                fixture!("commands/tag2name/01.tester.some_song--or_other.mp3")
             ),
-            rename_action_from_file(&fixture("commands/tag2name/badly_named_file.mp3"))
+            rename_action_from_file(&fixture!("commands/tag2name/badly_named_file.mp3"))
                 .unwrap()
                 .unwrap()
         );

@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod test {
     use assert_cmd::cargo::cargo_bin_cmd;
-    use aur::test_utils::spec_helper::{fixture, fixture_as_string};
     use camino_tempfile_ext::prelude::*;
     use predicates::prelude::*;
+    use snltest::fixture;
 
     #[test]
     #[ignore]
@@ -19,7 +19,7 @@ mod test {
         let target = tmp.child("test_artist.test_album");
 
         target
-            .copy_from(fixture("commands/name2tag"), &[file_name])
+            .copy_from(fixture!("commands/name2tag"), &[file_name])
             .unwrap();
 
         let file_under_test = target.join(file_name);
@@ -47,7 +47,7 @@ mod test {
     fn test_name2tag_command_bad_file() {
         cargo_bin_cmd!("aur")
             .arg("name2tag")
-            .arg(fixture_as_string("info/bad_file.flac"))
+            .arg(fixture!("info/bad_file.flac"))
             .assert()
             .failure()
             .stderr(predicate::str::starts_with("Error tagging"))

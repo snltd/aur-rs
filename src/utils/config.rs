@@ -188,17 +188,22 @@ impl Config {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_utils::spec_helper::{fixture, sample_config};
+    use snltest::fixture;
     use std::collections::BTreeSet;
+
+    fn sample_config() -> Config {
+        load_config(&fixture!("config/test.toml")).unwrap()
+    }
 
     #[test]
     fn test_load_config() {
-        assert!(load_config(&fixture("config/no-such-file.toml")).is_err());
+        assert!(load_config(&fixture!("config/no-such-file.toml")).is_err());
     }
 
     #[test]
     fn test_wantflac() {
         let config = sample_config();
+
         assert_eq!(
             &BTreeSet::from(["singer.song".to_owned()]),
             config.get_wantflac_ignore_tracks().unwrap()
@@ -209,13 +214,14 @@ mod test {
             config.get_wantflac_ignore_albums().unwrap()
         );
 
-        let no_config = load_config(&fixture("config/empty.toml")).unwrap();
+        let no_config = load_config(&fixture!("config/empty.toml")).unwrap();
         assert_eq!(None, no_config.get_wantflac_ignore_tracks());
     }
 
     #[test]
     fn test_words() {
         let config = sample_config();
+
         assert_eq!(
             &HashSet::from(["mxbx".to_owned()]),
             config.get_words_ignore_case().unwrap()

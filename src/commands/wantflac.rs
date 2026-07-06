@@ -112,11 +112,11 @@ fn find_missing_tracks(root: &Utf8Path) -> anyhow::Result<WantsList> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_utils::spec_helper::fixture;
+    use snltest::fixture;
 
     #[test]
     fn test_filter_by_config() {
-        let config = config::load_config(&fixture("config/test.toml")).unwrap();
+        let config = config::load_config(&fixture!("config/test.toml")).unwrap();
         let input: WantsList = BTreeSet::from([
             "albums/abc/artist.album".to_owned(),
             "albums/abc/band.record".to_owned(),
@@ -142,13 +142,13 @@ mod test {
 
         assert_eq!(
             expected,
-            find_missing_albums(&fixture("commands/wantflac")).unwrap()
+            find_missing_albums(&fixture!("commands/wantflac")).unwrap()
         );
     }
 
     #[test]
     fn test_find_missing_albums_with_top_level_filter() {
-        let config = config::load_config(&fixture("config/test.toml")).unwrap();
+        let config = config::load_config(&fixture!("config/test.toml")).unwrap();
 
         let expected = BTreeSet::from([
             "albums/abc/artist.album_1".to_owned(),
@@ -160,7 +160,7 @@ mod test {
         assert_eq!(
             expected,
             filter_by_top_level(
-                find_missing_albums(&fixture("commands/wantflac")).unwrap(),
+                find_missing_albums(&fixture!("commands/wantflac")).unwrap(),
                 config.get_wantflac_ignore_top_level()
             )
         );
@@ -172,7 +172,7 @@ mod test {
 
         assert_eq!(
             expected,
-            find_missing_tracks(&fixture("commands/wantflac")).unwrap()
+            find_missing_tracks(&fixture!("commands/wantflac")).unwrap()
         );
     }
 }

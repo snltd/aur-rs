@@ -88,7 +88,7 @@ fn verify_mp3(file: &Utf8Path, cmd: &Utf8Path) -> anyhow::Result<bool> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_utils::spec_helper::fixture;
+    use snltest::fixture;
 
     #[test]
     fn test_verify_files() {
@@ -97,15 +97,17 @@ mod test {
             mp3val: find_binary("mp3val").unwrap(),
         };
 
-        assert!(verify_file(&fixture("commands/verify/01.tester.valid.flac"), &cmds,).unwrap());
-        assert!(verify_file(&fixture("commands/verify/03.tester.valid.mp3"), &cmds,).unwrap());
+        assert!(verify_file(&fixture!("commands/verify/01.tester.valid.flac"), &cmds,).unwrap());
+        assert!(verify_file(&fixture!("commands/verify/03.tester.valid.mp3"), &cmds,).unwrap());
 
         assert!(
-            !verify_file(&fixture("commands/verify/02.tester.truncated.flac"), &cmds,).unwrap()
+            !verify_file(&fixture!("commands/verify/02.tester.truncated.flac"), &cmds,).unwrap()
         );
 
-        assert!(!verify_file(&fixture("commands/verify/04.tester.truncated.mp3"), &cmds,).unwrap());
-        assert!(!verify_file(&fixture("commands/verify/05.tester.junk.flac"), &cmds,).unwrap());
-        assert!(!verify_file(&fixture("commands/verify/06.tester.junk.mp3"), &cmds,).unwrap());
+        assert!(
+            !verify_file(&fixture!("commands/verify/04.tester.truncated.mp3"), &cmds,).unwrap()
+        );
+        assert!(!verify_file(&fixture!("commands/verify/05.tester.junk.flac"), &cmds,).unwrap());
+        assert!(!verify_file(&fixture!("commands/verify/06.tester.junk.mp3"), &cmds,).unwrap());
     }
 }
