@@ -358,7 +358,7 @@ pub fn in_tracks(file: &Utf8Path) -> bool {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_utils::spec_helper::fixture;
+    use snltest::fixture;
 
     #[test]
     fn test_metadata_valid_files() {
@@ -371,8 +371,8 @@ mod test {
             year: 2021,
         };
 
-        let flac_result = AurMetadata::new(&fixture("info/test.flac")).unwrap();
-        let mp3_result = AurMetadata::new(&fixture("info/test.mp3")).unwrap();
+        let flac_result = AurMetadata::new(&fixture!("info/test.flac")).unwrap();
+        let mp3_result = AurMetadata::new(&fixture!("info/test.mp3")).unwrap();
 
         assert_eq!("Test Artist", flac_result.get_tag("artist").unwrap());
 
@@ -391,18 +391,16 @@ mod test {
 
     #[test]
     fn test_metadata_missing_file() {
-        let result = AurMetadata::new(&Utf8PathBuf::from("/does/not/exist"));
         assert!(matches!(
-            result,
+            AurMetadata::new("/does/not/exist".into()),
             Err(ref e) if e.to_string() == "No such file or directory (os error 2)"
         ));
     }
 
     #[test]
     fn test_metadata_bad_file() {
-        let flac_result = AurMetadata::new(&fixture("info/bad_file.flac"));
         assert!(matches!(
-            flac_result,
+            AurMetadata::new(&fixture!("info/bad_file.flac")),
             Err(ref e) if e.to_string() == "InvalidInput: reader does not contain flac metadata"
         ));
     }

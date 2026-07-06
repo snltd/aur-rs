@@ -1,15 +1,15 @@
 #[cfg(test)]
 mod test {
     use assert_cmd::cargo::cargo_bin_cmd;
-    use aur::test_utils::spec_helper::fixture;
     use camino_tempfile_ext::prelude::*;
     use predicates::prelude::*;
+    use snltest::fixture;
 
     #[test]
     #[ignore]
     fn test_dupes_command_valid_tree() {
         let tmp = Utf8TempDir::new().unwrap();
-        tmp.copy_from(fixture("commands/dupes"), &["flac/**/*"])
+        tmp.copy_from(fixture!("commands/dupes"), &["flac/**/*"])
             .unwrap();
         let file_under_test = tmp.path().join("flac");
 

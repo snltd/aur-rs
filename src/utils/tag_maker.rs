@@ -2,7 +2,7 @@ use super::metadata::AurMetadata;
 use super::string::ToLowerAlnums;
 use crate::utils::string::Capitalize;
 use crate::utils::words::Words;
-use anyhow::{anyhow, Context};
+use anyhow::{Context, anyhow};
 
 type InBrackets = bool;
 
@@ -225,12 +225,14 @@ impl<'a> TagMaker<'a> {
 
 #[cfg(test)]
 mod test {
+    use crate::utils::config::load_config;
+
     use super::*;
-    use crate::test_utils::spec_helper::sample_config;
+    use snltest::fixture;
 
     #[test]
     fn test_title_from() {
-        let words = Words::new(&sample_config());
+        let words = Words::new(&load_config(&fixture!("config/test.toml")).unwrap());
         let tm = TagMaker::new(&words, false);
 
         assert_eq!("Blue Bell Knoll", tm.title_from("blue_bell_knoll"));

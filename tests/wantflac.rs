@@ -1,22 +1,22 @@
 #[cfg(test)]
 mod test {
     use assert_cmd::cargo::cargo_bin_cmd;
-    use aur::test_utils::spec_helper::{config_file_as_string, fixture_as_string, sample_output};
+    use snltest::{fixture, load_fixture};
 
     #[test]
     #[ignore]
     fn test_wantflac_command_valid_tree() {
-        let dir_under_test = fixture_as_string("commands/wantflac");
+        let dir_under_test = fixture!("commands/wantflac");
 
         cargo_bin_cmd!("aur")
             .arg("--config")
-            .arg(config_file_as_string())
+            .arg(fixture!("config/test.toml"))
             .arg("wantflac")
             .arg("--root")
             .arg(&dir_under_test)
             .assert()
             .success()
-            .stdout(sample_output("commands/wantflac/wantflac.txt"));
+            .stdout(load_fixture!("outputs/commands/wantflac/wantflac.txt"));
     }
 
     #[test]

@@ -5,7 +5,6 @@ use clap_complete::generate;
 use clap_complete::shells::{Bash, Fish, Zsh};
 use utils::types::{CopytagsOptions, GlobalOpts, Mp3dirOpts, RenumberDirection, TranscodeOptions};
 mod commands;
-mod test_utils;
 mod utils;
 
 #[derive(Parser)]

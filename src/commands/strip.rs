@@ -59,14 +59,14 @@ fn remove_artwork(info: &AurMetadata, tagger: &Tagger) -> anyhow::Result<bool> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_utils::spec_helper::fixture;
     use camino_tempfile_ext::prelude::*;
+    use snltest::fixture;
 
     #[test]
     fn test_strip_flac() {
         let file_name = "01.tester.not_stripped.flac";
         let tmp = Utf8TempDir::new().unwrap();
-        tmp.copy_from(fixture("commands/strip"), &[file_name])
+        tmp.copy_from(fixture!("commands/strip"), &[file_name])
             .unwrap();
         let file_under_test = tmp.path().join(file_name);
         let original_info = AurMetadata::new(&file_under_test).unwrap();
@@ -88,7 +88,7 @@ mod test {
     fn test_strip_mp3() {
         let file_name = "02.tester.not_stripped.mp3";
         let tmp = Utf8TempDir::new().unwrap();
-        tmp.copy_from(fixture("commands/strip"), &[file_name])
+        tmp.copy_from(fixture!("commands/strip"), &[file_name])
             .unwrap();
         let file_under_test = tmp.path().join(file_name);
         let original_info = AurMetadata::new(&file_under_test).unwrap();

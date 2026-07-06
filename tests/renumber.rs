@@ -1,15 +1,16 @@
 #[cfg(test)]
 mod test {
     use assert_cmd::cargo::cargo_bin_cmd;
-    use aur::test_utils::spec_helper::fixture;
     use camino_tempfile_ext::prelude::*;
     use predicates::prelude::*;
+    use snltest::fixture;
 
     #[test]
     #[ignore]
     fn test_renumber_command() {
         let tmp = Utf8TempDir::new().unwrap();
-        tmp.copy_from(fixture("commands/renumber"), &["*"]).unwrap();
+        tmp.copy_from(fixture!("commands/renumber"), &["*"])
+            .unwrap();
         let file_01_step_1 = tmp.path().join("01.test.song.flac");
         let file_02_step_1 = tmp.path().join("02.test.song.mp3");
         let file_01_step_2 = tmp.path().join("15.test.song.flac");
@@ -54,7 +55,7 @@ mod test {
     #[ignore]
     fn test_renumber_command_bad_input() {
         let tmp = Utf8TempDir::new().unwrap();
-        tmp.copy_from(fixture("commands/renumber"), &["02.test.song.mp3"])
+        tmp.copy_from(fixture!("commands/renumber"), &["02.test.song.mp3"])
             .unwrap();
         let file_under_test = tmp.path().join("02.test.song.mp3");
 

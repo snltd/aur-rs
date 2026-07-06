@@ -1,15 +1,15 @@
 #[cfg(test)]
 mod test {
     use assert_cmd::cargo::cargo_bin_cmd;
-    use aur::test_utils::spec_helper::fixture;
     use camino_tempfile_ext::prelude::*;
     use predicates::prelude::*;
+    use snltest::fixture;
 
     #[test]
     #[ignore]
     fn test_cdq_command_overwrite() {
         let tmp = Utf8TempDir::new().unwrap();
-        tmp.copy_from(fixture("commands/cdq"), &["01.tester.hi-res.flac"])
+        tmp.copy_from(fixture!("commands/cdq"), &["01.tester.hi-res.flac"])
             .unwrap();
         let file_under_test = tmp.path().join("01.tester.hi-res.flac");
         let cdq_file = tmp.path().join("01.tester.hi-res-cdq.flac");
@@ -37,7 +37,7 @@ mod test {
     #[ignore]
     fn test_cdq_command_leave_original() {
         let tmp = Utf8TempDir::new().unwrap();
-        tmp.copy_from(fixture("commands/cdq"), &["01.tester.hi-res.flac"])
+        tmp.copy_from(fixture!("commands/cdq"), &["01.tester.hi-res.flac"])
             .unwrap();
         let file_under_test = tmp.path().join("01.tester.hi-res.flac");
         let cdq_file = tmp.path().join("01.tester.hi-res-cdq.flac");
@@ -74,7 +74,7 @@ mod test {
     #[ignore]
     fn test_cdq_command_mp3() {
         let tmp = Utf8TempDir::new().unwrap();
-        tmp.copy_from(fixture("commands/cdq"), &["02.tester.not_a_flac.mp3"])
+        tmp.copy_from(fixture!("commands/cdq"), &["02.tester.not_a_flac.mp3"])
             .unwrap();
         let file_under_test = tmp.path().join("02.tester.not_a_flac.mp3");
 

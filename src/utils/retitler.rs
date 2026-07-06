@@ -167,12 +167,14 @@ impl<'a> Retitler<'a> {
 
 #[cfg(test)]
 mod test {
+    use crate::utils::config::load_config;
+
     use super::*;
-    use crate::test_utils::spec_helper::sample_config;
+    use snltest::fixture;
 
     #[test]
     fn test_retitle() {
-        let words = Words::new(&sample_config());
+        let words = Words::new(&load_config(&fixture!("config/test.toml")).unwrap());
         let rt = Retitler::new(&words);
 
         assert_eq!("Mr. Rabbit's Game", rt.retitle("Mr. Rabbit's Game"));

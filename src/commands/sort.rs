@@ -60,13 +60,13 @@ fn rename_action(file: &Utf8Path) -> anyhow::Result<Option<Utf8PathBuf>> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_utils::spec_helper::fixture;
+    use snltest::fixture;
 
     #[test]
     fn test_rename_action() {
         assert_eq!(
-            fixture("commands/sort/singer.singers_album/01.singer.song.flac"),
-            rename_action(&fixture("commands/sort/01.singer.song.flac"))
+            fixture!("commands/sort/singer.singers_album/01.singer.song.flac"),
+            rename_action(&fixture!("commands/sort/01.singer.song.flac"))
                 .unwrap()
                 .unwrap()
         );

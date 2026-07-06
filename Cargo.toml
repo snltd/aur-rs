@@ -35,3 +35,4 @@ camino-tempfile-ext = "0.3.3"
 glob = "0.3.2"
 predicates = "3"
 pretty_assertions = "1.4.1"
+snltest = { git = "https://github.com/snltd/snltest.git" }

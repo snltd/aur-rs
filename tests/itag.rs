@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod test {
     use assert_cmd::cargo::cargo_bin_cmd;
-    use aur::test_utils::spec_helper::{fixture, fixture_as_string};
     use camino_tempfile_ext::prelude::*;
     use predicates::prelude::*;
+    use snltest::fixture;
 
     #[test]
     #[ignore]
@@ -11,7 +11,7 @@ mod test {
         let file_name = "01.original_artist.original_title.flac";
 
         let tmp = Utf8TempDir::new().unwrap();
-        tmp.copy_from(fixture("commands/itag"), &[file_name])
+        tmp.copy_from(fixture!("commands/itag"), &[file_name])
             .unwrap();
         let file_under_test = tmp.path().join(file_name);
 
@@ -50,7 +50,7 @@ mod test {
         let file_name = "01.original_artist.original_title.flac";
 
         let tmp = Utf8TempDir::new().unwrap();
-        tmp.copy_from(fixture("commands/itag"), &[file_name])
+        tmp.copy_from(fixture!("commands/itag"), &[file_name])
             .unwrap();
         let file_under_test = tmp.path().join(file_name);
 
@@ -98,7 +98,7 @@ mod test {
         let file_name = "02.original_artist.original_title.mp3";
 
         let tmp = Utf8TempDir::new().unwrap();
-        tmp.copy_from(fixture("commands/itag"), &[file_name])
+        tmp.copy_from(fixture!("commands/itag"), &[file_name])
             .unwrap();
         let file_under_test = tmp.path().join(file_name);
 
@@ -148,12 +148,12 @@ mod test {
     #[test]
     #[ignore]
     fn test_itag_bad_input() {
-        let file = fixture_as_string("commands/itag/01.original_artist.original_title.flac");
-
         cargo_bin_cmd!("aur")
             .arg("itag")
             .arg("t_num")
-            .arg(file)
+            .arg(fixture!(
+                "commands/itag/01.original_artist.original_title.flac"
+            ))
             .write_stdin("merp")
             .assert()
             .failure()

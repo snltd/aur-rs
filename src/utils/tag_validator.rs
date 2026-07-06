@@ -113,12 +113,13 @@ fn this_year() -> i32 {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_utils::spec_helper::sample_config;
+    use crate::utils::config::load_config;
+    use snltest::fixture;
     use std::collections::HashSet;
 
     #[test]
     fn test_validate_artist_album_and_title() {
-        let words = Words::new(&sample_config());
+        let words = new_words();
         let tv = TagValidator::new(&words, None);
         assert!(tv.validate_artist("!!!"));
         assert!(tv.validate_artist("Broadcast"));
@@ -137,7 +138,7 @@ mod test {
 
     #[test]
     fn test_validate_year() {
-        let words = Words::new(&sample_config());
+        let words = new_words();
         let tv = TagValidator::new(&words, None);
         assert!(tv.validate_year("1994"));
         assert!(!tv.validate_year(&(this_year() + 2).to_string()));
@@ -149,7 +150,7 @@ mod test {
 
     #[test]
     fn test_validate_title() {
-        let words = Words::new(&sample_config());
+        let words = new_words();
         let tv = TagValidator::new(&words, None);
         assert!(tv.validate_title("File for Test"));
         assert!(!tv.validate_title("File,with Bad Title"));
@@ -157,7 +158,7 @@ mod test {
 
     #[test]
     fn test_validate_t_num() {
-        let words = Words::new(&sample_config());
+        let words = new_words();
         let tv = TagValidator::new(&words, None);
         assert!(tv.validate_t_num("1"));
         assert!(tv.validate_t_num("10"));
@@ -172,7 +173,7 @@ mod test {
 
     #[test]
     fn test_validate_genre() {
-        let words = Words::new(&sample_config());
+        let words = new_words();
         let tv = TagValidator::new(&words, None);
         assert!(tv.validate_genre("Alternative"));
         assert!(tv.validate_genre("Noise"));
@@ -202,10 +203,14 @@ mod test {
 
     #[test]
     fn test_validate_tags() {
-        let words = Words::new(&sample_config());
+        let words = new_words();
         let tv = TagValidator::new(&words, None);
         assert!(tv.validate_tag("genre", "Alternative").unwrap());
         assert!(!tv.validate_tag("genre", "Folk/Rock").unwrap());
         assert!(tv.validate_tag("style", "Folk/Rock").is_err());
+    }
+
+    fn new_words() -> Words {
+        Words::new(&load_config(&fixture!("config/test.toml")).unwrap())
     }
 }

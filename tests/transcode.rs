@@ -1,16 +1,16 @@
 #[cfg(test)]
 mod test {
     use assert_cmd::cargo::cargo_bin_cmd;
-    use aur::test_utils::spec_helper::fixture;
     use camino_tempfile_ext::prelude::*;
     use predicates::prelude::*;
+    use snltest::fixture;
 
     #[test]
     #[ignore]
     fn test_transcode_command_wav() {
         let file_name = "01.tester.lossless.wav";
         let tmp = Utf8TempDir::new().unwrap();
-        tmp.copy_from(fixture("commands/transcode"), &[file_name])
+        tmp.copy_from(fixture!("commands/transcode"), &[file_name])
             .unwrap();
         let file_under_test = tmp.path().join(file_name);
         let expected_file = tmp.path().join("01.tester.lossless.flac");

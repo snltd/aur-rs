@@ -394,7 +394,7 @@ fn metadata_for(files: &HashSet<Utf8PathBuf>) -> anyhow::Result<Vec<AurMetadata>
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_utils::spec_helper::fixture;
+    use snltest::fixture;
 
     #[test]
     fn test_all_files_are_same_type() {
@@ -411,7 +411,7 @@ mod test {
             CheckResult::Bad(LintDirError::MixedFileTypes),
             all_files_are_same_type(
                 &metadata_for(
-                    &files_in_dir(&fixture("commands/lintdir/mp3/tester.mixed_types")).unwrap()
+                    &files_in_dir(&fixture!("commands/lintdir/mp3/tester.mixed_types")).unwrap()
                 )
                 .unwrap()
             )
@@ -427,29 +427,29 @@ mod test {
 
         assert_eq!(
             CheckResult::Bad(LintDirError::CoverArtMissing),
-            has_suitable_cover_art(&fixture("commands/lintdir/flac/tester.artwork_missing"))
+            has_suitable_cover_art(&fixture!("commands/lintdir/flac/tester.artwork_missing"))
         );
 
         assert_eq!(
             CheckResult::Bad(LintDirError::CoverArtTooBig),
-            has_suitable_cover_art(&fixture("commands/lintdir/flac/tester.artwork_too_big"))
+            has_suitable_cover_art(&fixture!("commands/lintdir/flac/tester.artwork_too_big"))
         );
 
         assert_eq!(
             CheckResult::Bad(LintDirError::CoverArtTooSmall),
-            has_suitable_cover_art(&fixture("commands/lintdir/flac/tester.artwork_too_small"))
+            has_suitable_cover_art(&fixture!("commands/lintdir/flac/tester.artwork_too_small"))
         );
 
         assert_eq!(
             CheckResult::Bad(LintDirError::CoverArtNotSquare),
-            has_suitable_cover_art(&fixture("commands/lintdir/flac/tester.artwork_not_square"))
+            has_suitable_cover_art(&fixture!("commands/lintdir/flac/tester.artwork_not_square"))
         );
 
         assert_eq!(
             CheckResult::Bad(LintDirError::CoverArtInvalid(
                 "failed to fill whole buffer".to_owned()
             )),
-            has_suitable_cover_art(&fixture("commands/lintdir/flac/tester.artwork_invalid"))
+            has_suitable_cover_art(&fixture!("commands/lintdir/flac/tester.artwork_invalid"))
         );
     }
 
@@ -468,9 +468,9 @@ mod test {
         assert_eq!(
             CheckResult::Good,
             has_consistent_tags(
-                &fixture("commands/lintdir/mp3/tester.perfect--featuring"),
+                &fixture!("commands/lintdir/mp3/tester.perfect--featuring"),
                 &metadata_for(
-                    &files_in_dir(&fixture("commands/lintdir/mp3/tester.perfect--featuring"))
+                    &files_in_dir(&fixture!("commands/lintdir/mp3/tester.perfect--featuring"))
                         .unwrap()
                 )
                 .unwrap()
@@ -480,9 +480,9 @@ mod test {
         assert_eq!(
             CheckResult::Good,
             has_consistent_tags(
-                &fixture("commands/lintdir/mp3/artist--band.split_single"),
+                &fixture!("commands/lintdir/mp3/artist--band.split_single"),
                 &metadata_for(
-                    &files_in_dir(&fixture("commands/lintdir/mp3/artist--band.split_single"))
+                    &files_in_dir(&fixture!("commands/lintdir/mp3/artist--band.split_single"))
                         .unwrap()
                 )
                 .unwrap()
@@ -492,9 +492,9 @@ mod test {
         assert_eq!(
             CheckResult::Good,
             has_consistent_tags(
-                &fixture("commands/lintdir/mp3/various.compilation"),
+                &fixture!("commands/lintdir/mp3/various.compilation"),
                 &metadata_for(
-                    &files_in_dir(&fixture("commands/lintdir/mp3/various.compilation")).unwrap()
+                    &files_in_dir(&fixture!("commands/lintdir/mp3/various.compilation")).unwrap()
                 )
                 .unwrap()
             )
@@ -505,9 +505,9 @@ mod test {
                 "album".to_owned()
             ]))),
             has_consistent_tags(
-                &fixture("commands/lintdir/flac/tester.different_album"),
+                &fixture!("commands/lintdir/flac/tester.different_album"),
                 &metadata_for(
-                    &files_in_dir(&fixture("commands/lintdir/flac/tester.different_album"))
+                    &files_in_dir(&fixture!("commands/lintdir/flac/tester.different_album"))
                         .unwrap()
                 )
                 .unwrap()
@@ -521,9 +521,9 @@ mod test {
                 "year".to_owned()
             ]))),
             has_consistent_tags(
-                &fixture("commands/lintdir/mp3/tester.mixed_genre_year_album"),
+                &fixture!("commands/lintdir/mp3/tester.mixed_genre_year_album"),
                 &metadata_for(
-                    &files_in_dir(&fixture(
+                    &files_in_dir(&fixture!(
                         "commands/lintdir/mp3/tester.mixed_genre_year_album"
                     ))
                     .unwrap()
@@ -541,14 +541,14 @@ mod test {
         assert_eq!(
             CheckResult::Bad(LintDirError::UnsequencedFile),
             has_right_file_count(
-                &files_in_dir(&fixture("commands/lintdir/mp3/tester.wrongly_numbered")).unwrap()
+                &files_in_dir(&fixture!("commands/lintdir/mp3/tester.wrongly_numbered")).unwrap()
             )
         );
 
         assert_eq!(
             CheckResult::Bad(LintDirError::BadFileCount),
             has_right_file_count(
-                &files_in_dir(&fixture("commands/lintdir/flac/tester.missing_file")).unwrap()
+                &files_in_dir(&fixture!("commands/lintdir/flac/tester.missing_file")).unwrap()
             )
         );
     }
@@ -597,7 +597,7 @@ mod test {
         assert_eq!(
             CheckResult::Good,
             has_no_bad_files(
-                &fixture("commands/lintdir/flac/tester.perfect"),
+                &fixture!("commands/lintdir/flac/tester.perfect"),
                 &perfect_flac(),
                 &Hierarchy::Flac
             )
@@ -606,13 +606,13 @@ mod test {
         assert_eq!(
             CheckResult::Good,
             has_no_bad_files(
-                &fixture("commands/lintdir/mp3/tester.perfect"),
+                &fixture!("commands/lintdir/mp3/tester.perfect"),
                 &perfect_mp3(),
                 &Hierarchy::Mp3
             )
         );
 
-        let junk_file_dir = fixture("commands/lintdir/flac/tester.junk_files");
+        let junk_file_dir = fixture!("commands/lintdir/flac/tester.junk_files");
         let junk_files = HashSet::from([
             junk_file_dir.join("rip.log").to_string(),
             junk_file_dir.join("Back-Cover.jpg").to_string(),
@@ -627,7 +627,7 @@ mod test {
             )
         );
 
-        let unwanted_art_dir = fixture("commands/lintdir/mp3/tester.unwanted_art");
+        let unwanted_art_dir = fixture!("commands/lintdir/mp3/tester.unwanted_art");
         let unwanted_art_files = HashSet::from([unwanted_art_dir.join("front.jpg").to_string()]);
 
         assert_eq!(
@@ -641,7 +641,7 @@ mod test {
     }
 
     fn perfect_flac_dir() -> Utf8PathBuf {
-        fixture("commands/lintdir/flac/tester.perfect")
+        fixture!("commands/lintdir/flac/tester.perfect")
     }
 
     fn perfect_flac() -> HashSet<Utf8PathBuf> {
@@ -649,7 +649,7 @@ mod test {
     }
 
     fn perfect_mp3_dir() -> Utf8PathBuf {
-        fixture("commands/lintdir/mp3/tester.perfect")
+        fixture!("commands/lintdir/mp3/tester.perfect")
     }
 
     fn perfect_mp3() -> HashSet<Utf8PathBuf> {

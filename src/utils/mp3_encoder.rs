@@ -202,9 +202,9 @@ pub fn mp3_dir_from(flac_dir: &Utf8Path, cmd_opts: &Mp3dirOpts) -> Utf8PathBuf {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_utils::spec_helper::*;
     use assert_unordered::assert_eq_unordered;
     use camino_tempfile_ext::prelude::*;
+    use snltest::fixture;
 
     #[test]
     fn test_transcode_file() {
@@ -216,7 +216,7 @@ mod test {
         let file_name = "02.band.song_2.flac";
         let tmp = Utf8TempDir::new().unwrap();
         tmp.copy_from(
-            fixture("commands/syncflac/flac/eps/band.flac_ep"),
+            fixture!("commands/syncflac/flac/eps/band.flac_ep"),
             &[file_name],
         )
         .unwrap();
@@ -237,7 +237,7 @@ mod test {
         };
 
         assert!(!mp3_file.exists());
-        assert!(transcode_file(&action, &cmds, &cmd_opts, &defopts()).unwrap());
+        assert!(transcode_file(&action, &cmds, &cmd_opts, &GlobalOpts::default()).unwrap());
         assert!(mp3_file.exists());
         let flac_info = AurMetadata::new(&file_under_test).unwrap();
         let mp3_info = AurMetadata::new(&mp3_file).unwrap();
@@ -250,12 +250,12 @@ mod test {
     #[test]
     fn test_cleanup_list() {
         assert_eq!(
-            vec![fixture(
+            vec![fixture!(
                 "commands/syncflac/mp3/eps/band.flac_and_mp3_unequal/03.band.song_3.mp3"
             )],
             make_clean_up_list(
-                &fixture("commands/syncflac/flac/eps/band.flac_and_mp3_unequal"),
-                &fixture("commands/syncflac/mp3/eps/band.flac_and_mp3_unequal"),
+                &fixture!("commands/syncflac/flac/eps/band.flac_and_mp3_unequal"),
+                &fixture!("commands/syncflac/mp3/eps/band.flac_and_mp3_unequal"),
             )
             .unwrap()
         );
@@ -263,8 +263,8 @@ mod test {
         assert_eq!(
             Vec::<CleanupAction>::new(),
             make_clean_up_list(
-                &fixture("commands/syncflac/flac/albums/abc/already.synced"),
-                &fixture("commands/syncflac/mp3/albums/abc/already.synced"),
+                &fixture!("commands/syncflac/flac/albums/abc/already.synced"),
+                &fixture!("commands/syncflac/mp3/albums/abc/already.synced"),
             )
             .unwrap()
         );
@@ -275,8 +275,8 @@ mod test {
         assert_eq!(
             Vec::<TranscodeAction>::new(),
             make_transcode_list(
-                &fixture("commands/syncflac/flac/albums/abc/already.synced"),
-                &fixture("commands/syncflac/mp3/albums/abc/already.synced"),
+                &fixture!("commands/syncflac/flac/albums/abc/already.synced"),
+                &fixture!("commands/syncflac/mp3/albums/abc/already.synced"),
                 false,
             )
             .unwrap()
@@ -285,25 +285,25 @@ mod test {
         assert_eq_unordered!(
             vec![
                 TranscodeAction {
-                    flac_src: fixture(
+                    flac_src: fixture!(
                         "commands/syncflac/flac/albums/tuv/tester.flac_album/01.tester.song_1.flac"
                     ),
-                    mp3_target: fixture(
+                    mp3_target: fixture!(
                         "commands/syncflac/mp3/albums/tuv/tester.flac_album/01.tester.song_1.mp3"
                     ),
                 },
                 TranscodeAction {
-                    flac_src: fixture(
+                    flac_src: fixture!(
                         "commands/syncflac/flac/albums/tuv/tester.flac_album/02.tester.song_2.flac"
                     ),
-                    mp3_target: fixture(
+                    mp3_target: fixture!(
                         "commands/syncflac/mp3/albums/tuv/tester.flac_album/02.tester.song_2.mp3"
                     ),
                 }
             ],
             make_transcode_list(
-                &fixture("commands/syncflac/flac/albums/tuv/tester.flac_album"),
-                &fixture("commands/syncflac/mp3/albums/tuv/tester.flac_album"),
+                &fixture!("commands/syncflac/flac/albums/tuv/tester.flac_album"),
+                &fixture!("commands/syncflac/mp3/albums/tuv/tester.flac_album"),
                 false,
             )
             .unwrap()
@@ -314,7 +314,7 @@ mod test {
         assert_eq!(
             Utf8PathBuf::from("/storage/mp3/tracks"),
             mp3_dir_from(
-                &Utf8PathBuf::from("/storage/flac/tracks"),
+                "/storage/flac/tracks".into(),
                 &Mp3dirOpts {
                     preset: "standard".to_owned(),
                     force: false,
@@ -328,7 +328,7 @@ mod test {
         assert_eq!(
             Utf8PathBuf::from("/storage/mp3/eps/band.ep-standard"),
             mp3_dir_from(
-                &Utf8PathBuf::from("/storage/flac/eps/band.ep"),
+                "/storage/flac/eps/band.ep".into(),
                 &Mp3dirOpts {
                     preset: "standard".to_owned(),
                     force: false,

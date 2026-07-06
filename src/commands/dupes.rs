@@ -76,7 +76,7 @@ fn filename_from_file(path: &Utf8Path) -> Option<String> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use aur::test_utils::spec_helper::fixture;
+    use snltest::fixture;
 
     #[test]
     fn test_missing_arg() {
@@ -102,17 +102,11 @@ mod test {
 
     #[test]
     fn test_file_hash() {
-        let mut input = BTreeSet::new();
-        input.insert(Utf8PathBuf::from(
-            "/flac/eps/singer.ep/01.singer.song_1.flac",
-        ));
-        input.insert(Utf8PathBuf::from(
-            "/flac/eps/singer.ep/02.singer.song_2.flac",
-        ));
-        input.insert(Utf8PathBuf::from(
-            "/flac/albums/pqrs/singer.lp/06.singer.song_1.flac",
-        ));
-        input.insert(Utf8PathBuf::from("/flac/eps/singer.ep/front.jpg"));
+        let mut input: BTreeSet<Utf8PathBuf> = BTreeSet::new();
+        input.insert("/flac/eps/singer.ep/01.singer.song_1.flac".into());
+        input.insert("/flac/eps/singer.ep/02.singer.song_2.flac".into());
+        input.insert("/flac/albums/pqrs/singer.lp/06.singer.song_1.flac".into());
+        input.insert("/flac/eps/singer.ep/front.jpg".into());
 
         let result = file_hash(&input);
 
@@ -137,19 +131,21 @@ mod test {
 
     #[test]
     fn test_dupes_under() {
-        let expected =  vec![
-        vec![
-            fixture("commands/dupes/flac/tracks/fall.free_ranger.flac"),
-            fixture("commands/dupes/flac/eps/fall.eds_babe/04.fall.free_ranger.flac"),
-            fixture("commands/dupes/flac/eps/various.compilation/11.fall.free_ranger.flac"),
-        ],
-        vec![
-            fixture("commands/dupes/flac/tracks/slint.don_aman.flac"),
-            fixture("commands/dupes/flac/albums/pqrs/slint.spiderland_remastered/03.slint.don_aman.flac"),
-        ],
-    ];
+        let expected = vec![
+            vec![
+                fixture!("commands/dupes/flac/tracks/fall.free_ranger.flac"),
+                fixture!("commands/dupes/flac/eps/fall.eds_babe/04.fall.free_ranger.flac"),
+                fixture!("commands/dupes/flac/eps/various.compilation/11.fall.free_ranger.flac"),
+            ],
+            vec![
+                fixture!("commands/dupes/flac/tracks/slint.don_aman.flac"),
+                fixture!(
+                    "commands/dupes/flac/albums/pqrs/slint.spiderland_remastered/03.slint.don_aman.flac"
+                ),
+            ],
+        ];
 
-        let mut result = dupes_under(&fixture("commands/dupes/flac")).unwrap();
+        let mut result = dupes_under(&fixture!("commands/dupes/flac")).unwrap();
         result.sort();
         assert_eq!(expected, result);
     }

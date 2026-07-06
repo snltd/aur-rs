@@ -87,29 +87,29 @@ fn collect_directories(dir: &Utf8Path, aggr: &mut BTreeSet<Utf8PathBuf>) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::spec_helper::fixture;
     use assert_unordered::assert_eq_unordered;
     use camino_tempfile_ext::prelude::*;
+    use snltest::fixture;
     use std::fs;
 
     #[test]
     fn test_media_files() {
-        let input = vec![
-            Utf8PathBuf::from("/flac/ep/01.singer.song_01.flac"),
-            Utf8PathBuf::from("/flac/ep/02.singer.song_02.flac"),
-            Utf8PathBuf::from("/flac/ep/front.jpg"),
-            Utf8PathBuf::from("/mp3/album/01.singer.song_01.mp3"),
-            Utf8PathBuf::from("/mp3/album/02.singer.song_02.mp3"),
-            Utf8PathBuf::from("/mp3/album/03.singer.song_03.mp3"),
-            Utf8PathBuf::from("/mp3/album/something_that_should_not_be_there"),
+        let input: Vec<Utf8PathBuf> = vec![
+            "/flac/ep/01.singer.song_01.flac".into(),
+            "/flac/ep/02.singer.song_02.flac".into(),
+            "/flac/ep/front.jpg".into(),
+            "/mp3/album/01.singer.song_01.mp3".into(),
+            "/mp3/album/02.singer.song_02.mp3".into(),
+            "/mp3/album/03.singer.song_03.mp3".into(),
+            "/mp3/album/something_that_should_not_be_there".into(),
         ];
 
-        let expected = vec![
-            Utf8PathBuf::from("/flac/ep/01.singer.song_01.flac"),
-            Utf8PathBuf::from("/flac/ep/02.singer.song_02.flac"),
-            Utf8PathBuf::from("/mp3/album/01.singer.song_01.mp3"),
-            Utf8PathBuf::from("/mp3/album/02.singer.song_02.mp3"),
-            Utf8PathBuf::from("/mp3/album/03.singer.song_03.mp3"),
+        let expected: Vec<Utf8PathBuf> = vec![
+            "/flac/ep/01.singer.song_01.flac".into(),
+            "/flac/ep/02.singer.song_02.flac".into(),
+            "/mp3/album/01.singer.song_01.mp3".into(),
+            "/mp3/album/02.singer.song_02.mp3".into(),
+            "/mp3/album/03.singer.song_03.mp3".into(),
         ];
 
         assert_eq_unordered!(expected, media_files(&input));
@@ -119,47 +119,47 @@ mod tests {
     fn test_expand_file_list_no_recurse() {
         let result = expand_file_list(
             &[
-                fixture("recurse/flac/tracks/band.single.flac"),
-                fixture("recurse/flac/eps"),
+                fixture!("recurse/flac/tracks/band.single.flac"),
+                fixture!("recurse/flac/eps"),
             ],
             false,
         );
 
         let mut expected: BTreeSet<Utf8PathBuf> = BTreeSet::new();
-        expected.insert(fixture("recurse/flac/tracks/band.single.flac"));
+        expected.insert(fixture!("recurse/flac/tracks/band.single.flac"));
         assert_eq!(expected, result.unwrap());
     }
 
     #[test]
     fn test_expand_file_list_recurse() {
         let expected: BTreeSet<Utf8PathBuf> = BTreeSet::from([
-            fixture(
-                "recurse/flac/albums/tuv/test_artist.test_album/disc_1/01.test_artist.disc_1--song_1.flac",
+            fixture!(
+                "recurse/flac/albums/tuv/test_artist.test_album/disc_1/01.test_artist.disc_1--song_1.flac"
             ),
-            fixture(
-                "recurse/flac/albums/tuv/test_artist.test_album/disc_1/02.test_artist.disc_1--song_2.flac",
+            fixture!(
+                "recurse/flac/albums/tuv/test_artist.test_album/disc_1/02.test_artist.disc_1--song_2.flac"
             ),
-            fixture(
-                "recurse/flac/albums/tuv/test_artist.test_album/disc_1/03.test_artist.disc_1--song_3.flac",
+            fixture!(
+                "recurse/flac/albums/tuv/test_artist.test_album/disc_1/03.test_artist.disc_1--song_3.flac"
             ),
-            fixture(
-                "recurse/flac/albums/tuv/test_artist.test_album/disc_2/03.test_artist.disc_2--song_3.flac",
+            fixture!(
+                "recurse/flac/albums/tuv/test_artist.test_album/disc_2/03.test_artist.disc_2--song_3.flac"
             ),
-            fixture(
-                "recurse/flac/albums/tuv/test_artist.test_album/disc_2/02.test_artist.disc_2--song_2.flac",
+            fixture!(
+                "recurse/flac/albums/tuv/test_artist.test_album/disc_2/02.test_artist.disc_2--song_2.flac"
             ),
-            fixture(
-                "recurse/flac/albums/tuv/test_artist.test_album/disc_2/01.test_artist.disc_2--song_1.flac",
+            fixture!(
+                "recurse/flac/albums/tuv/test_artist.test_album/disc_2/01.test_artist.disc_2--song_1.flac"
             ),
-            fixture("recurse/flac/eps/artist.extended_play/02.artist.ep_02.flac"),
-            fixture("recurse/flac/tracks/band.single.flac"),
+            fixture!("recurse/flac/eps/artist.extended_play/02.artist.ep_02.flac"),
+            fixture!("recurse/flac/tracks/band.single.flac"),
         ]);
 
         let result = expand_file_list(
             &[
-                fixture("recurse/flac/tracks"),
-                fixture("recurse/flac/eps/artist.extended_play/02.artist.ep_02.flac"),
-                fixture("recurse/flac/albums/tuv/test_artist.test_album"),
+                fixture!("recurse/flac/tracks"),
+                fixture!("recurse/flac/eps/artist.extended_play/02.artist.ep_02.flac"),
+                fixture!("recurse/flac/albums/tuv/test_artist.test_album"),
             ],
             true,
         );
@@ -193,16 +193,16 @@ mod tests {
     #[test]
     fn test_expand_dir_list_recurse_mp3() {
         let result = expand_dir_list(
-            &[fixture("recurse/mp3/albums"), fixture("recurse/mp3/eps")],
+            &[fixture!("recurse/mp3/albums"), fixture!("recurse/mp3/eps")],
             true,
         );
 
         let expected = BTreeSet::from([
-            fixture("recurse/mp3/albums"),
-            fixture("recurse/mp3/albums/abc"),
-            fixture("recurse/mp3/albums/abc/artist.lp"),
-            fixture("recurse/mp3/eps"),
-            fixture("recurse/mp3/eps/artist.extended_play"),
+            fixture!("recurse/mp3/albums"),
+            fixture!("recurse/mp3/albums/abc"),
+            fixture!("recurse/mp3/albums/abc/artist.lp"),
+            fixture!("recurse/mp3/eps"),
+            fixture!("recurse/mp3/eps/artist.extended_play"),
         ]);
 
         assert_eq!(expected, result);
@@ -210,32 +210,35 @@ mod tests {
 
     #[test]
     fn test_expand_dir_list_no_recurse() {
-        let result = expand_dir_list(&[fixture("recurse/albums"), fixture("recurse/eps")], false);
+        let result = expand_dir_list(
+            &[fixture!("recurse/albums"), fixture!("recurse/eps")],
+            false,
+        );
 
-        let expected = BTreeSet::from([fixture("recurse/albums"), fixture("recurse/eps")]);
+        let expected = BTreeSet::from([fixture!("recurse/albums"), fixture!("recurse/eps")]);
         assert_eq!(expected, result);
     }
 
     #[test]
     fn test_expand_dir_list_recurse_flac() {
         let expected = BTreeSet::from([
-            fixture("recurse/flac/albums"),
-            fixture("recurse/flac/albums/pqrs"),
-            fixture("recurse/flac/albums/pqrs/singer.album"),
-            fixture("recurse/flac/albums/tuv"),
-            fixture("recurse/flac/albums/tuv/test_artist.test_album"),
-            fixture("recurse/flac/albums/tuv/test_artist.test_album/disc_1"),
-            fixture("recurse/flac/albums/tuv/test_artist.test_album/disc_2"),
-            fixture("recurse/flac/eps"),
-            fixture("recurse/flac/eps/artist.extended_play"),
-            fixture("recurse/flac/tracks"),
+            fixture!("recurse/flac/albums"),
+            fixture!("recurse/flac/albums/pqrs"),
+            fixture!("recurse/flac/albums/pqrs/singer.album"),
+            fixture!("recurse/flac/albums/tuv"),
+            fixture!("recurse/flac/albums/tuv/test_artist.test_album"),
+            fixture!("recurse/flac/albums/tuv/test_artist.test_album/disc_1"),
+            fixture!("recurse/flac/albums/tuv/test_artist.test_album/disc_2"),
+            fixture!("recurse/flac/eps"),
+            fixture!("recurse/flac/eps/artist.extended_play"),
+            fixture!("recurse/flac/tracks"),
         ]);
 
         let result = expand_dir_list(
             &[
-                fixture("recurse/flac/eps"),
-                fixture("recurse/flac/albums"),
-                fixture("recurse/flac/tracks"),
+                fixture!("recurse/flac/eps"),
+                fixture!("recurse/flac/albums"),
+                fixture!("recurse/flac/tracks"),
             ],
             true,
         );

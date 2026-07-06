@@ -1,16 +1,16 @@
 #[cfg(test)]
 mod test {
     use assert_cmd::cargo::cargo_bin_cmd;
-    use aur::test_utils::spec_helper::{fixture, fixture_as_string};
     use camino_tempfile_ext::prelude::*;
     use predicates::prelude::*;
+    use snltest::fixture;
 
     #[test]
     #[ignore]
     fn test_num2name_command() {
         let file_name = "01.test_artist.test_title.flac";
         let tmp = Utf8TempDir::new().unwrap();
-        tmp.copy_from(fixture("commands/num2name"), &[file_name])
+        tmp.copy_from(fixture!("commands/num2name"), &[file_name])
             .unwrap();
         let file_under_test = tmp.path().join(file_name);
 
@@ -36,7 +36,7 @@ mod test {
     fn test_num2name_command_bad_file() {
         cargo_bin_cmd!("aur")
             .arg("num2name")
-            .arg(fixture_as_string("info/bad_file.flac"))
+            .arg(fixture!("info/bad_file.flac"))
             .assert()
             .failure()
             .stderr(predicate::str::starts_with("Error renaming"))

@@ -1,13 +1,13 @@
 #[cfg(test)]
 mod test {
     use assert_cmd::cargo::cargo_bin_cmd;
-    use aur::test_utils::spec_helper::fixture_as_string;
     use predicates::prelude::*;
+    use snltest::fixture;
 
     #[test]
     #[ignore]
     fn test_verify_command_some_valid_some_not() {
-        let dir_under_test = fixture_as_string("commands/verify");
+        let dir_under_test = fixture!("commands/verify");
 
         cargo_bin_cmd!("aur")
             .arg("verify")
@@ -42,7 +42,7 @@ mod test {
         cargo_bin_cmd!("aur")
             .arg("verify")
             .arg("-r")
-            .arg(fixture_as_string("commands/verify/01.tester.valid.flac"))
+            .arg(fixture!("commands/verify/01.tester.valid.flac"))
             .assert()
             .success();
     }

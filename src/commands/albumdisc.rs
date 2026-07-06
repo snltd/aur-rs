@@ -70,8 +70,8 @@ fn disc_number(file: &Utf8Path, rx: &Regex) -> anyhow::Result<Option<String>> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::test_utils::spec_helper::{defopts, fixture};
     use camino_tempfile_ext::prelude::*;
+    use snltest::fixture;
 
     fn regex() -> Regex {
         Regex::new(r"^disc_(\d+)$").unwrap()
@@ -82,7 +82,7 @@ mod test {
         assert_eq!(
             Some("3".to_owned()),
             disc_number(
-                &fixture("commands/albumdisc/disc_3/01.artist.song.mp3"),
+                &fixture!("commands/albumdisc/disc_3/01.artist.song.mp3"),
                 &regex()
             )
             .unwrap()
@@ -90,7 +90,7 @@ mod test {
 
         assert_eq!(
             None,
-            disc_number(&fixture("info/test.flac"), &regex()).unwrap()
+            disc_number(&fixture!("info/test.flac"), &regex()).unwrap()
         );
     }
 
@@ -102,7 +102,7 @@ mod test {
         let target = tmp.child("album/disc_3");
         target
             .copy_from(
-                fixture("commands/albumdisc/disc_3/"),
+                fixture!("commands/albumdisc/disc_3/"),
                 &["01.artist.song.mp3"],
             )
             .unwrap();
@@ -111,12 +111,12 @@ mod test {
         let original_info = AurMetadata::new(&file_under_test).unwrap();
 
         assert_eq!("Test Album", original_info.tags.album);
-        assert!(tag_file(&file_under_test, &rx, &defopts()).unwrap());
+        assert!(tag_file(&file_under_test, &rx, &GlobalOpts::default()).unwrap());
 
         let new_info = AurMetadata::new(&file_under_test).unwrap();
 
         assert_eq!("Test Album (Disc 3)", new_info.tags.album);
-        assert!(!tag_file(&file_under_test, &rx, &defopts()).unwrap());
+        assert!(!tag_file(&file_under_test, &rx, &GlobalOpts::default()).unwrap());
 
         let new_new_info = AurMetadata::new(&file_under_test).unwrap();
 
