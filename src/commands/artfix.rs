@@ -1,4 +1,4 @@
-use crate::utils::config::{ARTWORK_QUALITY, MAX_ARTWORK_SIZE};
+use crate::utils::config::{ARTWORK_FILENAME, ARTWORK_QUALITY, MAX_ARTWORK_SIZE};
 use crate::utils::dir;
 use crate::utils::helpers::MaybeProgress;
 use crate::utils::types::GlobalOpts;
@@ -48,7 +48,7 @@ fn check_artwork(
     pb: &MaybeProgress,
     opts: &GlobalOpts,
 ) -> anyhow::Result<bool> {
-    let expected_artwork = dir.join("front.jpg");
+    let expected_artwork = dir.join(ARTWORK_FILENAME);
 
     let mut changes: Vec<bool> = Vec::new();
 
@@ -79,7 +79,7 @@ fn rename(
     for file in jpgs_in(dir)? {
         if file != front {
             if !opts.quiet {
-                pb.println(&format!("Rename: {} -> front.jpg", file));
+                pb.println(&format!("Rename: {file} -> {ARTWORK_FILENAME}"));
             }
             if !opts.noop {
                 fs::rename(file, front)?;
@@ -253,7 +253,7 @@ mod test {
     fn test_resize_no_action() {
         assert!(
             !resize_or_link(
-                &fixture!("commands/artfix/tester.good_art/front.jpg"),
+                &fixture!("commands/artfix/tester.good_art/cover.jpg"),
                 &Utf8PathBuf::from("/tmp"),
                 &MaybeProgress::Direct,
                 &GlobalOpts::default()
@@ -264,7 +264,7 @@ mod test {
 
     #[test]
     fn test_resize() {
-        let file_name = "front.jpg";
+        let file_name = ARTWORK_FILENAME;
         let linkdir = Utf8PathBuf::from("/tmp");
         let tmp = Utf8TempDir::new().unwrap();
         tmp.copy_from(fixture!("commands/artfix/tester.too_big"), &[file_name])
@@ -293,7 +293,7 @@ mod test {
 
     #[test]
     fn test_symlink() {
-        let source_file = fixture!("commands/artfix/tester.not_square/front.jpg");
+        let source_file = fixture!("commands/artfix/tester.not_square/cover.jpg");
         let target_dir = Utf8TempDir::new().unwrap();
         let expected_file = target_dir.path().join(target_filename(&source_file));
 
@@ -318,9 +318,9 @@ mod test {
             .unwrap();
 
         let dir_under_test = tmp.path().join(dir_name);
-        let expected_artwork = tmp.path().join("front.jpg");
+        let expected_artwork = tmp.path().join(ARTWORK_FILENAME);
 
-        assert!(dir_under_test.join("cover.jpg").exists());
+        assert!(dir_under_test.join("front-cover.jpg").exists());
         assert!(!expected_artwork.exists());
         assert!(
             rename(
@@ -331,7 +331,7 @@ mod test {
             )
             .unwrap()
         );
-        assert!(!dir_under_test.join("cover.jpg").exists());
+        assert!(!dir_under_test.join("front-cover.jpg").exists());
         assert!(expected_artwork.exists());
         assert!(
             !rename(

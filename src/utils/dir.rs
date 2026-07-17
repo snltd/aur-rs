@@ -97,7 +97,7 @@ mod tests {
         let input: Vec<Utf8PathBuf> = vec![
             "/flac/ep/01.singer.song_01.flac".into(),
             "/flac/ep/02.singer.song_02.flac".into(),
-            "/flac/ep/front.jpg".into(),
+            "/flac/ep/cover.jpg".into(),
             "/mp3/album/01.singer.song_01.mp3".into(),
             "/mp3/album/02.singer.song_02.mp3".into(),
             "/mp3/album/03.singer.song_03.mp3".into(),

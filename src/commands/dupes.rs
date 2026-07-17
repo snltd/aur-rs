@@ -106,7 +106,7 @@ mod test {
         input.insert("/flac/eps/singer.ep/01.singer.song_1.flac".into());
         input.insert("/flac/eps/singer.ep/02.singer.song_2.flac".into());
         input.insert("/flac/albums/pqrs/singer.lp/06.singer.song_1.flac".into());
-        input.insert("/flac/eps/singer.ep/front.jpg".into());
+        input.insert("/flac/eps/singer.ep/cover.jpg".into());
 
         let result = file_hash(&input);
 

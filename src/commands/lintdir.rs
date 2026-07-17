@@ -1,4 +1,6 @@
-use crate::utils::config::{Config, MAX_ARTWORK_SIZE, MIN_ARTWORK_SIZE, load_config};
+use crate::utils::config::{
+    ARTWORK_FILENAME, Config, MAX_ARTWORK_SIZE, MIN_ARTWORK_SIZE, load_config,
+};
 use crate::utils::dir;
 use crate::utils::helpers::MaybeProgress;
 use crate::utils::metadata::AurMetadata;
@@ -229,7 +231,7 @@ fn has_no_bad_files(
         .collect();
 
     if hierarchy == &Hierarchy::Flac {
-        let artwork = dir.join("front.jpg");
+        let artwork = dir.join(ARTWORK_FILENAME);
         non_media.remove(&artwork);
     }
 
@@ -342,7 +344,7 @@ fn has_consistent_tags(dir: &Utf8Path, metadata: &[AurMetadata]) -> CheckResult 
 }
 
 fn has_suitable_cover_art(dir: &Utf8Path) -> CheckResult {
-    let artwork = dir.join("front.jpg");
+    let artwork = dir.join(ARTWORK_FILENAME);
 
     if !artwork.exists() {
         return CheckResult::Bad(LintDirError::CoverArtMissing);
@@ -628,7 +630,8 @@ mod test {
         );
 
         let unwanted_art_dir = fixture!("commands/lintdir/mp3/tester.unwanted_art");
-        let unwanted_art_files = HashSet::from([unwanted_art_dir.join("front.jpg").to_string()]);
+        let unwanted_art_files =
+            HashSet::from([unwanted_art_dir.join(ARTWORK_FILENAME).to_string()]);
 
         assert_eq!(
             CheckResult::Bad(LintDirError::BadFile(unwanted_art_files)),

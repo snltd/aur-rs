@@ -70,7 +70,7 @@ mod test {
             .failure()
             .stdout(output(
                 test_dir.as_str(),
-                &format!("Unexpected file(s): {test_dir}/front.jpg"),
+                &format!("Unexpected file(s): {test_dir}/cover.jpg"),
             ));
     }
 
