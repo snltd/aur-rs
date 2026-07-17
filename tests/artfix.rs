@@ -2,6 +2,7 @@
 mod test {
     use assert_cmd::Command;
     use assert_cmd::cargo::cargo_bin_cmd;
+    use aur::utils::config::ARTWORK_FILENAME;
     use camino_tempfile_ext::prelude::*;
     use predicates::prelude::*;
     use snltest::fixture;
@@ -19,7 +20,7 @@ mod test {
         let dir_under_test = source.path().join("tester.all_wrong");
 
         assert!(dir_under_test.join("some_file.JPEG").exists());
-        assert!(!dir_under_test.join("front.jpg").exists());
+        assert!(!dir_under_test.join(ARTWORK_FILENAME).exists());
 
         cargo_bin_cmd!("aur")
             .arg("artfix")
@@ -29,11 +30,11 @@ mod test {
             .assert()
             .success()
             .stdout(predicate::str::contains(format!(
-                "Rename: {dir_under_test}/some_file.JPEG -> front.jpg",
+                "Rename: {dir_under_test}/some_file.JPEG -> {ARTWORK_FILENAME}",
             )));
 
         assert!(!dir_under_test.join("some_file.JPEG").exists());
-        assert!(dir_under_test.join("front.jpg").exists());
+        assert!(dir_under_test.join(ARTWORK_FILENAME).exists());
 
         Command::new("ls")
             .arg("-l")
@@ -41,7 +42,7 @@ mod test {
             .assert()
             .success()
             .stdout(predicate::str::contains(format!(
-                "-tester.all_wrong-front.jpg -> {dir_under_test}/front.jpg",
+                "-tester.all_wrong-cover.jpg -> {dir_under_test}/{ARTWORK_FILENAME}",
             )));
     }
 
@@ -59,7 +60,7 @@ mod test {
             .assert()
             .success()
             .stdout(predicate::str::contains(format!(
-                "Resize: {dir_under_test}/front.jpg -> 750x750",
+                "Resize: {dir_under_test}/{ARTWORK_FILENAME} -> 750x750",
             )));
 
         cargo_bin_cmd!("aur")

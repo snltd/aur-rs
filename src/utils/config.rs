@@ -5,6 +5,7 @@ use serde::Deserialize;
 use std::collections::{HashMap, HashSet};
 use std::fs;
 
+pub const ARTWORK_FILENAME: &str = "cover.jpg";
 pub const MAX_ARTWORK_SIZE: usize = 750;
 pub const MIN_ARTWORK_SIZE: usize = 350;
 pub const ARTWORK_QUALITY: u8 = 75;

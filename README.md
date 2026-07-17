@@ -20,10 +20,10 @@ Rules and assumptions are:
   the filename.
 * Tags must be populated for artist, title, album, track number, genre and
   year. Any other tags are removed.
-* FLAC albums have artwork stored as `front.jpg`, and no bigger than 700x700
-  pixels. MP3s have no artwork. Embedded artwork is removed.
+* FLAC albums have artwork stored as `cover.jpg`, square, and no bigger than
+  700x700 pixels. MP3s have no artwork. Embedded artwork is removed.
 * Capitalisation of titles is broadly in line with
-  [this](https://www.ox.ac.uk/sites/files/oxford/Style%20Guide%20HT2016.pdf)
+  [this](https://www.ox.ac.uk/sites/files/oxford/Style%20Guide%20HT2016.pdf).
 * Files not suffixed `flac` or `mp3` are silently ignored. (Expect by 
   `lintdir`). 
 * Hitting a file which looks like music but isn't stops the world.
