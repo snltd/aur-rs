@@ -46,8 +46,9 @@ fn format_row(row: Vec<String>, widths: &[usize]) -> String {
 
 fn truncate_cell(mut cell_content: String, cell_width: usize) -> String {
     if cell_content.chars().count() > cell_width {
-        cell_content.truncate(cell_width - 1);
+        cell_content.truncate(cell_width - 2);
         cell_content.push('\u{2026}');
+        cell_content.push(' ');
     }
     cell_content
 }
