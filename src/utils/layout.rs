@@ -33,7 +33,7 @@ fn format_row(row: Vec<String>, widths: &[usize]) -> String {
         .enumerate()
         .map(|(i, cell)| {
             let width = widths[i] + 2;
-            let cell_content = truncate_cell(cell, width);
+            let cell_content = truncate_cell(cell, width, i == rightmost);
 
             if i == rightmost {
                 format!("{:>width$}", cell_content, width = width)
@@ -44,11 +44,19 @@ fn format_row(row: Vec<String>, widths: &[usize]) -> String {
         .collect()
 }
 
-fn truncate_cell(mut cell_content: String, cell_width: usize) -> String {
+fn truncate_cell(mut cell_content: String, cell_width: usize, rightmost: bool) -> String {
+    let snip_size = if rightmost { 1 } else { 3 };
+
     if cell_content.chars().count() > cell_width {
-        cell_content.truncate(cell_width - 1);
+        cell_content.truncate(cell_width - snip_size);
         cell_content.push('\u{2026}');
+
+        if !rightmost {
+            cell_content.push(' ');
+            cell_content.push(' ');
+        }
     }
+
     cell_content
 }
 
