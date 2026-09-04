@@ -1,14 +1,14 @@
-name: Test 
+name: Test
 permissions:
   contents: read
-on: 
+on:
   - push
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Install external dependencies
-      run: sudo apt-get update && sudo apt-get install -y lame flac ffmpeg mp3val
-    - name: Run tests
-      run: cargo test -- --include-ignored
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # 7.0.1
+      - name: Install external dependencies
+        run: sudo apt-get update && sudo apt-get install -y lame flac ffmpeg mp3val
+      - name: Run tests
+        run: cargo test -- --include-ignored

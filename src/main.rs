@@ -42,7 +42,7 @@ enum Commands {
         /// Link non-square files to this directory for further processing.
         #[arg(short = 'd', long, global = true, default_value_t = utils::config::default_linkdir())]
         linkdir: Utf8PathBuf,
-        /// Directories to proces
+        /// Directories to process
         #[arg(required = true)]
         directories: Vec<Utf8PathBuf>,
     },
