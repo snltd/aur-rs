@@ -95,6 +95,23 @@ mod test {
     use super::*;
 
     #[test]
+    fn test_format_row_really_long() {
+        assert_eq!(
+            "20  Talking HeadsRadio Head (Feat. Tito Larriv…  True Stories, a Film …",
+            format_row(
+                vec![
+                    "20".to_owned(),
+                    "Talking Heads".to_owned(),
+                    "Radio Head (Feat. Tito Larriva, Esteban 'Steve' Jordan and Los Vampiros)"
+                        .to_owned(),
+                    "True Stories, a Film by David Byrne: The Complete Soundtrack".to_owned(),
+                ],
+                &[2, 11, 30, 20]
+            )
+        );
+    }
+
+    #[test]
     fn test_format_row() {
         assert_eq!(
             "08  of Montreal  Buried with Me                  Horse and Elephant Ea…",
