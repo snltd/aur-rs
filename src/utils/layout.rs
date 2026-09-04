@@ -94,22 +94,22 @@ fn longest_value_in_col(tbl: &[Vec<String>], col: usize) -> usize {
 mod test {
     use super::*;
 
-    // #[test]
-    // fn test_format_row_really_long() {
-    //     assert_eq!(
-    //         "merp",
-    //         format_row(
-    //             vec![
-    //                 "20".to_owned(),
-    //                 "Talking Heads".to_owned(),
-    //                 "Radio Head (Feat. Tito Larriva, Esteban 'Steve' Jordan and Los Vampiros)"
-    //                     .to_owned(),
-    //                 "True Stories, a Film by David Byrne: The Complete Soundtrack".to_owned(),
-    //             ],
-    //             &[2, 11, 30, 20]
-    //         )
-    //     );
-    // }
+    #[test]
+    fn test_format_row_really_long() {
+        assert_eq!(
+            "20  Talking HeadsRadio Head (Feat. Tito Larriv…  True Stories, a Film …",
+            format_row(
+                vec![
+                    "20".to_owned(),
+                    "Talking Heads".to_owned(),
+                    "Radio Head (Feat. Tito Larriva, Esteban 'Steve' Jordan and Los Vampiros)"
+                        .to_owned(),
+                    "True Stories, a Film by David Byrne: The Complete Soundtrack".to_owned(),
+                ],
+                &[2, 11, 30, 20]
+            )
+        );
+    }
 
     #[test]
     fn test_format_row() {
