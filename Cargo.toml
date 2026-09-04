@@ -11,7 +11,7 @@ clap = { version = "4.3", features = ["derive"] }
 clap_complete = "4.6.3"
 colored = "3.0"
 id3 = "1.14"
-imagesize = "0.14.0"
+imagesize = "0.15.0"
 indicatif = "0.18"
 jpeg-decoder = "0.3.2"
 jpeg-encoder = "0.7.0"
