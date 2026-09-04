@@ -7,7 +7,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: Install external dependencies
       run: sudo apt-get update && sudo apt-get install -y lame flac ffmpeg mp3val
     - name: Run tests
