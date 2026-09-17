@@ -875,7 +875,7 @@ checksum = "0c790de23124f9ab44544d7ac05d60440adc586479ce501c1d6d7da3cd8c9cf5"
 [[package]]
 name = "snltest"
 version = "0.1.0"
-source = "git+https://github.com/snltd/snltest.git#88ed38db0441725c13302f9cb5f13d03b7538088"
+source = "git+https://github.com/snltd/snltest.git#5e934ae14c140c0b4ef5122d1528d25666e7e0fd"
 dependencies = [
  "camino",
  "camino-tempfile-ext",
