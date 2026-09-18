@@ -27,7 +27,7 @@ fn tag_file(file: &Utf8Path, opts: &GlobalOpts) -> anyhow::Result<bool> {
     let suggested_track_number = match number_from_filename(&info.filename) {
         Some((_path, num)) => num,
         None => {
-            println!("Could not get number from {}", &info.filename);
+            println!("Could not get number from {}", info.filename);
             return Ok(false);
         }
     };
