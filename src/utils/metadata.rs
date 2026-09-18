@@ -246,14 +246,17 @@ impl AurQuality {
         let file_size = fs::metadata(path).unwrap().len();
         let duration = metadata.duration.as_secs();
 
-        let bitrate = if duration > 0 {
-            file_size * 8 / duration / 1000
-        } else {
-            match metadata.frames.first().map(|f| f.bitrate) {
-                Some(bitrate) => bitrate as u64,
-                None => 0,
-            }
-        };
+        let bitrate = file_size
+            .checked_mul(8)
+            .and_then(|bits| bits.checked_div(duration))
+            .map(|per_sec| per_sec / 1000)
+            .unwrap_or_else(|| {
+                metadata
+                    .frames
+                    .first()
+                    .map(|f| f.bitrate as u64)
+                    .unwrap_or(0)
+            });
 
         Self {
             bit_depth: 16,

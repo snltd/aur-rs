@@ -212,7 +212,7 @@ fn has_correct_filename(metadata: &AurMetadata, opts: &GlobalOpts) -> CheckResul
         if opts.verbose {
             println!(
                 "{} || {}\n Expected : {}\n   Actual : {}",
-                tags.artist, tags.title, expected_filename, &metadata.filename
+                tags.artist, tags.title, expected_filename, metadata.filename
             );
         }
         CheckResult::Bad(LintError::InvalidFilename(metadata.filename.clone()))

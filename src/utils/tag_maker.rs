@@ -47,19 +47,19 @@ impl<'a> TagMaker<'a> {
         }
 
         let album_chunks: Vec<_> = album_dir_name.split('.').collect();
-        let album_name: &str;
+        
 
-        if album_chunks.len() == 2 {
-            album_name = album_chunks[1];
+        let album_name: &str = if album_chunks.len() == 2 {
+            album_chunks[1]
         } else if self.force {
-            album_name = "";
+            ""
         } else {
             return Err(anyhow!(
                 "Expected two parts in album name '{}': got {}. Use -f to force empty album tag",
                 album_dir_name,
                 album_chunks.len()
             ));
-        }
+        };
 
         let ret = TagMakerAllTags {
             artist: self.artist_from(fname_chunks[1]),
