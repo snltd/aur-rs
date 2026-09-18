@@ -45,7 +45,7 @@ jobs:
       - name: Set up cargo-nextest
         uses: taiki-e/install-action@26e9283f268b880168bdbd2c545dfcd60ec2c6ab # v2.87.13
         with:
-          tool: nextest clippy
+          tool: nextest
       - name: Do a Clippy
         run: cargo clippy
       - name: Run Rust Tests
