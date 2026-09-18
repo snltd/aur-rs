@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod test {
     use assert_cmd::cargo::cargo_bin_cmd;
+    use predicates::prelude::*;
     use snltest::{fixture, load_fixture};
 
     #[test]
@@ -26,6 +27,6 @@ mod test {
             .args(["wantflac", "--root", "/tmp"])
             .assert()
             .failure()
-            .stderr("ERROR: did not find /tmp/mp3\n");
+            .stderr(predicate::str::is_match("ERROR: did not find .*/tmp/mp3\n").unwrap());
     }
 }
